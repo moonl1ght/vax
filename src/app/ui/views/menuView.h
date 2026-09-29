@@ -14,9 +14,9 @@ class MenuView final : public View {
         SHOW_PHYSICS_ENGINE_DEMO,
     };
 
-    MenuView(std::unique_ptr<ViewBuilder> viewBuilder, vax::engine::Renderer& renderer)
+    MenuView(ViewBuilder& viewBuilder, vax::engine::Renderer& renderer)
         : View(renderer)
-        , _viewBuilder(std::move(viewBuilder)) {
+        , _viewBuilder(viewBuilder) {
         _statsView = std::make_unique<StatsView>(renderer);
     };
 
@@ -30,7 +30,7 @@ class MenuView final : public View {
     void update(const vax::engine::FrameTime& frameTime) override;
 
   private:
-    std::unique_ptr<ViewBuilder> _viewBuilder;
+    std::reference_wrapper<ViewBuilder> _viewBuilder;
     std::unique_ptr<TrainingView> _trainingView = nullptr;
     std::unique_ptr<StatsView> _statsView = nullptr;
     std::optional<Action> _pendingAction;

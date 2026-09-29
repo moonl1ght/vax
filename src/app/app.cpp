@@ -45,16 +45,13 @@ bool App::_setup() {
 
     _uiEngine = std::make_unique<ui::UIEngine>(*_engine, *_windowController->getWindow(0));
 
-    _physicsDemoMenuView = std::make_unique<ui::PhysicsDemoMenuView>(*_uiEngine);
-    _physicsDemoView = std::make_unique<ui::PhysicsDemoView>(*_uiEngine, *_windowController);
-
     _renderer = std::make_unique<engine::Renderer>(*_engine, *_uiEngine);
     _renderer->setup();
 
+    _viewBuilder =
+        std::make_unique<ui::ViewBuilder>(*_uiEngine, *_windowController, _inputController, *_renderer, *_engine);
     _viewManager = std::make_unique<ui::ViewManager>(*_uiEngine);
-    auto viewBuilder = std::make_unique<ui::ViewBuilder>(*_uiEngine, *_windowController, _inputController, *_renderer, *_engine);
-    auto menuView = std::make_unique<ui::MenuView>(std::move(viewBuilder), *_renderer);
-    _viewManager->setRootView(std::move(menuView));
+    _viewManager->setRootView(_viewBuilder->buildMenuView());
 
     return true;
 }
@@ -67,6 +64,7 @@ void App::_cleanup() {
     _renderer = nullptr;
     _uiEngine = nullptr;
     _viewManager = nullptr;
+    _viewBuilder = nullptr;
 
     _engine->cleanup();
 

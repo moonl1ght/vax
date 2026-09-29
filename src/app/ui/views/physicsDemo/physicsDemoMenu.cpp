@@ -1,9 +1,17 @@
 #include "physicsDemoMenu.h"
+#undef Status
 #include "imgui.h"
+#include "menuView.h"
+#include "viewManager.h"
 
 using namespace vax::ui;
 
-void PhysicsDemoMenuView::updateImGui() {
+void PhysicsDemoMenuView::update(const vax::engine::FrameTime&) {
+    auto action = _popPendingAction();
+    if (action) {
+        _handleAction(action.value());
+    }
+
     ImGuiIO& io = ImGui::GetIO();
     ImGui::SetNextWindowPos(
         ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f)
@@ -23,4 +31,16 @@ void PhysicsDemoMenuView::updateImGui() {
         _pendingAction = Action::GO_TO_MAIN_MENU;
     }
     ImGui::End();
+}
+
+void PhysicsDemoMenuView::_handleAction(Action action) {
+    switch (action) {
+    case Action::GO_TO_MAIN_MENU:
+        if (_viewManager) {
+            _viewManager->setRootView(_viewBuilder.get().buildMenuView());
+        }
+        break;
+    case Action::SHOW_SIMPLE_DEMO:
+        break;
+    }
 }

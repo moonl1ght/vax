@@ -1,7 +1,7 @@
 #include "menuView.h"
-#include "roverView.h"
 #undef Status
 #include "imgui.h"
+#include "physicsDemoMenu.h"
 #include "viewManager.h"
 
 using namespace vax::ui;
@@ -49,16 +49,17 @@ void MenuView::_handleAction(Action action) {
     switch (action) {
     case Action::SHOW_ROVER_DEMO:
         if (_viewManager) {
-            auto roverView = _viewBuilder->buildRoverView();
-            _viewManager->setRootView(std::move(roverView));
+            _viewManager->setRootView(_viewBuilder.get().buildRoverView());
         }
-
         break;
     case Action::TRAIN_Q_LEARNING:
         _trainingView = std::make_unique<TrainingView>(_renderer.get());
         _trainingView->startTraining();
         break;
     case Action::SHOW_PHYSICS_ENGINE_DEMO:
+        if (_viewManager) {
+            _viewManager->setRootView(_viewBuilder.get().buildPhysicsDemoMenuView());
+        }
         break;
     }
 }
