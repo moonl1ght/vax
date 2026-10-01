@@ -131,10 +131,10 @@ void vax::engine::DrawableScene::loadScene(const GridWorldDrawableDescriptor& de
     auto commandBuffer1 = _vkEngine.get().commandManager->createSingleTimeCommandBuffer();
     _modelsController.preload(modelDescriptors, commandBuffer1, submitQueue);
     _sceneGraph->load(_modelsController, descriptor);
-    _gizmo = std::move(_modelsController.createDrawableNodeById("gizmo"));
-    for (auto& drawableModel : _gizmo->drawableModels()) {
-        drawableModel->setSettings({.precomputedMVP = true});
-    }
+    // _gizmo = std::move(_modelsController.createDrawableNodeById("gizmo"));
+    // for (auto& drawableModel : _gizmo->drawableModels()) {
+    //     drawableModel->setSettings({.precomputedMVP = true});
+    // }
     _background = std::move(_modelsController.createDrawableNodeById("background"));
 
     auto commandBuffer = _vkEngine.get().commandManager->createSingleTimeCommandBuffer();
@@ -156,11 +156,11 @@ void vax::engine::DrawableScene::loadScene(const GridWorldDrawableDescriptor& de
 
     auto cameraPos = glm::vec3(1.0f, 5.0f, -3.0f);
     _mainCamera.setPosition(cameraPos);
-    _gizmoCamera.setPosition(cameraPos);
-    _gizmoCamera.setTarget(glm::vec3(0.0f, 0.0f, 0.0f));
-    _gizmoCamera.setViewPortSize(math::SizeUI(256, 256));
-    _gizmoCamera.setProjection(engine::Camera::Projection::orthographic);
-    _gizmoCamera.setViewSize(1.5f);
+    // _gizmoCamera.setPosition(cameraPos);
+    // _gizmoCamera.setTarget(glm::vec3(0.0f, 0.0f, 0.0f));
+    // _gizmoCamera.setViewPortSize(math::SizeUI(256, 256));
+    // _gizmoCamera.setProjection(engine::Camera::Projection::orthographic);
+    // _gizmoCamera.setViewSize(1.5f);
 }
 
 bool vax::engine::DrawableScene::writePerDrawDescriptorSet(vax::vk::DescriptorSetWriter& descriptorWriter) {
@@ -261,17 +261,18 @@ void vax::engine::DrawableScene::draw(const DrawContext& drawContext) {
         drawContext.commandBuffer.vkCommandBuffer, drawContext.pipelineLayout, MainSetIndices::PER_DRAW_SET_INDEX
     );
 
-    auto drawRange = _drawRanges[0];
-    GlobalPushConstants pushConstants{.drawIndexOffset = drawRange.start};
-    vkCmdPushConstants(
-        drawContext.commandBuffer.vkCommandBuffer,
-        drawContext.pipelineLayout,
-        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-        0,
-        sizeof(pushConstants),
-        &pushConstants
-    );
-    _indirectDrawController->drawRange(drawContext.commandBuffer, drawContext.currentFrame, drawRange);
+    if (auto drawRange = _indirectDrawController->drawRange("scene")) {
+        GlobalPushConstants pushConstants{.drawIndexOffset = drawRange->start};
+        vkCmdPushConstants(
+            drawContext.commandBuffer.vkCommandBuffer,
+            drawContext.pipelineLayout,
+            VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+            0,
+            sizeof(pushConstants),
+            &pushConstants
+        );
+        _indirectDrawController->drawRange(drawContext.commandBuffer, drawContext.currentFrame, "scene");
+    }
 }
 
 void vax::engine::DrawableScene::drawBackground(const DrawContext& drawContext) {
@@ -286,49 +287,48 @@ void vax::engine::DrawableScene::drawBackground(const DrawContext& drawContext) 
         0,
         VK_INDEX_TYPE_UINT32
     );
-    auto drawRange = _drawRanges[2];
-    _indirectDrawController->drawRange(drawContext.commandBuffer, drawContext.currentFrame, drawRange);
+    _indirectDrawController->drawRange(drawContext.commandBuffer, drawContext.currentFrame, "background");
 }
 
 void vax::engine::DrawableScene::drawGizmo(const DrawContext& drawContext) {
-    if (!_gizmo)
-        return;
-    VkBuffer vertexBuffers[] = {_resourceManager.meshManager().globalVertexBuffer(0)};
-    VkDeviceSize offsets[] = {0};
-    vkCmdBindVertexBuffers(drawContext.commandBuffer.vkCommandBuffer, 0, 1, vertexBuffers, offsets);
-    vkCmdBindIndexBuffer(
-        drawContext.commandBuffer.vkCommandBuffer,
-        _resourceManager.meshManager().globalIndexBuffer(0),
-        0,
-        VK_INDEX_TYPE_UINT32
-    );
-    auto drawRange = _drawRanges[1];
-    auto perDrawDescriptorSetHandler = _vkEngine.get().descriptorSetManager->getDescriptorSetHandler(
-        CommonDescriptorSetName::PER_DRAW, drawContext.currentFrame
-    );
-    if (!perDrawDescriptorSetHandler.has_value()) {
-        _logger.error("Failed to get per draw descriptor set handler!");
-        return;
-    }
-    // TODO: fix this
-    perDrawDescriptorSetHandler->bind(
-        drawContext.commandBuffer.vkCommandBuffer, drawContext.pipelineLayout, MainSetIndices::PER_DRAW_SET_INDEX
-    );
-    GlobalPushConstants pushConstants{.drawIndexOffset = drawRange.start};
-    vkCmdPushConstants(
-        drawContext.commandBuffer.vkCommandBuffer,
-        drawContext.pipelineLayout,
-        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-        0,
-        sizeof(pushConstants),
-        &pushConstants
-    );
-    _indirectDrawController->drawRange(drawContext.commandBuffer, drawContext.currentFrame, drawRange);
+    // if (!_gizmo)
+    //     return;
+    // VkBuffer vertexBuffers[] = {_resourceManager.meshManager().globalVertexBuffer(0)};
+    // VkDeviceSize offsets[] = {0};
+    // vkCmdBindVertexBuffers(drawContext.commandBuffer.vkCommandBuffer, 0, 1, vertexBuffers, offsets);
+    // vkCmdBindIndexBuffer(
+    //     drawContext.commandBuffer.vkCommandBuffer,
+    //     _resourceManager.meshManager().globalIndexBuffer(0),
+    //     0,
+    //     VK_INDEX_TYPE_UINT32
+    // );
+    // auto drawRange = _drawRanges[1];
+    // auto perDrawDescriptorSetHandler = _vkEngine.get().descriptorSetManager->getDescriptorSetHandler(
+    //     CommonDescriptorSetName::PER_DRAW, drawContext.currentFrame
+    // );
+    // if (!perDrawDescriptorSetHandler.has_value()) {
+    //     _logger.error("Failed to get per draw descriptor set handler!");
+    //     return;
+    // }
+    // // TODO: fix this
+    // perDrawDescriptorSetHandler->bind(
+    //     drawContext.commandBuffer.vkCommandBuffer, drawContext.pipelineLayout, MainSetIndices::PER_DRAW_SET_INDEX
+    // );
+    // GlobalPushConstants pushConstants{.drawIndexOffset = drawRange.start};
+    // vkCmdPushConstants(
+    //     drawContext.commandBuffer.vkCommandBuffer,
+    //     drawContext.pipelineLayout,
+    //     VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+    //     0,
+    //     sizeof(pushConstants),
+    //     &pushConstants
+    // );
+    // _indirectDrawController->drawRange(drawContext.commandBuffer, drawContext.currentFrame, drawRange);
 }
 
 void vax::engine::DrawableScene::onMouseMove(const vax::MouseMoveValue& value) {
     _mainCamera.rotateBy(value.delta);
-    _gizmoCamera.rotateBy(value.delta);
+    // _gizmoCamera.rotateBy(value.delta);
 }
 
 void vax::engine::DrawableScene::onMouseWheel(float delta) { _mainCamera.zoomBy(0.1f * delta); }
@@ -350,30 +350,27 @@ void vax::engine::DrawableScene::_loadEnvironmentMap(VkQueue submitQueue) {
 }
 
 void DrawableScene::beginDrawing(CommandBuffer& commandBuffer, uint32_t frameIndex) {
-    auto viewMatrix = _gizmoCamera.viewMatrix();
-    auto projectionMatrix = _gizmoCamera.projectionMatrix();
-    auto viewProjectionMatrix = projectionMatrix * viewMatrix;
-    _gizmo->updateTransform([&](vax::math::TransformHandle& transformHandle) {
-        transformHandle.setCachedTransformMatrix(viewProjectionMatrix);
-    });
+    // auto viewMatrix = _gizmoCamera.viewMatrix();
+    // auto projectionMatrix = _gizmoCamera.projectionMatrix();
+    // auto viewProjectionMatrix = projectionMatrix * viewMatrix;
+    // _gizmo->updateTransform([&](vax::math::TransformHandle& transformHandle) {
+    //     transformHandle.setCachedTransformMatrix(viewProjectionMatrix);
+    // });
     _indirectDrawController->prepareForDraw(frameIndex);
 
-    auto drawRange = _indirectDrawController->addDrawScope([&]() {
+    _indirectDrawController->addDrawScope("scene", [&]() {
         _sceneGraph->prepareDrawing(_indirectDrawController.get(), frameIndex);
     });
 
-    auto gizmoDrawRange = _indirectDrawController->addDrawScope([&]() {
-        _gizmo->prepareDrawing(_indirectDrawController.get(), frameIndex);
-    });
+    // auto gizmoDrawRange = _indirectDrawController->addDrawScope([&]() {
+    //     _gizmo->prepareDrawing(_indirectDrawController.get(), frameIndex);
+    // });
 
-    auto backgroundDrawRange = _indirectDrawController->addDrawScope([&]() {
+    _indirectDrawController->addDrawScope("background", [&]() {
         _background->prepareDrawing(_indirectDrawController.get(), frameIndex);
     });
 
     _indirectDrawController->submitCommands(frameIndex);
-
-
-    _drawRanges = {drawRange, gizmoDrawRange, backgroundDrawRange};
 }
 
 void DrawableScene::endDrawing(CommandBuffer& commandBuffer, uint32_t frameIndex) {}

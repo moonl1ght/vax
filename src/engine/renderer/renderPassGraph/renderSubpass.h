@@ -33,14 +33,14 @@ class RenderSubpass final {
 
     void run(RenderPassNode::RunPassInfo& runPassInfo, DrawContext& drawContext) {
         if (_drawWork) {
-            auto gizmoPipeline = _pipelineManager.get().getPipeline(_pipelineName);
-            if (!gizmoPipeline)
+            auto pipeline = _pipelineManager.get().getPipeline(_pipelineName);
+            if (!pipeline)
                 return;
-            if (!runPassInfo.commandBuffer.bindPipeline(gizmoPipeline, VK_PIPELINE_BIND_POINT_GRAPHICS))
+            if (!runPassInfo.commandBuffer.bindPipeline(pipeline, VK_PIPELINE_BIND_POINT_GRAPHICS))
                 return;
             DrawContext drawContext{
                 .commandBuffer = runPassInfo.commandBuffer,
-                .pipelineLayout = gizmoPipeline->vkPipelineLayout,
+                .pipelineLayout = pipeline->vkPipelineLayout,
                 .currentFrame = runPassInfo.frameIndex,
             };
             _drawWork(this, runPassInfo, drawContext);

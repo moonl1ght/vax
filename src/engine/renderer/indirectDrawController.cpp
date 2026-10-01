@@ -52,7 +52,8 @@ void IndirectDrawController::draw(CommandBuffer& commandBuffer, uint32_t frameIn
     );
 }
 
-void IndirectDrawController::drawRange(CommandBuffer& commandBuffer, uint32_t frameIndex, DrawRange drawRange) {
+void IndirectDrawController::drawRange(CommandBuffer& commandBuffer, uint32_t frameIndex, const std::string& name) {
+    auto& drawRange = _drawRanges.at(name);
     if (!_submitted[frameIndex]) {
         _logger.error("Commands not submitted");
         return;

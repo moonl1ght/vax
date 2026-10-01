@@ -14,8 +14,6 @@
 #include "luna.h"
 #include "modelLoader.h"
 #include "modelsController.h"
-#include "pipeline.h"
-#include "primitivesBuilder.h"
 #include "renderContext.h"
 #include "resourceManager.h"
 #include "shaderUniforms.h"
@@ -27,34 +25,33 @@ struct GridWorldDrawableDescriptor;
 } // namespace vax::rl
 
 namespace vax::engine {
+struct SceneLoader;
+} // namespace vax::engine
+
+namespace vax::engine {
 struct SceneUpdateContext {
     FrameTime frameTime;
 };
 
 class DrawableScene final : public vax::InputController::Observer {
   public:
-    DrawableScene(vax::vk::Engine& vkEngine)
+    friend class SceneLoader;
+
+    explicit DrawableScene(
+        vax::vk::Engine& vkEngine,
+        std::unique_ptr<vax::vk::ResourceManager> resourceManager,
+        std::unique_ptr<vax::engine::ModelLoader> modelLoader,
+        std::unique_ptr<vax::engine::ModelsController> modelsController,
+        std::unique_ptr<vax::engine::EnvironmentMap> environmentMap
+    )
         : _vkEngine(vkEngine)
-        , _resourceManager(vax::vk::ResourceManager(*vkEngine.device))
-        , _textureLoader(
-              vax::vk::TextureLoader(*vkEngine.device, _resourceManager.textureManager(), *vkEngine.commandManager)
-          )
-        , _modelLoader(vax::engine::ModelLoader(_resourceManager, _textureLoader))
-        , _primitivesBuilder(
-              vax::engine::PrimitivesBuilder(
-                  _resourceManager.meshManager(),
-                  _resourceManager.ssboManager(),
-                  _resourceManager.materialManager(),
-                  *_vkEngine.get().commandManager,
-                  *_vkEngine.get().queueManager
-              )
-          )
-        , _modelsController(_resourceManager, _modelLoader, _primitivesBuilder) {
-        _environmentMap = std::make_optional<vax::engine::EnvironmentMap>(_textureLoader, *vkEngine.device);
+        , _resourceManager(std::move(resourceManager))
+        , _modelLoader(std::move(modelLoader))
+        , _modelsController(std::move(modelsController))
+        , _environmentMap(std::move(environmentMap)) {
     };
 
     ~DrawableScene() {
-        _resourceManager.cleanup();
         if (_inputController) {
             _inputController->removeObserver(this);
         }
@@ -64,8 +61,6 @@ class DrawableScene final : public vax::InputController::Observer {
     DrawableScene& operator=(const DrawableScene& other) = delete;
     DrawableScene(DrawableScene&& other) noexcept = delete;
     DrawableScene& operator=(DrawableScene&& other) noexcept = delete;
-
-    const vax::engine::Camera& gizmoCamera() const { return _gizmoCamera; }
 
     void loadScene(const vax::rl::GridWorldDrawableDescriptor& descriptor, VkQueue submitQueue);
 
@@ -110,28 +105,27 @@ class DrawableScene final : public vax::InputController::Observer {
   private:
     vax::Logger _logger = vax::Logger("DrawableScene");
 
+    std::reference_wrapper<vax::vk::Engine> _vkEngine;
+
     std::unique_ptr<IndirectDrawController> _indirectDrawController;
     std::unique_ptr<vax::rl::GwSceneGraph> _sceneGraph;
+    std::unique_ptr<vax::vk::ResourceManager> _resourceManager;
+    std::unique_ptr<vax::engine::ModelLoader> _modelLoader;
+    std::unique_ptr<vax::engine::ModelsController> _modelsController;
+    std::unique_ptr<vax::engine::EnvironmentMap> _environmentMap;
+
+    std::unique_ptr<vax::engine::Camera> _gizmoCamera;
+    std::unique_ptr<vax::engine::DrawableNode> _gizmoModel;
 
     std::vector<vax::vk::AnyBuffer*> _sceneUniformBuffers;
     std::vector<vax::vk::AnyBuffer*> _roverCameraUniformBuffers;
     std::vector<vax::vk::AnyBuffer*> _lightsUniformBuffer;
-    std::reference_wrapper<vax::vk::Engine> _vkEngine;
-    vax::engine::ModelsController _modelsController;
-    vax::vk::ResourceManager _resourceManager;
-    vax::vk::TextureLoader _textureLoader;
-    vax::engine::ModelLoader _modelLoader;
-    vax::engine::PrimitivesBuilder _primitivesBuilder;
     vax::engine::Camera _mainCamera;
-    vax::engine::Camera _gizmoCamera;
     vax::engine::Light _sunLight;
     UniformBufferObject _ubo;
     UniformBufferObject _sunLightUbo;
     UniformBufferObject _roverCameraUbo;
     std::optional<vax::engine::DrawableNode> _background;
-    std::optional<vax::engine::DrawableNode> _gizmo;
-    std::optional<vax::engine::EnvironmentMap> _environmentMap;
-    std::vector<IndirectDrawController::DrawRange> _drawRanges;
 
     vax::engine::RenderCallContext _renderCallContext;
     vax::engine::SceneUpdateContext _sceneUpdateContext;

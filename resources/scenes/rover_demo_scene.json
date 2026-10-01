@@ -1,0 +1,12 @@
+{
+    "name": "rover_demo_scene",
+    "shouldDrawGizmo": true,
+    "gizmoCamera": {
+        "name": "gizmo_camera",
+        "position": [0.0, 0.0, 0.0],
+        "rotation": [0.0, 0.0, 0.0],
+        "fov": 60.0,
+        "near": 0.1,
+        "far": 1000.0
+    }
+}

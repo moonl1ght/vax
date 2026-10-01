@@ -22,9 +22,9 @@ class ResourceManager final {
     ResourceManager& operator=(const ResourceManager& other) = delete;
     ResourceManager& operator=(ResourceManager&& other) noexcept = delete;
 
-    bool setup(uint32_t maxInstances);
+    ~ResourceManager() { _cleanup(); }
 
-    void cleanup();
+    bool setup(uint32_t maxInstances);
 
     BufferManager& bufferManager() { return _bufferManager; }
 
@@ -44,5 +44,7 @@ class ResourceManager final {
     TextureManager _textureManager;
     MaterialManager _materialManager;
     SSBOManager _ssboManager;
+
+    void _cleanup();
 };
 } // namespace vax::vk

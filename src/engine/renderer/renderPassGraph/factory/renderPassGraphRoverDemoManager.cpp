@@ -100,7 +100,7 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphManager::buildRoverDemoGraph(boo
     gizmoSubpass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = {256, 256}});
     gizmoSubpass->setSwapchainExtent(swapchain->swapchainExtent);
 
-    mainPass->addSubpass(std::move(gizmoSubpass));
+    // mainPass->addSubpass(std::move(gizmoSubpass));
 
     auto jfaPass = std::make_shared<JFAPass>("jfa_pass", _device.get(), _descriptorSetManager.get());
     jfaPass->setup(_renderDestinations.at("main"));

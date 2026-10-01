@@ -2,7 +2,7 @@
 
 using namespace vax::vk;
 
-void ResourceManager::cleanup() {
+void ResourceManager::_cleanup() {
     _bufferManager.fullCleanup();
     _meshManager.fullCleanup();
     _textureManager.fullCleanup();

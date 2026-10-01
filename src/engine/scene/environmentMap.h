@@ -20,14 +20,14 @@ class EnvironmentMap final {
         std::vector<std::pair<TextureType, std::string>> textures;
     };
 
-    EnvironmentMap(vax::vk::TextureLoader& textureLoader, const vax::vk::Device& device)
+    EnvironmentMap(const vax::vk::Device& device)
         : _textureLoader(textureLoader)
         , _device(device) {};
     ~EnvironmentMap() = default;
 
     EnvironmentMap(const EnvironmentMap& other) = delete;
     EnvironmentMap(EnvironmentMap&& other) noexcept
-        : _textureLoader(other._textureLoader)
+        : _textureLoader(std::move(other._textureLoader))
         , _device(other._device)
         , _environmentMapData(other._environmentMapData)
         , _buffer(std::move(other._buffer)) {
@@ -51,9 +51,9 @@ class EnvironmentMap final {
 
   private:
     vax::Logger _logger = vax::Logger("EnvironmentMap");
-    std::reference_wrapper<vax::vk::TextureLoader> _textureLoader;
     std::reference_wrapper<const vax::vk::Device> _device;
     EnvironmentMapData _environmentMapData;
     std::unique_ptr<EnvironmentMapBuffer> _buffer = nullptr;
+    std::unique_ptr<vax::vk::TextureLoader> _textureLoader;
 };
 } // namespace vax::engine
