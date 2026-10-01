@@ -30,9 +30,6 @@ class ModelLoader final {
 
     std::optional<vax::engine::DrawableModel> loadModel(const std::string& path, uint32_t instancesCount = 1);
 
-    void loadStaged(vax::vk::CommandBuffer& commandBuffer);
-    void cleanupStaged();
-
   private:
     vax::Logger _logger = vax::Logger("ModelLoader");
 

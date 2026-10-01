@@ -1,6 +1,6 @@
 #include "texture.h"
 #include "imageUtils.h"
-#include "textureLoader.h"
+#include "textureTaskScheduler.h"
 
 using namespace vax::vk;
 using namespace vax;
@@ -83,4 +83,19 @@ void Texture::createSampler() {
         .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
     };
     _sampler = Sampler::createSampler(_device.get(), _name, samplerInfo);
+}
+
+void Texture::loadStagingBuffer(vax::vk::CommandBuffer& commandBuffer) {
+    if (!_stagingBuffer.has_value()) {
+        return;
+    }
+    auto taskSchedulerInline = TextureTaskSchedulerInline(_device.get(), commandBuffer);
+    taskSchedulerInline.transitionTextureLayout(
+        *this, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT
+    );
+    taskSchedulerInline.copyBufferToTexture(*_stagingBuffer, *this);
+    taskSchedulerInline.transitionTextureLayout(
+        *this, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT
+    );
+    _stagingBuffer.reset();
 }

@@ -1,9 +1,9 @@
 #pragma once
 
 #include "luna.h"
-#include "resourceHandle.h"
 #include "sampler.h"
 #include "vaxMath.h"
+#include "buffer.h"
 
 namespace vax::vk {
 class TextureManager;
@@ -17,8 +17,7 @@ class Texture final {
     friend class vax::vk::TextureFactory;
 
     Texture(const vax::vk::Device& device)
-        : _device(device)
-        {};
+        : _device(device) {};
 
     Texture(
         const vax::vk::Device& device,
@@ -127,19 +126,30 @@ class Texture final {
 
     const Sampler& sampler() const { return _sampler.value(); }
 
+    void setStagingBuffer(Buffer<void> stagingBuffer) { _stagingBuffer = std::move(stagingBuffer); }
+
+    bool hasStagingBuffer() const { return _stagingBuffer.has_value(); }
+
+    void loadStagingBuffer(vax::vk::CommandBuffer& commandBuffer);
+
   private:
     vax::Logger _logger = vax::Logger("Texture");
+
+    std::reference_wrapper<const vax::vk::Device> _device;
+
+    std::string _name;
+    TextureId _id = NullTextureId;
+    bool _isDetached = true;
+
     vax::math::SizeUI _size = vax::math::SizeUI::zero();
     VkFormat _format = VK_FORMAT_UNDEFINED;
     VkImageAspectFlags _aspectMask = VK_IMAGE_ASPECT_NONE;
-    std::string _name;
-    TextureId _id = NullTextureId;
     VkImage _image = VK_NULL_HANDLE;
     VkImageView _imageView = VK_NULL_HANDLE;
     VmaAllocation _allocation = VK_NULL_HANDLE;
-    std::reference_wrapper<const vax::vk::Device> _device;
-    bool _isDetached = true;
+
     std::optional<Sampler> _sampler;
+    std::optional<Buffer<void>> _stagingBuffer = std::nullopt;
 
     void _destroy();
 };
