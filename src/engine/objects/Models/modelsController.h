@@ -1,6 +1,5 @@
 #pragma once
 
-#include "commandBuffer.h"
 #include "drawableModel.h"
 #include "drawableNode.h"
 #include "logger.h"
@@ -20,7 +19,7 @@ class ModelsController {
     )
         : _resourceManager(resourceManager)
         , _maxDrawableInstances(maxDrawableInstances) {
-        _modelLoader = std::make_unique<vax::engine::ModelLoader>(device, resourceManager);
+        _modelLoader = std::make_unique<vax::engine::ModelLoader>(device, resourceManager, *this);
         _primitivesBuilder = std::make_unique<vax::engine::PrimitivesBuilder>(resourceManager);
         _drawableModels.reserve(_maxDrawableInstances);
     };
@@ -45,8 +44,6 @@ class ModelsController {
     std::optional<vax::engine::DrawableNode> createDrawableNodeById(
         const std::string& id, std::vector<vax::math::Transform> transforms = {vax::math::Transform()}
     );
-
-    DrawableModel* getDrawableModelById(const std::string& id);
 
   private:
     struct ModelInfo final {

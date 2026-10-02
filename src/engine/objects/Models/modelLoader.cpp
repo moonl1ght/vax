@@ -431,11 +431,11 @@ ModelLoader::_loadGLBSceneModel(ModelsController& modelsController, ModelDescrip
 }
 
 std::optional<DrawableNode>
-ModelLoader::loadSceneModel(ModelsController& modelsController, const vax::engine::ModelDescriptor& descriptor) {
+ModelLoader::loadSceneModel(const vax::engine::ModelDescriptor& descriptor) {
     if (descriptor.getModelExtension() == vax::engine::ModelDescriptor::ModelExtension::URDF) {
-        return _loadURDFSceneModel(modelsController, descriptor);
+        return _loadURDFSceneModel(_modelsController.get(), descriptor);
     } else if (descriptor.getModelExtension() == vax::engine::ModelDescriptor::ModelExtension::GLB) {
-        return _loadGLBSceneModel(modelsController, descriptor);
+        return _loadGLBSceneModel(_modelsController.get(), descriptor);
     }
     return std::nullopt;
 }

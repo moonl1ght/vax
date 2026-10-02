@@ -7,6 +7,7 @@
 #include "modelDescriptor.h"
 #include "resourceManager.h"
 #include "textureLoader.h"
+#include <functional>
 
 namespace vax::engine {
 class ModelsController;
@@ -15,8 +16,13 @@ class ModelsController;
 namespace vax::engine {
 class ModelLoader final {
   public:
-    explicit ModelLoader(const vax::vk::Device& device, vax::vk::ResourceManager& resourceManager)
-        : _resourceManager(resourceManager) {
+    explicit ModelLoader(
+        const vax::vk::Device& device,
+        vax::vk::ResourceManager& resourceManager,
+        vax::engine::ModelsController& modelsController
+    )
+        : _resourceManager(resourceManager)
+        , _modelsController(modelsController) {
         _textureLoader = std::make_unique<vax::vk::TextureLoader>(device, resourceManager.textureManager());
     };
 
@@ -27,8 +33,7 @@ class ModelLoader final {
     ModelLoader(ModelLoader&& other) noexcept = delete;
     ModelLoader& operator=(ModelLoader&& other) noexcept = delete;
 
-    std::optional<DrawableNode>
-    loadSceneModel(vax::engine::ModelsController& modelsController, const vax::engine::ModelDescriptor& descriptor);
+    std::optional<DrawableNode> loadSceneModel(const vax::engine::ModelDescriptor& descriptor);
 
     std::optional<vax::engine::DrawableModel> loadModel(const std::string& path, uint32_t instancesCount = 1);
 
@@ -36,6 +41,7 @@ class ModelLoader final {
     vax::Logger _logger = vax::Logger("ModelLoader");
 
     std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;
+    std::reference_wrapper<vax::engine::ModelsController> _modelsController;
 
     std::unique_ptr<vax::vk::TextureLoader> _textureLoader;
 

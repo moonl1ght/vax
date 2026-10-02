@@ -27,9 +27,9 @@ void ModelsController::preload(
         bool isURDF = false;
         switch (modelDescriptor.modelType) {
         case vax::engine::ModelDescriptor::ModelType::MODEL: {
-            // TODO: refactor this
+            // TODO: refactor this with ECS adopting
             if (modelDescriptor.getModelExtension() == vax::engine::ModelDescriptor::ModelExtension::URDF) {
-                auto drawableNode = _modelLoader->loadSceneModel(*this, modelDescriptor);
+                auto drawableNode = _modelLoader->loadSceneModel(modelDescriptor);
                 if (drawableNode) {
                     if (modelDescriptor.isIdentifiable) {
                         drawableNode->setNodeId(_lastObjectId);
@@ -175,12 +175,4 @@ ModelsController::_addDrawableModel(std::string id, std::string path, DrawableMo
     _modelMap[id] = modelInfo;
     std::vector<std::pair<uint32_t, uint32_t>> instanceDrawingRanges = {{{_globalInstanceCursor, 1}}};
     return DrawableModelHandle{&_drawableModels.back(), instanceDrawingRanges};
-}
-
-DrawableModel* ModelsController::getDrawableModelById(const std::string& id) {
-    auto itModelInfo = _modelMap.find(id);
-    if (itModelInfo != _modelMap.end()) {
-        return &_drawableModels[itModelInfo->second.modelIndex];
-    }
-    return nullptr;
 }
