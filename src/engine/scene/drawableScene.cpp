@@ -63,105 +63,104 @@ void vax::engine::DrawableScene::resize() {
     _sunLight.camera().setViewPortSize(vax::math::SizeUI(swapchainExtent));
 }
 
-void vax::engine::DrawableScene::loadScene(const GridWorldDrawableDescriptor& descriptor, VkQueue submitQueue) {
-    _resourceManager.setup(_modelsController.maxDrawableInstances());
-    _sceneGraph = std::make_unique<GwSceneGraph>();
-    _loadEnvironmentMap(submitQueue);
-    uint32_t lightCount = 1;
-    VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-    _sceneUniformBuffers.reserve(vax::vk::MAX_FRAMES_IN_FLIGHT);
-    _roverCameraUniformBuffers.reserve(vax::vk::MAX_FRAMES_IN_FLIGHT);
-    _lightsUniformBuffer.reserve(vax::vk::MAX_FRAMES_IN_FLIGHT);
-    for (size_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
-        auto& bufferManager = _resourceManager.bufferManager();
-        auto passUboStride = _vkEngine.get().device->minUniformBufferOffsetAlignment<UniformBufferObject>();
-        auto allocation = bufferManager
-                              .allocateBuffer(
-                                  "frame_uniform_buffer",
-                                  passUboStride * (lightCount + 1),
-                                  VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                                  VMA_MEMORY_USAGE_CPU_TO_GPU,
-                                  VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
-                              )
-                              .value();
-        allocation.second->map();
-        _sceneUniformBuffers.push_back(allocation.second);
-        auto roverCameraAllocation = bufferManager
-                                         .allocateBuffer(
-                                             "rover_camera_uniform_buffer",
-                                             bufferSize,
-                                             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                                             VMA_MEMORY_USAGE_CPU_TO_GPU,
-                                             VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
-                                         )
-                                         .value();
-        roverCameraAllocation.second->map();
-        _roverCameraUniformBuffers.push_back(roverCameraAllocation.second);
-        auto lightAllocation = bufferManager
-                                   .allocateBuffer(
-                                       "light_uniform_buffer",
-                                       sizeof(LightUBO),
-                                       VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                                       VMA_MEMORY_USAGE_CPU_TO_GPU,
-                                       VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
-                                   )
-                                   .value();
-        lightAllocation.second->map();
-        _lightsUniformBuffer.push_back(lightAllocation.second);
-    }
-    _indirectDrawController = std::make_unique<IndirectDrawController>(*_vkEngine.get().device);
-    _indirectDrawController->setup(10000);
+// void vax::engine::DrawableScene::loadScene(const GridWorldDrawableDescriptor& descriptor, VkQueue submitQueue) {
+//     // _resourceManager.setup(_modelsController.maxDrawableInstances());
+//     // _sceneGraph = std::make_unique<GwSceneGraph>();
+//     // _loadEnvironmentMap(submitQueue);
+//     // uint32_t lightCount = 1;
+//     // VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+//     // _sceneUniformBuffers.reserve(vax::vk::MAX_FRAMES_IN_FLIGHT);
+//     // _roverCameraUniformBuffers.reserve(vax::vk::MAX_FRAMES_IN_FLIGHT);
+//     // _lightsUniformBuffer.reserve(vax::vk::MAX_FRAMES_IN_FLIGHT);
+//     // for (size_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
+//     //     auto& bufferManager = _resourceManager.bufferManager();
+//     //     auto passUboStride = _vkEngine.get().device->minUniformBufferOffsetAlignment<UniformBufferObject>();
+//     //     auto allocation = bufferManager
+//     //                           .allocateBuffer(
+//     //                               "frame_uniform_buffer",
+//     //                               passUboStride * (lightCount + 1),
+//     //                               VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+//     //                               VMA_MEMORY_USAGE_CPU_TO_GPU,
+//     //                               VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
+//     //                           )
+//     //                           .value();
+//     //     allocation.second->map();
+//     //     _sceneUniformBuffers.push_back(allocation.second);
+//     //     auto roverCameraAllocation = bufferManager
+//     //                                      .allocateBuffer(
+//     //                                          "rover_camera_uniform_buffer",
+//     //                                          bufferSize,
+//     //                                          VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+//     //                                          VMA_MEMORY_USAGE_CPU_TO_GPU,
+//     //                                          VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
+//     //                                      )
+//     //                                      .value();
+//     //     roverCameraAllocation.second->map();
+//     //     _roverCameraUniformBuffers.push_back(roverCameraAllocation.second);
+//     //     auto lightAllocation = bufferManager
+//     //                                .allocateBuffer(
+//     //                                    "light_uniform_buffer",
+//     //                                    sizeof(LightUBO),
+//     //                                    VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+//     //                                    VMA_MEMORY_USAGE_CPU_TO_GPU,
+//     //                                    VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
+//     //                                )
+//     //                                .value();
+//     //     lightAllocation.second->map();
+//     //     _lightsUniformBuffer.push_back(lightAllocation.second);
+//     // }
+//     // _indirectDrawController->setup(10000);
 
-    std::vector<vax::engine::ModelDescriptor> modelDescriptors = {
-        {
-        .path = "",
-        .id = "background",
-        .modelType = vax::engine::ModelDescriptor::ModelType::PRIMITIVE_PLANE,
-        },
-        {
-        .path = RES_PATH("assets/models/gizmo.glb"),
-        .id = "gizmo",
-        .modelType = vax::engine::ModelDescriptor::ModelType::MODEL,
-        }
-    };
-    for (const auto& drawableDescriptor : descriptor.drawableDescriptors) {
-        modelDescriptors.push_back(drawableDescriptor);
-    }
-    modelDescriptors.push_back(descriptor.agentDrawableDescriptor);
-    auto commandBuffer1 = _vkEngine.get().commandManager->createSingleTimeCommandBuffer();
-    _modelsController.preload(modelDescriptors, commandBuffer1, submitQueue);
-    _sceneGraph->load(_modelsController, descriptor);
-    // _gizmo = std::move(_modelsController.createDrawableNodeById("gizmo"));
-    // for (auto& drawableModel : _gizmo->drawableModels()) {
-    //     drawableModel->setSettings({.precomputedMVP = true});
-    // }
-    _background = std::move(_modelsController.createDrawableNodeById("background"));
+//     // std::vector<vax::engine::ModelDescriptor> modelDescriptors = {
+//     //     {
+//     //     .path = "",
+//     //     .id = "background",
+//     //     .modelType = vax::engine::ModelDescriptor::ModelType::PRIMITIVE_PLANE,
+//     //     },
+//     //     {
+//     //     .path = RES_PATH("assets/models/gizmo.glb"),
+//     //     .id = "gizmo",
+//     //     .modelType = vax::engine::ModelDescriptor::ModelType::MODEL,
+//     //     }
+//     // };
+//     // for (const auto& drawableDescriptor : descriptor.drawableDescriptors) {
+//     //     modelDescriptors.push_back(drawableDescriptor);
+//     // }
+//     // modelDescriptors.push_back(descriptor.agentDrawableDescriptor);
+//     // auto commandBuffer1 = _vkEngine.get().commandManager->createSingleTimeCommandBuffer();
+//     // _modelsController.preload(modelDescriptors, commandBuffer1, submitQueue);
+//     // _sceneGraph->load(scene->_modelsController, descriptor);
+//     // _gizmo = std::move(_modelsController.createDrawableNodeById("gizmo"));
+//     // for (auto& drawableModel : _gizmo->drawableModels()) {
+//     //     drawableModel->setSettings({.precomputedMVP = true});
+//     // }
+//     // _background = std::move(_modelsController.createDrawableNodeById("background"));
 
-    auto commandBuffer = _vkEngine.get().commandManager->createSingleTimeCommandBuffer();
+//     // auto commandBuffer = _vkEngine.get().commandManager->createSingleTimeCommandBuffer();
 
-    commandBuffer.begin();
-    _modelLoader.loadStaged(commandBuffer);
-    commandBuffer.end();
-    commandBuffer.submitAndWait(submitQueue);
-    _modelLoader.cleanupStaged();
+//     // commandBuffer.begin();
+//     // _modelLoader.loadStaged(commandBuffer);
+//     // commandBuffer.end();
+//     // commandBuffer.submitAndWait(submitQueue);
+//     // _modelLoader.cleanupStaged();
 
-    auto sunCamera = Camera();
-    sunCamera.setPosition(glm::vec3(1.0f, 5.0f, 3.0f));
-    auto swapchainExtent = _vkEngine.get().getWindowController().getWindow(0)->getSwapchain()->swapchainExtent;
-    sunCamera.setViewPortSize(vax::math::SizeUI(swapchainExtent));
-    sunCamera.setProjection(Camera::Projection::orthographic);
-    sunCamera.setViewSize(10.0f);
-    _sunLight = Light(sunCamera);
-    _sunLight.setLightUBOIndex(0);
+//     // auto sunCamera = Camera();
+//     // sunCamera.setPosition(glm::vec3(1.0f, 5.0f, 3.0f));
+//     // auto swapchainExtent = _vkEngine.get().getWindowController().getWindow(0)->getSwapchain()->swapchainExtent;
+//     // sunCamera.setViewPortSize(vax::math::SizeUI(swapchainExtent));
+//     // sunCamera.setProjection(Camera::Projection::orthographic);
+//     // sunCamera.setViewSize(10.0f);
+//     // _sunLight = Light(sunCamera);
+//     // _sunLight.setLightUBOIndex(0);
 
-    auto cameraPos = glm::vec3(1.0f, 5.0f, -3.0f);
-    _mainCamera.setPosition(cameraPos);
-    // _gizmoCamera.setPosition(cameraPos);
-    // _gizmoCamera.setTarget(glm::vec3(0.0f, 0.0f, 0.0f));
-    // _gizmoCamera.setViewPortSize(math::SizeUI(256, 256));
-    // _gizmoCamera.setProjection(engine::Camera::Projection::orthographic);
-    // _gizmoCamera.setViewSize(1.5f);
-}
+//     // auto cameraPos = glm::vec3(1.0f, 5.0f, -3.0f);
+//     // _mainCamera.setPosition(cameraPos);
+//     // _gizmoCamera.setPosition(cameraPos);
+//     // _gizmoCamera.setTarget(glm::vec3(0.0f, 0.0f, 0.0f));
+//     // _gizmoCamera.setViewPortSize(math::SizeUI(256, 256));
+//     // _gizmoCamera.setProjection(engine::Camera::Projection::orthographic);
+//     // _gizmoCamera.setViewSize(1.5f);
+// }
 
 bool vax::engine::DrawableScene::writePerDrawDescriptorSet(vax::vk::DescriptorSetWriter& descriptorWriter) {
     _indirectDrawController->writePerDrawDescriptorSet(descriptorWriter, _renderCallContext.currentFrame);
@@ -169,13 +168,13 @@ bool vax::engine::DrawableScene::writePerDrawDescriptorSet(vax::vk::DescriptorSe
 }
 
 bool vax::engine::DrawableScene::writeGlobalDescriptorSet(vax::vk::DescriptorSetWriter& descriptorWriter) {
-    auto globalSampler = _resourceManager.textureManager().getGlobalSampler(GlobalSampler::PBRSampler);
-    auto globalCubeMapSampler = _resourceManager.textureManager().getGlobalSampler(GlobalSampler::CubeMapSampler);
+    auto globalSampler = _resourceManager->textureManager().getGlobalSampler(GlobalSampler::PBRSampler);
+    auto globalCubeMapSampler = _resourceManager->textureManager().getGlobalSampler(GlobalSampler::CubeMapSampler);
     if (!globalSampler.has_value() || !globalCubeMapSampler.has_value()) {
         return false;
     }
     descriptorWriter.writeBuffer(
-        _resourceManager.materialManager().materialBuffer(),
+        _resourceManager->materialManager().materialBuffer(),
         GlobalDescriptorSetResourceIndex::GLOBAL_MATERIAL_BUFFER_INDEX,
         0,
         VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
@@ -190,7 +189,7 @@ bool vax::engine::DrawableScene::writeGlobalDescriptorSet(vax::vk::DescriptorSet
     descriptorWriter.writeSampler(
         *globalCubeMapSampler->second, GlobalDescriptorSetResourceIndex::GLOBAL_SAMPLER_INDEX, 1
     );
-    _resourceManager.textureManager().updateDescriptorWriterWithAllTextures(
+    _resourceManager->textureManager().updateDescriptorWriterWithAllTextures(
         descriptorWriter, GlobalDescriptorSetResourceIndex::GLOBAL_TEXTURE_INDEX
     );
     return true;
@@ -212,7 +211,7 @@ bool vax::engine::DrawableScene::writeFrameDescriptorSet(
         VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
     );
     descriptorWriter.writeBuffer(
-        _resourceManager.ssboManager().instanceBuffer(_renderCallContext.currentFrame),
+        _resourceManager->ssboManager().instanceBuffer(_renderCallContext.currentFrame),
         PerFrameDescriptorSetResourceIndex::FRAME_INSTANCE_BUFFER_INDEX,
         0,
         VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
@@ -231,7 +230,7 @@ bool vax::engine::DrawableScene::writeFrameDescriptorSet(
         VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
     );
     roverCameraDescriptorWriter.writeBuffer(
-        _resourceManager.ssboManager().instanceBuffer(_renderCallContext.currentFrame),
+        _resourceManager->ssboManager().instanceBuffer(_renderCallContext.currentFrame),
         PerFrameDescriptorSetResourceIndex::FRAME_INSTANCE_BUFFER_INDEX,
         0,
         VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
@@ -240,12 +239,12 @@ bool vax::engine::DrawableScene::writeFrameDescriptorSet(
 }
 
 void vax::engine::DrawableScene::draw(const DrawContext& drawContext) {
-    VkBuffer vertexBuffers[] = {_resourceManager.meshManager().globalVertexBuffer(0)};
+    VkBuffer vertexBuffers[] = {_resourceManager->meshManager().globalVertexBuffer(0)};
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(drawContext.commandBuffer.vkCommandBuffer, 0, 1, vertexBuffers, offsets);
     vkCmdBindIndexBuffer(
         drawContext.commandBuffer.vkCommandBuffer,
-        _resourceManager.meshManager().globalIndexBuffer(0),
+        _resourceManager->meshManager().globalIndexBuffer(0),
         0,
         VK_INDEX_TYPE_UINT32
     );
@@ -278,12 +277,12 @@ void vax::engine::DrawableScene::draw(const DrawContext& drawContext) {
 void vax::engine::DrawableScene::drawBackground(const DrawContext& drawContext) {
     if (!_background)
         return;
-    VkBuffer vertexBuffers[] = {_resourceManager.meshManager().globalVertexBuffer(0)};
+    VkBuffer vertexBuffers[] = {_resourceManager->meshManager().globalVertexBuffer(0)};
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(drawContext.commandBuffer.vkCommandBuffer, 0, 1, vertexBuffers, offsets);
     vkCmdBindIndexBuffer(
         drawContext.commandBuffer.vkCommandBuffer,
-        _resourceManager.meshManager().globalIndexBuffer(0),
+        _resourceManager->meshManager().globalIndexBuffer(0),
         0,
         VK_INDEX_TYPE_UINT32
     );
@@ -334,20 +333,6 @@ void vax::engine::DrawableScene::onMouseMove(const vax::MouseMoveValue& value) {
 void vax::engine::DrawableScene::onMouseWheel(float delta) { _mainCamera.zoomBy(0.1f * delta); }
 
 void vax::engine::DrawableScene::onKeyEvent(const vax::KeyEvent& keyEvent) {}
-
-void vax::engine::DrawableScene::_loadEnvironmentMap(VkQueue submitQueue) {
-    _environmentMap->load(
-        {
-        .textures =
-            {
-            {engine::EnvironmentMap::TextureType::BRDFLUT, RES_PATH("brdf/brdfLUT.ktx")},
-            {engine::EnvironmentMap::TextureType::EnvMapIrradiance, RES_PATH("brdf/irradiance.ktx")},
-            {engine::EnvironmentMap::TextureType::EnvMap, RES_PATH("brdf/prefilter.ktx")},
-            },
-        },
-        submitQueue
-    );
-}
 
 void DrawableScene::beginDrawing(CommandBuffer& commandBuffer, uint32_t frameIndex) {
     // auto viewMatrix = _gizmoCamera.viewMatrix();

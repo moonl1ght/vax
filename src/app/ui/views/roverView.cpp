@@ -76,10 +76,11 @@ void RoverView::load(Engine& engine, InputController& inputController) {
     });
     _gridWorld->createRandomGrid();
 
-    auto sceneLoader = vax::engine::SceneLoader();
-    _drawableScene = std::make_unique<vax::engine::DrawableScene>(engine);
+    auto sceneLoader = vax::engine::SceneLoader(engine);
+    _drawableScene =
+        sceneLoader.load(RELATIVE_PATH("assets/scenes/gridWorld.json"), _gridWorld->getDrawableDescriptor());
     _drawableScene->resize();
-    _drawableScene->loadScene(_gridWorld->getDrawableDescriptor(), engine.queueManager->graphicsQueue);
+    // _drawableScene->loadScene(_gridWorld->getDrawableDescriptor(), engine.queueManager->graphicsQueue);
     _gridWorld->linkSceneGraph(_drawableScene->sceneGraph());
     inputController.addObserver(_drawableScene.get());
     inputController.addObserver(_gridWorld.get());
@@ -87,7 +88,7 @@ void RoverView::load(Engine& engine, InputController& inputController) {
 
 void RoverView::_startTraining() {
     _isTrainingRunning = true;
-    _trainingManager = std::make_unique<vax::rl::GWTraini4ngManager>();
+    _trainingManager = std::make_unique<vax::rl::GWTrainingManager>();
     _trainingManager->setInititialGrid(_gridWorld->getGrid());
     _trainingManager->startTraining(_mainThreadRunner, [this](TrainingStatus trainingStatus) {
         _trainingStatus = trainingStatus.message;

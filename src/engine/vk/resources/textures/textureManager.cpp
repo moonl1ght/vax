@@ -123,3 +123,15 @@ std::optional<TextureManager::SamplerResource> TextureManager::getGlobalSampler(
     }
     return std::make_pair(SamplerHandle(index), &_globalSamplers[index]);
 }
+
+void TextureManager::loadAllTextures(vax::vk::CommandBuffer& commandBuffer) {
+    for (auto& [id, texture] : _pool) {
+        texture.loadStagingBuffer(commandBuffer);
+    }
+}
+
+void TextureManager::resetAllTexturesStagingBuffers() {
+    for (auto& [id, texture] : _pool) {
+        texture.resetStagingBuffer();
+    }
+}

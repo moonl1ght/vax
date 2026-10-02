@@ -27,6 +27,10 @@ class TextureTaskSchedulerInline final {
 
     void copyBufferToTexture(vax::vk::AnyBuffer& buffer, Texture& texture);
 
+    void copyBufferToTexture(
+        vax::vk::AnyBuffer& buffer, Texture& texture, const std::vector<VkBufferImageCopy>& copyRegions
+    );
+
   private:
     std::reference_wrapper<const vax::vk::Device> _device;
     std::reference_wrapper<vax::vk::CommandBuffer> _commandBuffer;

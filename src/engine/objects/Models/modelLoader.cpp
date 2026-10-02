@@ -33,13 +33,13 @@ uint32_t loadTexture(aiString& textureName, vax::vk::TextureLoader& textureLoade
             auto data = std::span<unsigned char>(reinterpret_cast<unsigned char*>(textData), size);
             std::string name =
                 std::string(scene->mRootNode->mName.C_Str()) + "_baseColorTexture_" + std::string(textureName.C_Str());
-            auto texture = textureLoader.loadTexture(name, data, nullptr);
+            auto texture = textureLoader.loadTexture(name, data);
             if (texture.has_value()) {
                 return texture->first.id();
             }
             return NO_TEXTURE_FLAG;
         } else {
-            auto texture = textureLoader.loadTexture(textureName.C_Str(), nullptr);
+            auto texture = textureLoader.loadTexture(textureName.C_Str());
             if (texture.has_value()) {
                 return texture->first.id();
             }
@@ -255,7 +255,7 @@ std::optional<DrawableModel> ModelLoader::loadModel(const std::string& path, uin
     std::vector<PBRMaterial> materials;
     materials.reserve(scene->mNumMaterials);
     for (unsigned int i = 0; i < scene->mNumMaterials; i++) {
-        materials.push_back(processMaterial(scene->mMaterials[i], _textureLoader.get(), scene, pbrSamplerId));
+        materials.push_back(processMaterial(scene->mMaterials[i], *_textureLoader, scene, pbrSamplerId));
     }
 
     auto materialIds = _resourceManager.get().materialManager().insertMaterials(materials);

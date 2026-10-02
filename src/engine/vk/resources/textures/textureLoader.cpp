@@ -99,7 +99,7 @@ VkFormat getVkFormatFromGlInternalFormat(uint32_t glInternalFormat) {
 }
 
 std::optional<TextureManager::TextureResource>
-TextureLoader::loadTexture(std::string name, std::span<unsigned char> data, CommandBuffer& commandBuffer) {
+TextureLoader::loadTexture(std::string name, std::span<unsigned char> data) {
     int texWidth, texHeight, texChannels;
     stbi_uc* pixels =
         stbi_load_from_memory(data.data(), data.size(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
@@ -107,13 +107,13 @@ TextureLoader::loadTexture(std::string name, std::span<unsigned char> data, Comm
         _logger.error("Failed to load pixels");
         return std::nullopt;
     }
-    return _loadTexture(name, pixels, &commandBuffer, texWidth, texHeight, texChannels);
+    return _loadTexture(name, pixels, texWidth, texHeight, texChannels);
 }
 
 std::optional<TextureManager::TextureResource>
-TextureLoader::loadTexture(std::string path, CommandBuffer& commandBuffer) {
+TextureLoader::loadTexture(std::string path) {
     if (path.ends_with(".ktx")) {
-        return _loadKTXTexture(path, &commandBuffer);
+        return _loadKTXTexture(path);
     }
     int texWidth, texHeight, texChannels;
     stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
@@ -121,11 +121,11 @@ TextureLoader::loadTexture(std::string path, CommandBuffer& commandBuffer) {
         _logger.error("Failed to load pixels");
         return std::nullopt;
     }
-    return _loadTexture(path, pixels, &commandBuffer, texWidth, texHeight, texChannels);
+    return _loadTexture(path, pixels, texWidth, texHeight, texChannels);
 }
 
 std::optional<TextureManager::TextureResource>
-TextureLoader::_loadKTXTexture(std::string path, CommandBuffer* commandBuffer) {
+TextureLoader::_loadKTXTexture(std::string path) {
     ktxTexture* ktxTex = nullptr;
     ktxResult result = ktxTexture_CreateFromNamedFile(path.c_str(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &ktxTex);
     if (result != KTX_SUCCESS) {
@@ -212,37 +212,12 @@ TextureLoader::_loadKTXTexture(std::string path, CommandBuffer* commandBuffer) {
         return std::nullopt;
     }
 
-    if (commandBuffer != nullptr) {
-        auto taskSchedulerInline = TextureTaskSchedulerInline(_device.get(), *commandBuffer);
-        taskSchedulerInline.transitionTextureLayout(
-            *(texture->second),
-            VK_IMAGE_LAYOUT_UNDEFINED,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            VK_IMAGE_ASPECT_COLOR_BIT
-        );
-        vkCmdCopyBufferToImage(
-            commandBuffer->vkCommandBuffer,
-            stagingBuffer->vkBuffer(),
-            texture->second->image(),
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            static_cast<uint32_t>(copyRegions.size()),
-            copyRegions.data()
-        );
-        taskSchedulerInline.transitionTextureLayout(
-            *(texture->second),
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-            VK_IMAGE_ASPECT_COLOR_BIT
-        );
-        stagingBuffer->cleanup();
-    } else {
-        texture->second->setStagingBuffer(std::move(*stagingBuffer));
-    }
+    texture->second->setStagingBuffer(std::move(*stagingBuffer), std::move(copyRegions));
     return texture;
 }
 
 std::optional<TextureManager::TextureResource> TextureLoader::_loadTexture(
-    std::string name, unsigned char* pixels, CommandBuffer* commandBuffer, int texWidth, int texHeight, int texChannels
+    std::string name, unsigned char* pixels, int texWidth, int texHeight, int texChannels
 ) {
     VkDeviceSize imageSize = texWidth * texHeight * 4;
     auto stagingBuffer = vk::AnyBuffer::allocateAndFillData(
@@ -276,25 +251,6 @@ std::optional<TextureManager::TextureResource> TextureLoader::_loadTexture(
         return std::nullopt;
     }
 
-    if (commandBuffer != nullptr) {
-        auto taskSchedulerInline = TextureTaskSchedulerInline(_device.get(), *commandBuffer);
-        taskSchedulerInline.transitionTextureLayout(
-            *(texture->second),
-            VK_IMAGE_LAYOUT_UNDEFINED,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            VK_IMAGE_ASPECT_COLOR_BIT
-        );
-        taskSchedulerInline.copyBufferToTexture(*stagingBuffer, *(texture->second));
-        taskSchedulerInline.transitionTextureLayout(
-            *(texture->second),
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-            VK_IMAGE_ASPECT_COLOR_BIT
-        );
-
-        stagingBuffer->cleanup();
-    } else {
-        texture->second->setStagingBuffer(std::move(*stagingBuffer));
-    }
+    texture->second->setStagingBuffer(std::move(*stagingBuffer));
     return texture;
 }

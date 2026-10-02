@@ -1,14 +1,11 @@
 #include "primitivesBuilder.h"
-#include "commandManager.h"
-#include "queueManager.h"
-#include "shaderSharedUtils.h"
 
 using namespace vax::engine;
 using namespace vax::vk;
 using namespace vax;
 
 std::optional<DrawableModel> PrimitivesBuilder::createCube(float size, vax::engine::Color color) {
-    auto mesh = _meshManager.get().createEmptyMesh();
+    auto mesh = _resourceManager.get().meshManager().createEmptyMesh();
     if (!mesh)
         return std::nullopt;
     float s = size / 2.0f;
@@ -67,19 +64,19 @@ std::optional<DrawableModel> PrimitivesBuilder::createCube(float size, vax::engi
         .baseColor = color,
     };
     material.baseColorTextureIndex = NO_TEXTURE_FLAG;
-    auto materialIndex = _materialManager.get().insert(material);
+    auto materialIndex = _resourceManager.get().materialManager().insert(material);
     Submesh submesh{
         .indexCount = static_cast<uint32_t>(mesh.value().second->indexCount()),
         .materialIndex = materialIndex,
     };
-    auto drawableModel = vax::engine::DrawableModel(_meshManager.get(), mesh.value().first);
+    auto drawableModel = vax::engine::DrawableModel(_resourceManager.get().meshManager(), mesh.value().first);
     drawableModel._mesh = mesh.value().second;
     drawableModel._submeshes.push_back(submesh);
     return std::optional<DrawableModel>(std::in_place, std::move(drawableModel));
 }
 
 std::optional<DrawableModel> PrimitivesBuilder::createPlane() {
-    auto mesh = _meshManager.get().createEmptyMesh();
+    auto mesh = _resourceManager.get().meshManager().createEmptyMesh();
     if (!mesh)
         return std::nullopt;
     mesh.value().second->setVertices({
@@ -105,7 +102,7 @@ std::optional<DrawableModel> PrimitivesBuilder::createPlane() {
         .indexCount = static_cast<uint32_t>(mesh.value().second->indexCount()),
         .materialIndex = NO_MATERIAL_INDEX,
     };
-    auto drawableModel = vax::engine::DrawableModel(_meshManager.get(), mesh.value().first);
+    auto drawableModel = vax::engine::DrawableModel(_resourceManager.get().meshManager(), mesh.value().first);
     drawableModel._mesh = mesh.value().second;
     drawableModel._submeshes.push_back(submesh);
     drawableModel.setSettings(

@@ -48,6 +48,10 @@ class TextureManager final {
     void
     updateDescriptorWriterWithAllTextures(vax::vk::DescriptorSetWriter& descriptorWriter, uint32_t binding) const;
 
+    void loadAllTextures(vax::vk::CommandBuffer& commandBuffer);
+
+    void resetAllTexturesStagingBuffers();
+
   private:
     vax::Logger _logger = vax::Logger("TextureManager");
 

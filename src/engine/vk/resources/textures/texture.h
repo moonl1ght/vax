@@ -50,7 +50,9 @@ class Texture final {
         , _aspectMask(other._aspectMask)
         , _isDetached(other._isDetached)
         , _id(other._id)
-        , _sampler(std::move(other._sampler)) {
+        , _sampler(std::move(other._sampler))
+        , _stagingBuffer(std::move(other._stagingBuffer))
+        , _stagingCopyRegions(std::move(other._stagingCopyRegions)) {
         other._name.clear();
         other._image = VK_NULL_HANDLE;
         other._allocation = VK_NULL_HANDLE;
@@ -61,6 +63,7 @@ class Texture final {
         other._isDetached = true;
         other._id = NullTextureId;
         other._sampler = std::nullopt;
+        other.resetStagingBuffer();
     }
 
     Texture& operator=(Texture&& other) noexcept {
@@ -77,6 +80,8 @@ class Texture final {
             _isDetached = other._isDetached;
             _id = other._id;
             _sampler = std::move(other._sampler);
+            _stagingBuffer = std::move(other._stagingBuffer);
+            _stagingCopyRegions = std::move(other._stagingCopyRegions);
 
             other._name.clear();
             other._image = VK_NULL_HANDLE;
@@ -88,6 +93,7 @@ class Texture final {
             other._isDetached = true;
             other._id = NullTextureId;
             other._sampler = std::nullopt;
+            other.resetStagingBuffer();
         }
         return *this;
     }
@@ -126,11 +132,19 @@ class Texture final {
 
     const Sampler& sampler() const { return _sampler.value(); }
 
-    void setStagingBuffer(Buffer<void> stagingBuffer) { _stagingBuffer = std::move(stagingBuffer); }
+    void setStagingBuffer(Buffer<void> stagingBuffer, std::vector<VkBufferImageCopy> copyRegions = {}) {
+        _stagingBuffer = std::move(stagingBuffer);
+        _stagingCopyRegions = std::move(copyRegions);
+    }
 
     bool hasStagingBuffer() const { return _stagingBuffer.has_value(); }
 
     void loadStagingBuffer(vax::vk::CommandBuffer& commandBuffer);
+
+    void resetStagingBuffer() {
+        _stagingBuffer = std::nullopt;
+        _stagingCopyRegions.clear();
+    }
 
   private:
     vax::Logger _logger = vax::Logger("Texture");
@@ -150,6 +164,7 @@ class Texture final {
 
     std::optional<Sampler> _sampler;
     std::optional<Buffer<void>> _stagingBuffer = std::nullopt;
+    std::vector<VkBufferImageCopy> _stagingCopyRegions;
 
     void _destroy();
 };

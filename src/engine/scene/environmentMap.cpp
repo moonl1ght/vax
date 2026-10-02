@@ -3,7 +3,7 @@
 using namespace vax::engine;
 using namespace vax;
 
-void EnvironmentMap::load(const Descriptor& descriptor, VkQueue submitQueue) {
+void EnvironmentMap::load(const Descriptor& descriptor) {
     _environmentMapData = EnvironmentMapData{
         .envMapTexture = NO_TEXTURE_FLAG,
         .envMapTextureSampler = static_cast<uint32_t>(vk::GlobalSampler::CubeMapSampler),
@@ -13,7 +13,7 @@ void EnvironmentMap::load(const Descriptor& descriptor, VkQueue submitQueue) {
         .texBRDFLUTSampler = static_cast<uint32_t>(vk::GlobalSampler::CubeMapSampler),
     };
     for (const auto& texture : descriptor.textures) {
-        auto textureResource = _textureLoader.get().loadTexture(texture.second, submitQueue);
+        auto textureResource = _textureLoader->loadTexture(texture.second);
         if (!textureResource.has_value()) {
             _logger.error("Failed to load texture: {}", texture.second);
             continue;

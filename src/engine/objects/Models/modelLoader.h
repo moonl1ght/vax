@@ -1,10 +1,11 @@
 #pragma once
 
+#include "commandBuffer.h"
 #include "drawableModel.h"
+#include "drawableNode.h"
 #include "luna.h"
 #include "modelDescriptor.h"
 #include "resourceManager.h"
-#include "drawableNode.h"
 #include "textureLoader.h"
 
 namespace vax::engine {
@@ -14,9 +15,10 @@ class ModelsController;
 namespace vax::engine {
 class ModelLoader final {
   public:
-    explicit ModelLoader(vax::vk::ResourceManager& resourceManager, vax::vk::TextureLoader& textureLoader)
-        : _resourceManager(resourceManager)
-        , _textureLoader(textureLoader) {};
+    explicit ModelLoader(const vax::vk::Device& device, vax::vk::ResourceManager& resourceManager)
+        : _resourceManager(resourceManager) {
+        _textureLoader = std::make_unique<vax::vk::TextureLoader>(device, resourceManager.textureManager());
+    };
 
     ~ModelLoader() {};
 
@@ -34,10 +36,12 @@ class ModelLoader final {
     vax::Logger _logger = vax::Logger("ModelLoader");
 
     std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;
-    std::reference_wrapper<vax::vk::TextureLoader> _textureLoader;
+
+    std::unique_ptr<vax::vk::TextureLoader> _textureLoader;
 
     std::optional<DrawableNode>
     _loadURDFSceneModel(vax::engine::ModelsController& modelsController, vax::engine::ModelDescriptor descriptor);
+
     std::optional<DrawableNode>
     _loadGLBSceneModel(vax::engine::ModelsController& modelsController, vax::engine::ModelDescriptor descriptor);
 };

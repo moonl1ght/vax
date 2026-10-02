@@ -62,13 +62,19 @@ void TextureTaskSchedulerInline::copyBufferToTexture(vax::vk::AnyBuffer& buffer,
         .imageExtent = {texture.width(), texture.height(), 1}
     };
 
+    copyBufferToTexture(buffer, texture, {region});
+}
+
+void TextureTaskSchedulerInline::copyBufferToTexture(
+    vax::vk::AnyBuffer& buffer, Texture& texture, const std::vector<VkBufferImageCopy>& copyRegions
+) {
     vkCmdCopyBufferToImage(
         _commandBuffer.get().vkCommandBuffer,
         buffer.vkBuffer(),
         texture.image(),
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        1,
-        &region
+        static_cast<uint32_t>(copyRegions.size()),
+        copyRegions.data()
     );
 }
 

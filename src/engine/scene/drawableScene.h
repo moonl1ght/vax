@@ -3,7 +3,6 @@
 #include "camera.h"
 #include "descriptorSetWriter.h"
 #include "drawContext.h"
-#include "drawableModel.h"
 #include "drawableNode.h"
 #include "environmentMap.h"
 #include "frameTime.h"
@@ -17,7 +16,6 @@
 #include "renderContext.h"
 #include "resourceManager.h"
 #include "shaderUniforms.h"
-#include "textureLoader.h"
 #include "vkEngine.h"
 
 namespace vax::rl {
@@ -40,15 +38,15 @@ class DrawableScene final : public vax::InputController::Observer {
     explicit DrawableScene(
         vax::vk::Engine& vkEngine,
         std::unique_ptr<vax::vk::ResourceManager> resourceManager,
-        std::unique_ptr<vax::engine::ModelLoader> modelLoader,
         std::unique_ptr<vax::engine::ModelsController> modelsController,
         std::unique_ptr<vax::engine::EnvironmentMap> environmentMap
     )
         : _vkEngine(vkEngine)
         , _resourceManager(std::move(resourceManager))
-        , _modelLoader(std::move(modelLoader))
         , _modelsController(std::move(modelsController))
         , _environmentMap(std::move(environmentMap)) {
+        _indirectDrawController = std::make_unique<IndirectDrawController>(*_vkEngine.get().device);
+        _sceneGraph = std::make_unique<vax::rl::GwSceneGraph>();
     };
 
     ~DrawableScene() {
@@ -61,8 +59,6 @@ class DrawableScene final : public vax::InputController::Observer {
     DrawableScene& operator=(const DrawableScene& other) = delete;
     DrawableScene(DrawableScene&& other) noexcept = delete;
     DrawableScene& operator=(DrawableScene&& other) noexcept = delete;
-
-    void loadScene(const vax::rl::GridWorldDrawableDescriptor& descriptor, VkQueue submitQueue);
 
     void resize();
 
@@ -110,7 +106,6 @@ class DrawableScene final : public vax::InputController::Observer {
     std::unique_ptr<IndirectDrawController> _indirectDrawController;
     std::unique_ptr<vax::rl::GwSceneGraph> _sceneGraph;
     std::unique_ptr<vax::vk::ResourceManager> _resourceManager;
-    std::unique_ptr<vax::engine::ModelLoader> _modelLoader;
     std::unique_ptr<vax::engine::ModelsController> _modelsController;
     std::unique_ptr<vax::engine::EnvironmentMap> _environmentMap;
 
@@ -120,6 +115,7 @@ class DrawableScene final : public vax::InputController::Observer {
     std::vector<vax::vk::AnyBuffer*> _sceneUniformBuffers;
     std::vector<vax::vk::AnyBuffer*> _roverCameraUniformBuffers;
     std::vector<vax::vk::AnyBuffer*> _lightsUniformBuffer;
+
     vax::engine::Camera _mainCamera;
     vax::engine::Light _sunLight;
     UniformBufferObject _ubo;
@@ -131,7 +127,5 @@ class DrawableScene final : public vax::InputController::Observer {
     vax::engine::SceneUpdateContext _sceneUpdateContext;
 
     bool _shouldDrawSecondaryWindow = false;
-
-    void _loadEnvironmentMap(VkQueue submitQueue);
 };
 } // namespace vax::engine

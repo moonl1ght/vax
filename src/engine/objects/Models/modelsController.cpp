@@ -7,9 +7,7 @@ using namespace vax::vk;
 using namespace vax;
 
 void ModelsController::preload(
-    const std::vector<vax::engine::ModelDescriptor>& modelDescriptors,
-    vax::vk::CommandBuffer& commandBuffer,
-    VkQueue submitQueue
+    const std::vector<vax::engine::ModelDescriptor>& modelDescriptors
 ) {
     uint32_t totalModelsCount = 0;
     _globalInstanceCursor = 0;
@@ -29,8 +27,9 @@ void ModelsController::preload(
         bool isURDF = false;
         switch (modelDescriptor.modelType) {
         case vax::engine::ModelDescriptor::ModelType::MODEL: {
+            // TODO: refactor this
             if (modelDescriptor.getModelExtension() == vax::engine::ModelDescriptor::ModelExtension::URDF) {
-                auto drawableNode = _modelLoader.get().loadSceneModel(*this, modelDescriptor);
+                auto drawableNode = _modelLoader->loadSceneModel(*this, modelDescriptor);
                 if (drawableNode) {
                     if (modelDescriptor.isIdentifiable) {
                         drawableNode->setNodeId(_lastObjectId);
@@ -40,7 +39,8 @@ void ModelsController::preload(
                     isURDF = true;
                 }
             } else {
-                auto model = _modelLoader.get().loadModel(modelDescriptor.path, modelDescriptor.instancesCount);
+                auto model =
+                    _modelLoader->loadModel(modelDescriptor.path, modelDescriptor.instancesCount);
                 if (model) {
                     _drawableModels.push_back(std::move(*model));
                 }
@@ -49,14 +49,14 @@ void ModelsController::preload(
         }
         case vax::engine::ModelDescriptor::ModelType::PRIMITIVE_CUBE: {
             auto primitiveDescriptor = modelDescriptor.primitiveDescriptor;
-            auto primitive = _primitivesBuilder.get().createCube(primitiveDescriptor.size, primitiveDescriptor.color);
+            auto primitive = _primitivesBuilder->createCube(primitiveDescriptor.size, primitiveDescriptor.color);
             if (primitive) {
                 _drawableModels.push_back(std::move(*primitive));
             }
             break;
         }
         case ModelDescriptor::ModelType::PRIMITIVE_PLANE: {
-            auto primitive = _primitivesBuilder.get().createPlane();
+            auto primitive = _primitivesBuilder->createPlane();
             if (primitive) {
                 _drawableModels.push_back(std::move(*primitive));
             }
@@ -141,7 +141,8 @@ ModelsController::createDrawableNodeById(const std::string& id, std::vector<vax:
     return std::nullopt;
 }
 
-std::optional<DrawableNode> ModelsController::getPreloadedDrawableNodeById(const std::string& id, uint32_t instancesCount) {
+std::optional<DrawableNode>
+ModelsController::getPreloadedDrawableNodeById(const std::string& id, uint32_t instancesCount) {
     auto itCachedDrawableNode = _cachedDrawableNodeMap.find(id);
     if (itCachedDrawableNode != _cachedDrawableNodeMap.end()) {
         return std::optional<DrawableNode>(std::in_place, std::move(itCachedDrawableNode->second));
