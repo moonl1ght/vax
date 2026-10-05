@@ -15,21 +15,6 @@ struct DepthStencilState {
     bool stencilTestEnable = false;
 };
 
-// MARK: - PipelineBuilder
-
-class PipelineBuilder {
-  public:
-    explicit PipelineBuilder(const vax::vk::Device& device)
-        : _device(device) {};
-
-    virtual ~PipelineBuilder() = default;
-
-    virtual std::optional<vax::vk::Pipeline> build(vax::vk::PipelineName pipelineName) = 0;
-
-  protected:
-    std::reference_wrapper<const vax::vk::Device> _device;
-};
-
 // MARK: - ComputePipelineBuilder
 
 class ComputePipelineBuilder final {
