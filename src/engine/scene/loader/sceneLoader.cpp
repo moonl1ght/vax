@@ -52,8 +52,16 @@ SceneLoader::_initDrawableScene(ecs::World& world, const vax::rl::GridWorldDrawa
     assetsLibrary->preload(modelDescriptors);
     assetsLibrary->preloadv2(modelDescriptors);
 
-    for (const auto& [id, prefab] : assetsLibrary->getPrefabs()) {
-        PrefabSpawner::spawnPrefab(world, prefab);
+    for (uint32_t typeIndex = 0; typeIndex < descriptor.drawableDescriptors.size(); ++typeIndex) {
+        const auto& blockDescriptor = descriptor.drawableDescriptors[typeIndex];
+        const Prefab* prefab = assetsLibrary->findPrefab(blockDescriptor.id);
+        if (prefab == nullptr) {
+            continue;
+        }
+        for (uint32_t instanceIndex = 0; instanceIndex < blockDescriptor.transforms.size(); ++instanceIndex) {
+            Entity block = PrefabSpawner::spawnPrefab(world, *prefab, blockDescriptor.transforms[instanceIndex]);
+            world.addComponentFor<InstanceComponent>(block, typeIndex, instanceIndex);
+        }
     }
 
     return std::make_unique<DrawableScene>(

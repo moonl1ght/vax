@@ -1,9 +1,9 @@
 #pragma once
 
+#include "modelDescriptor.h"
 #include "modelLoader.h"
 #include "prefab.h"
 #include "resourceManager.h"
-#include "modelDescriptor.h"
 
 namespace vax::engine {
 class PrefabLoader {
@@ -28,5 +28,7 @@ class PrefabLoader {
     std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;
 
     std::optional<std::pair<Prefab, std::vector<DrawableModel>>> _loadURDFPrefab(const ModelDescriptor& descriptor);
+
+    std::optional<std::pair<Prefab, std::vector<DrawableModel>>> _loadGLBPrefab(const ModelDescriptor& descriptor);
 };
 } // namespace vax::engine

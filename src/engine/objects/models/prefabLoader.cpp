@@ -71,8 +71,10 @@ PrefabLoader::loadPrefab(const ModelDescriptor& descriptor) {
     switch (descriptor.getModelExtension()) {
     case ModelDescriptor::ModelExtension::URDF:
         return _loadURDFPrefab(descriptor);
+    case ModelDescriptor::ModelExtension::GLB:
+        return _loadGLBPrefab(descriptor);
     default:
-        _logger.error("Unsupported model type: " + std::to_string(static_cast<int>(descriptor.modelType)));
+        _logger.error("Unsupported model extension: ", descriptor.path);
         return std::nullopt;
     }
     return std::nullopt;
@@ -91,6 +93,24 @@ PrefabLoader::_loadURDFPrefab(const ModelDescriptor& descriptor) {
     Prefab prefab;
     prefab.id = descriptor.id;
     _processURDFLink(_modelLoader, _resourceManager.get(), prefab, models, -1, mainPath, model->getRoot());
+    return std::optional<std::pair<Prefab, std::vector<DrawableModel>>>(
+        std::in_place, std::make_pair(std::move(prefab), std::move(models))
+    );
+}
+
+std::optional<std::pair<Prefab, std::vector<DrawableModel>>>
+PrefabLoader::_loadGLBPrefab(const ModelDescriptor& descriptor) {
+    auto model = _modelLoader.get().loadModel(descriptor.path);
+    if (!model.has_value()) {
+        _logger.error("Failed to load GLB model: " + descriptor.path);
+        return std::nullopt;
+    }
+    std::vector<DrawableModel> models;
+    models.push_back(std::move(*model));
+    Prefab prefab{
+        .id = descriptor.id,
+        .nodes = {{.name = descriptor.id, .model = 0}},
+    };
     return std::optional<std::pair<Prefab, std::vector<DrawableModel>>>(
         std::in_place, std::make_pair(std::move(prefab), std::move(models))
     );

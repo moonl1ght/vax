@@ -43,6 +43,7 @@ struct HighlightComponent final {
 };
 
 struct InstanceComponent final {
+    uint32_t typeIndex = 0;
     uint32_t instanceIndex = 0;
 };
 } // namespace vax::ecs

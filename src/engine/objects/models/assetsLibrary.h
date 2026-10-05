@@ -48,7 +48,15 @@ class AssetsLibrary {
         const std::string& id, std::vector<vax::math::Transform> transforms = {vax::math::Transform()}
     );
 
-    const std::unordered_map<std::string, vax::engine::Prefab>& getPrefabs() const { return _prefabs; }
+    const Prefab* findPrefab(const std::string& id) const {
+        return _prefabs.find(id) != _prefabs.end() ? &_prefabs.at(id) : nullptr;
+    }
+
+    DrawableModel& drawableModel(vax::ecs::DrawableModelId id) { return _drawableModels[id]; }
+
+    size_t drawableModelCount() const { return _drawableModels.size(); }
+
+    uint32_t legacyInstanceCount() const { return _globalInstanceCursor; }
 
   private:
     struct ModelInfo final {
