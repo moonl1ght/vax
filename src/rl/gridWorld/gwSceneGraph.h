@@ -26,7 +26,7 @@ class GwSceneGraph final {
     GwSceneGraph(GwSceneGraph&& other) noexcept = delete;
     GwSceneGraph& operator=(GwSceneGraph&& other) noexcept = delete;
 
-    bool load(vax::engine::ModelsController& modelsController, const vax::rl::GridWorldDrawableDescriptor& descriptor);
+    bool load(vax::engine::AssetsLibrary& modelsController, const vax::rl::GridWorldDrawableDescriptor& descriptor);
 
     void prepareDrawing(engine::IndirectDrawController* indirectDrawController, uint32_t frameIndex);
 

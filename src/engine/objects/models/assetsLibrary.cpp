@@ -6,12 +6,12 @@ using namespace vax::engine;
 using namespace vax::vk;
 using namespace vax;
 
-void ModelsController::preloadv2(const std::vector<vax::engine::ModelDescriptor>& modelDescriptors) {
+void AssetsLibrary::preloadv2(const std::vector<vax::engine::ModelDescriptor>& modelDescriptors) {
     for (const auto& modelDescriptor : modelDescriptors) {
     }
 }
 
-void ModelsController::preload(const std::vector<vax::engine::ModelDescriptor>& modelDescriptors) {
+void AssetsLibrary::preload(const std::vector<vax::engine::ModelDescriptor>& modelDescriptors) {
     uint32_t totalModelsCount = 0;
     _globalInstanceCursor = 0;
     for (const auto& modelDescriptor : modelDescriptors) {
@@ -88,7 +88,7 @@ void ModelsController::preload(const std::vector<vax::engine::ModelDescriptor>& 
     }
 }
 
-std::vector<std::string> ModelsController::getModelIds() const {
+std::vector<std::string> AssetsLibrary::getModelIds() const {
     std::vector<std::string> modelIds;
     modelIds.reserve(_modelMap.size());
     for (const auto& [id, _] : _modelMap) {
@@ -98,7 +98,7 @@ std::vector<std::string> ModelsController::getModelIds() const {
 }
 
 std::optional<DrawableNode>
-ModelsController::createDrawableNodeById(const std::string& id, std::vector<vax::math::Transform> transforms) {
+AssetsLibrary::createDrawableNodeById(const std::string& id, std::vector<vax::math::Transform> transforms) {
     uint32_t instancesCount = transforms.size();
     auto itModelInfo = _modelMap.find(id);
     if (itModelInfo != _modelMap.end()) {
@@ -148,7 +148,7 @@ ModelsController::createDrawableNodeById(const std::string& id, std::vector<vax:
 }
 
 std::optional<DrawableNode>
-ModelsController::getPreloadedDrawableNodeById(const std::string& id, uint32_t instancesCount) {
+AssetsLibrary::getPreloadedDrawableNodeById(const std::string& id, uint32_t instancesCount) {
     auto itCachedDrawableNode = _cachedDrawableNodeMap.find(id);
     if (itCachedDrawableNode != _cachedDrawableNodeMap.end()) {
         return std::optional<DrawableNode>(std::in_place, std::move(itCachedDrawableNode->second));
@@ -157,7 +157,7 @@ ModelsController::getPreloadedDrawableNodeById(const std::string& id, uint32_t i
 }
 
 DrawableModelHandle
-ModelsController::_addDrawableModel(std::string id, std::string path, DrawableModel&& drawableModel) {
+AssetsLibrary::_addDrawableModel(std::string id, std::string path, DrawableModel&& drawableModel) {
     auto itModelInfo = _modelMap.find(id);
     if (itModelInfo != _modelMap.end()) {
         // TODO: handle multiple instances

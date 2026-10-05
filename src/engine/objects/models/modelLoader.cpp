@@ -376,7 +376,7 @@ DrawableNode processURDFLink(
 }
 
 std::optional<DrawableNode>
-ModelLoader::_loadURDFSceneModel(ModelsController& modelsController, ModelDescriptor descriptor) {
+ModelLoader::_loadURDFSceneModel(AssetsLibrary& modelsController, ModelDescriptor descriptor) {
     auto path = descriptor.path;
     auto model = urdf::parseURDFFile(path);
     if (!model) {
@@ -409,7 +409,7 @@ ModelLoader::_loadURDFSceneModel(ModelsController& modelsController, ModelDescri
 }
 
 std::optional<DrawableNode>
-ModelLoader::_loadGLBSceneModel(ModelsController& modelsController, ModelDescriptor descriptor) {
+ModelLoader::_loadGLBSceneModel(AssetsLibrary& modelsController, ModelDescriptor descriptor) {
     auto path = descriptor.path;
     auto model = loadModel(path, 1);
     if (!model.has_value()) {

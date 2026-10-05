@@ -10,7 +10,7 @@
 #include <functional>
 
 namespace vax::engine {
-class ModelsController;
+class AssetsLibrary;
 } // namespace vax::engine
 
 namespace vax::engine {
@@ -19,7 +19,7 @@ class ModelLoader final {
     explicit ModelLoader(
         const vax::vk::Device& device,
         vax::vk::ResourceManager& resourceManager,
-        vax::engine::ModelsController& modelsController
+        vax::engine::AssetsLibrary& modelsController
     )
         : _resourceManager(resourceManager)
         , _modelsController(modelsController) {
@@ -41,14 +41,14 @@ class ModelLoader final {
     vax::Logger _logger = vax::Logger("ModelLoader");
 
     std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;
-    std::reference_wrapper<vax::engine::ModelsController> _modelsController;
+    std::reference_wrapper<vax::engine::AssetsLibrary> _modelsController;
 
     std::unique_ptr<vax::vk::TextureLoader> _textureLoader;
 
     std::optional<DrawableNode>
-    _loadURDFSceneModel(vax::engine::ModelsController& modelsController, vax::engine::ModelDescriptor descriptor);
+    _loadURDFSceneModel(vax::engine::AssetsLibrary& modelsController, vax::engine::ModelDescriptor descriptor);
 
     std::optional<DrawableNode>
-    _loadGLBSceneModel(vax::engine::ModelsController& modelsController, vax::engine::ModelDescriptor descriptor);
+    _loadGLBSceneModel(vax::engine::AssetsLibrary& modelsController, vax::engine::ModelDescriptor descriptor);
 };
 } // namespace vax::engine

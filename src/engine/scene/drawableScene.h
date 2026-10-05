@@ -38,7 +38,7 @@ class DrawableScene final : public vax::InputController::Observer {
     explicit DrawableScene(
         vax::vk::Engine& vkEngine,
         std::unique_ptr<vax::vk::ResourceManager> resourceManager,
-        std::unique_ptr<vax::engine::ModelsController> modelsController,
+        std::unique_ptr<vax::engine::AssetsLibrary> modelsController,
         std::unique_ptr<vax::engine::EnvironmentMap> environmentMap
     )
         : _vkEngine(vkEngine)
@@ -106,7 +106,7 @@ class DrawableScene final : public vax::InputController::Observer {
     std::unique_ptr<IndirectDrawController> _indirectDrawController;
     std::unique_ptr<vax::rl::GwSceneGraph> _sceneGraph;
     std::unique_ptr<vax::vk::ResourceManager> _resourceManager;
-    std::unique_ptr<vax::engine::ModelsController> _modelsController;
+    std::unique_ptr<vax::engine::AssetsLibrary> _modelsController;
     std::unique_ptr<vax::engine::EnvironmentMap> _environmentMap;
 
     std::unique_ptr<vax::engine::Camera> _gizmoCamera;

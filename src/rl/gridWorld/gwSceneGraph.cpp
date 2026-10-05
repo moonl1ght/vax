@@ -9,7 +9,7 @@ using namespace vax::rl;
 using namespace vax::engine;
 
 bool GwSceneGraph::load(
-    engine::ModelsController& modelsController, const vax::rl::GridWorldDrawableDescriptor& descriptor
+    engine::AssetsLibrary& modelsController, const vax::rl::GridWorldDrawableDescriptor& descriptor
 ) {
     auto agentNode = modelsController.getPreloadedDrawableNodeById(descriptor.agentDrawableDescriptor.id, 1);
     if (!agentNode.has_value()) {

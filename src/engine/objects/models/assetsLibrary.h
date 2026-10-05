@@ -8,14 +8,13 @@
 #include "prefabLoader.h"
 #include "primitivesBuilder.h"
 #include "resourceManager.h"
-#include "vkUtils.h"
 
 namespace vax::engine {
-class ModelsController {
+class AssetsLibrary {
   public:
     friend class ModelLoader;
 
-    explicit ModelsController(
+    explicit AssetsLibrary(
         const vax::vk::Device& device, uint32_t maxDrawableInstances, vax::vk::ResourceManager& resourceManager
     )
         : _resourceManager(resourceManager)
@@ -26,12 +25,12 @@ class ModelsController {
         _drawableModels.reserve(_maxDrawableInstances);
     };
 
-    ~ModelsController() {};
+    ~AssetsLibrary() {};
 
-    ModelsController(const ModelsController& other) = delete;
-    ModelsController& operator=(const ModelsController& other) = delete;
-    ModelsController(ModelsController&& other) noexcept = delete;
-    ModelsController& operator=(ModelsController&& other) noexcept = delete;
+    AssetsLibrary(const AssetsLibrary& other) = delete;
+    AssetsLibrary& operator=(const AssetsLibrary& other) = delete;
+    AssetsLibrary(AssetsLibrary&& other) noexcept = delete;
+    AssetsLibrary& operator=(AssetsLibrary&& other) noexcept = delete;
 
     void preload(const std::vector<vax::engine::ModelDescriptor>& modelDescriptors);
 
@@ -64,7 +63,7 @@ class ModelsController {
         bool isIdentifiable = true;
     };
 
-    vax::Logger _logger = vax::Logger("ModelsController");
+    vax::Logger _logger = vax::Logger("AssetsLibrary");
     const uint32_t _maxDrawableInstances;
 
     std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;

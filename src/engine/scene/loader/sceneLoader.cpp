@@ -18,7 +18,7 @@ std::unique_ptr<DrawableScene> SceneLoader::_initScene() {
     resourceManager->setup(maxDrawableInstances);
     auto environmentMap = std::make_unique<EnvironmentMap>(*_vkEngine.get().device, *resourceManager);
     auto modelsController =
-        std::make_unique<ModelsController>(*_vkEngine.get().device, maxDrawableInstances, *resourceManager);
+        std::make_unique<AssetsLibrary>(*_vkEngine.get().device, maxDrawableInstances, *resourceManager);
 
     return std::make_unique<DrawableScene>(
         _vkEngine.get(), std::move(resourceManager), std::move(modelsController), std::move(environmentMap)
