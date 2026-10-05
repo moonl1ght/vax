@@ -49,7 +49,7 @@ void GridWorld::createRandomGrid() {
     int gridDimX = 6;
     int gridDimY = 6;
     _grid = Tensor::createZeros({gridDimX, gridDimY});
-    _sceneGraphPositions.reserve(_grid.totalSize());
+    _drawableWorldPositions.reserve(_grid.totalSize());
     std::vector<int> emptyIndices;
     emptyIndices.reserve(_grid.totalSize());
     for (int i = 0; i < _grid.totalSize(); ++i) {
@@ -57,7 +57,7 @@ void GridWorld::createRandomGrid() {
         auto padding = 1.0f;
         auto offset = 5.0f / 2.0f - 0.5f;
         Position2DFloat position = {indices[0] * padding - offset * padding, indices[1] * padding - offset * padding};
-        _sceneGraphPositions.push_back(position);
+        _drawableWorldPositions.push_back(position);
         if (isBorderIndex(indices, _grid.shape())) {
             _grid.set(indices, static_cast<float>(BlockType::WALL));
         } else {
@@ -84,8 +84,8 @@ void GridWorld::createRandomGrid() {
     _grid.set(finishPosition, static_cast<float>(BlockType::FINISH));
 }
 
-void GridWorld::linkSceneGraph(GwSceneGraph* sceneGraph) {
-    _sceneGraph = sceneGraph;
+void GridWorld::linkDrawableWorld(GWDrawableWorld* drawableWorld) {
+    _drawableWorld = drawableWorld;
     _updateAgentPosition();
 }
 
@@ -98,7 +98,7 @@ GridWorldDrawableDescriptor GridWorld::getDrawableDescriptor() const {
         BlockType blockType = static_cast<BlockType>(block);
         auto blockTypeString = blockTypeToPath(blockType);
         Transform transform = Transform();
-        transform.position = {_sceneGraphPositions[flatIndex].x, 0.0f, _sceneGraphPositions[flatIndex].y};
+        transform.position = {_drawableWorldPositions[flatIndex].x, 0.0f, _drawableWorldPositions[flatIndex].y};
         if (blockType == BlockType::WALL) {
             transform.position.y = 0.5f;
         }
@@ -194,7 +194,7 @@ void GridWorld::onKeyEvent(const KeyEvent& keyEvent) {
     default:
         return;
     }
-    if (_sceneGraph->isMovingAgent()) {
+    if (_drawableWorld->isMovingAgent()) {
         return;
     }
     _agent.moveByOutsideAction(action);
@@ -205,8 +205,8 @@ void GridWorld::agentMoved() {
         return;
     }
     auto newPosition = std::vector<int>({_agent.getPosition().x, _agent.getPosition().y});
-    auto sceneGraphPosition = _sceneGraphPositions[_grid.flatIndex(newPosition)];
-    _sceneGraph->moveAgentTo(sceneGraphPosition, _agent.getOrientation(), true, _moveSpeed, _rotationSpeed);
+    auto sceneGraphPosition = _drawableWorldPositions[_grid.flatIndex(newPosition)];
+    _drawableWorld->moveAgentTo(sceneGraphPosition, _agent.getOrientation(), true, _moveSpeed, _rotationSpeed);
 }
 
 const Tensor& GridWorld::getGrid() const { return _grid; }
@@ -317,24 +317,24 @@ void GridWorld::setFsLogger(std::shared_ptr<vax::FsLogger> fsLogger) {
 void GridWorld::_updateAgentPosition() {
     auto position = _agent.getPosition();
     auto flatIndex = _grid.flatIndex({position.x, position.y});
-    auto sceneGraphPosition = _sceneGraphPositions[flatIndex];
-    if (_sceneGraph != nullptr) {
-        _sceneGraph->moveAgentTo(sceneGraphPosition, _agent.getOrientation(), false);
+    auto sceneGraphPosition = _drawableWorldPositions[flatIndex];
+    if (_drawableWorld != nullptr) {
+        _drawableWorld->moveAgentTo(sceneGraphPosition, _agent.getOrientation(), false);
     }
 }
 
 void GridWorld::_updateGridInstancesHighlight() {
     auto blockTypeString = blockTypeToPath(BlockType::FLOOR);
-    _sceneGraph->resetInstancesHighlight(blockTypeString);
+    _drawableWorld->resetInstancesHighlight(blockTypeString);
     uint32_t instanceIndex = 0;
     for (auto& block : _grid) {
         auto blockType = static_cast<BlockType>(block);
         auto blockTypeString = blockTypeToPath(blockType);
         if (blockType == BlockType::FLOOR || blockType == BlockType::START || blockType == BlockType::FINISH) {
             if (blockType == BlockType::START) {
-                _sceneGraph->highlightInstance(blockTypeString, instanceIndex, engine::ColorPalette::Blue);
+                _drawableWorld->highlightInstance(blockTypeString, instanceIndex, engine::ColorPalette::Blue);
             } else if (blockType == BlockType::FINISH) {
-                _sceneGraph->highlightInstance(blockTypeString, instanceIndex, engine::ColorPalette::Green);
+                _drawableWorld->highlightInstance(blockTypeString, instanceIndex, engine::ColorPalette::Green);
             }
             ++instanceIndex;
         }
@@ -342,7 +342,7 @@ void GridWorld::_updateGridInstancesHighlight() {
 }
 
 void GridWorld::startDemo(std::function<void()> onDone) {
-    _sceneGraph->setOnAllAnimationsCompleted(onDone);
+    _drawableWorld->setOnAllAnimationsCompleted(onDone);
     int iteration = 0;
     while (true) {
         auto state = _agent.getPosition();
@@ -372,10 +372,10 @@ void GridWorld::changeAgentStartPosition() {
         }
         auto blockType = static_cast<BlockType>(blockValue.value());
         if (blockType == BlockType::FLOOR || blockType == BlockType::START) {
-            auto sceneGraphPosition = _sceneGraphPositions[_grid.flatIndex(gridIndices)];
+            auto sceneGraphPosition = _drawableWorldPositions[_grid.flatIndex(gridIndices)];
             _agent.setStartPosition(gridIndices[0], gridIndices[1]);
             _grid.set(gridIndices, static_cast<float>(BlockType::START));
-            _sceneGraph->moveAgentTo(sceneGraphPosition, _agent.getOrientation(), false);
+            _drawableWorld->moveAgentTo(sceneGraphPosition, _agent.getOrientation(), false);
             break;
         }
     }

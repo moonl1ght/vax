@@ -12,21 +12,21 @@
 #include "modelLoader.h"
 #include "assetsLibrary.h"
 #include "vaxMath.h"
+#include "drawableWorld.h"
 
 namespace vax::rl {
-// TODO: move to generic scene graph
-class GwSceneGraph final {
+class GWDrawableWorld final : public vax::engine::DrawableWorld {
   public:
-    GwSceneGraph() {};
+    GWDrawableWorld(vax::ecs::World& world) : vax::engine::DrawableWorld(world) {};
 
-    ~GwSceneGraph() = default;
+    ~GWDrawableWorld() = default;
 
-    GwSceneGraph(const GwSceneGraph& other) = delete;
-    GwSceneGraph& operator=(const GwSceneGraph& other) = delete;
-    GwSceneGraph(GwSceneGraph&& other) noexcept = delete;
-    GwSceneGraph& operator=(GwSceneGraph&& other) noexcept = delete;
+    GWDrawableWorld(const GWDrawableWorld& other) = delete;
+    GWDrawableWorld& operator=(const GWDrawableWorld& other) = delete;
+    GWDrawableWorld(GWDrawableWorld&& other) noexcept = delete;
+    GWDrawableWorld& operator=(GWDrawableWorld&& other) noexcept = delete;
 
-    bool load(vax::engine::AssetsLibrary& modelsController, const vax::rl::GridWorldDrawableDescriptor& descriptor);
+    bool load(vax::engine::AssetsLibrary& assetsLibrary, const vax::rl::GridWorldDrawableDescriptor& descriptor);
 
     void prepareDrawing(engine::IndirectDrawController* indirectDrawController, uint32_t frameIndex);
 
@@ -53,7 +53,8 @@ class GwSceneGraph final {
     vax::engine::Camera& roverCamera() { return _gwAgentNode->camera(); }
 
   private:
-    vax::Logger _logger = vax::Logger("GwSceneGraph");
+    vax::Logger _logger = vax::Logger("GWDrawableWorld");
+
     std::vector<vax::engine::DrawableNode> _envNodes;
     std::unique_ptr<vax::rl::GWAgentNode> _gwAgentNode;
     std::optional<vax::AnimationGroup> _animations;

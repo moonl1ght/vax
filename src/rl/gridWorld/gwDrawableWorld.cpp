@@ -1,4 +1,4 @@
-#include "gwSceneGraph.h"
+#include "gwDrawableWorld.h"
 #include "colorPalette.h"
 #include "gridWorldDescriptor.h"
 #include "modelDescriptor.h"
@@ -8,10 +8,10 @@ using namespace vax::math;
 using namespace vax::rl;
 using namespace vax::engine;
 
-bool GwSceneGraph::load(
-    engine::AssetsLibrary& modelsController, const vax::rl::GridWorldDrawableDescriptor& descriptor
+bool GWDrawableWorld::load(
+    engine::AssetsLibrary& assetsLibrary, const vax::rl::GridWorldDrawableDescriptor& descriptor
 ) {
-    auto agentNode = modelsController.getPreloadedDrawableNodeById(descriptor.agentDrawableDescriptor.id, 1);
+    auto agentNode = assetsLibrary.getPreloadedDrawableNodeById(descriptor.agentDrawableDescriptor.id, 1);
     if (!agentNode.has_value()) {
         _logger.error("Failed to load agent model: {}", descriptor.agentDrawableDescriptor.id);
         return false;
@@ -29,7 +29,7 @@ bool GwSceneGraph::load(
 
     _envNodes.reserve(descriptor.drawableDescriptors.size());
     for (const auto& drawableDescriptor : descriptor.drawableDescriptors) {
-        auto node = modelsController.createDrawableNodeById(drawableDescriptor.id, drawableDescriptor.transforms);
+        auto node = assetsLibrary.createDrawableNodeById(drawableDescriptor.id, drawableDescriptor.transforms);
         for (auto& selectedInstanceInfo : drawableDescriptor.selectedInstanceInfos) {
             node->selectInstance(selectedInstanceInfo.instanceIndex);
             node->setSelectionColor(selectedInstanceInfo.instanceIndex, selectedInstanceInfo.color);
@@ -44,7 +44,7 @@ bool GwSceneGraph::load(
     return true;
 }
 
-void GwSceneGraph::prepareDrawing(engine::IndirectDrawController* indirectDrawController, uint32_t frameIndex) {
+void GWDrawableWorld::prepareDrawing(engine::IndirectDrawController* indirectDrawController, uint32_t frameIndex) {
     if (_gwAgentNode) {
         _gwAgentNode->agentNode().prepareDrawing(indirectDrawController, frameIndex);
     } else {
@@ -55,7 +55,7 @@ void GwSceneGraph::prepareDrawing(engine::IndirectDrawController* indirectDrawCo
     }
 }
 
-void GwSceneGraph::update(const engine::FrameTime& frameTime) {
+void GWDrawableWorld::update(const engine::FrameTime& frameTime) {
     if (_animations.has_value()) {
         auto isCompleted = _animations->update(frameTime);
         if (_gwAgentNode) {
@@ -73,9 +73,9 @@ void GwSceneGraph::update(const engine::FrameTime& frameTime) {
     }
 }
 
-bool GwSceneGraph::isMovingAgent() const { return _animations.has_value(); }
+bool GWDrawableWorld::isMovingAgent() const { return _animations.has_value(); }
 
-void GwSceneGraph::moveAgentTo(
+void GWDrawableWorld::moveAgentTo(
     Position2DFloat position, AgentOrientation orientation, bool withAnimation, float moveSpeed, float rotationSpeed
 ) {
     if (_gwAgentNode) {
@@ -184,7 +184,7 @@ void GwSceneGraph::moveAgentTo(
     }
 }
 
-void GwSceneGraph::resetInstancesHighlight(std::string instanceId) {
+void GWDrawableWorld::resetInstancesHighlight(std::string instanceId) {
     for (auto& node : _envNodes) {
         if (node.name() == instanceId) {
             node.unselectAllInstances();
@@ -192,7 +192,7 @@ void GwSceneGraph::resetInstancesHighlight(std::string instanceId) {
     }
 }
 
-void GwSceneGraph::highlightInstance(std::string instanceId, uint32_t instanceIndex, vax::engine::Color color) {
+void GWDrawableWorld::highlightInstance(std::string instanceId, uint32_t instanceIndex, vax::engine::Color color) {
     for (auto& node : _envNodes) {
         if (node.name() == instanceId) {
             node.selectInstance(instanceIndex);
@@ -201,6 +201,6 @@ void GwSceneGraph::highlightInstance(std::string instanceId, uint32_t instanceIn
     }
 }
 
-void GwSceneGraph::setOnAllAnimationsCompleted(std::function<void()> onAllAnimationsCompleted) {
+void GWDrawableWorld::setOnAllAnimationsCompleted(std::function<void()> onAllAnimationsCompleted) {
     _onAllAnimationsCompleted = onAllAnimationsCompleted;
 }

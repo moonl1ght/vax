@@ -376,7 +376,7 @@ DrawableNode processURDFLink(
 }
 
 std::optional<DrawableNode>
-ModelLoader::_loadURDFSceneModel(AssetsLibrary& modelsController, ModelDescriptor descriptor) {
+ModelLoader::_loadURDFSceneModel(AssetsLibrary& assetsLibrary, ModelDescriptor descriptor) {
     auto path = descriptor.path;
     auto model = urdf::parseURDFFile(path);
     if (!model) {
@@ -396,7 +396,7 @@ ModelLoader::_loadURDFSceneModel(AssetsLibrary& modelsController, ModelDescripto
             }
             static UUIDv4::UUIDGenerator<std::mt19937_64> uuidGen;
             auto drawableModelHandle =
-                modelsController._addDrawableModel(uuidGen.getUUID().str(), path, std::move(*model));
+                assetsLibrary._addDrawableModel(uuidGen.getUUID().str(), std::move(*model));
             return std::optional<DrawableModelHandle>(std::in_place, std::move(drawableModelHandle));
         }
     );
@@ -409,7 +409,7 @@ ModelLoader::_loadURDFSceneModel(AssetsLibrary& modelsController, ModelDescripto
 }
 
 std::optional<DrawableNode>
-ModelLoader::_loadGLBSceneModel(AssetsLibrary& modelsController, ModelDescriptor descriptor) {
+ModelLoader::_loadGLBSceneModel(AssetsLibrary& assetsLibrary, ModelDescriptor descriptor) {
     auto path = descriptor.path;
     auto model = loadModel(path, 1);
     if (!model.has_value()) {
@@ -425,7 +425,7 @@ ModelLoader::_loadGLBSceneModel(AssetsLibrary& modelsController, ModelDescriptor
         true
     );
     static UUIDv4::UUIDGenerator<std::mt19937_64> uuidGen;
-    auto drawableModel = modelsController._addDrawableModel(uuidGen.getUUID().str(), path, std::move(*model));
+    auto drawableModel = assetsLibrary._addDrawableModel(uuidGen.getUUID().str(), std::move(*model));
     node.addDrawableModel(drawableModel);
     return std::optional<DrawableNode>(std::in_place, std::move(node));
 }
@@ -433,9 +433,9 @@ ModelLoader::_loadGLBSceneModel(AssetsLibrary& modelsController, ModelDescriptor
 std::optional<DrawableNode>
 ModelLoader::loadSceneModel(const vax::engine::ModelDescriptor& descriptor) {
     if (descriptor.getModelExtension() == vax::engine::ModelDescriptor::ModelExtension::URDF) {
-        return _loadURDFSceneModel(_modelsController.get(), descriptor);
+        return _loadURDFSceneModel(_assetsLibrary.get(), descriptor);
     } else if (descriptor.getModelExtension() == vax::engine::ModelDescriptor::ModelExtension::GLB) {
-        return _loadGLBSceneModel(_modelsController.get(), descriptor);
+        return _loadGLBSceneModel(_assetsLibrary.get(), descriptor);
     }
     return std::nullopt;
 }

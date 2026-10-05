@@ -5,6 +5,7 @@
 #include "logger.h"
 #include "modelDescriptor.h"
 #include "modelLoader.h"
+#include "prefab.h"
 #include "prefabLoader.h"
 #include "primitivesBuilder.h"
 #include "resourceManager.h"
@@ -47,6 +48,8 @@ class AssetsLibrary {
         const std::string& id, std::vector<vax::math::Transform> transforms = {vax::math::Transform()}
     );
 
+    const std::unordered_map<std::string, vax::engine::Prefab>& getPrefabs() const { return _prefabs; }
+
   private:
     struct ModelInfo final {
         struct SSBOChunkInfo final {
@@ -72,6 +75,8 @@ class AssetsLibrary {
     std::unique_ptr<vax::engine::PrimitivesBuilder> _primitivesBuilder;
     std::unique_ptr<vax::engine::PrefabLoader> _prefabLoader;
 
+    std::unordered_map<std::string, vax::engine::Prefab> _prefabs;
+
     std::unordered_map<std::string, vax::engine::DrawableNode> _cachedDrawableNodeMap;
 
     std::unordered_map<std::string, ModelInfo> _modelMap;
@@ -80,6 +85,6 @@ class AssetsLibrary {
     uint32_t _globalInstanceCursor = 0;
     uint32_t _lastObjectId = 1;
 
-    DrawableModelHandle _addDrawableModel(std::string id, std::string path, vax::engine::DrawableModel&& drawableModel);
+    DrawableModelHandle _addDrawableModel(std::string id, vax::engine::DrawableModel&& drawableModel);
 };
 } // namespace vax::engine

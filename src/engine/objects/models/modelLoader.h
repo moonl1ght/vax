@@ -19,10 +19,10 @@ class ModelLoader final {
     explicit ModelLoader(
         const vax::vk::Device& device,
         vax::vk::ResourceManager& resourceManager,
-        vax::engine::AssetsLibrary& modelsController
+        vax::engine::AssetsLibrary& assetsLibrary
     )
         : _resourceManager(resourceManager)
-        , _modelsController(modelsController) {
+        , _assetsLibrary(assetsLibrary) {
         _textureLoader = std::make_unique<vax::vk::TextureLoader>(device, resourceManager.textureManager());
     };
 
@@ -41,14 +41,14 @@ class ModelLoader final {
     vax::Logger _logger = vax::Logger("ModelLoader");
 
     std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;
-    std::reference_wrapper<vax::engine::AssetsLibrary> _modelsController;
+    std::reference_wrapper<vax::engine::AssetsLibrary> _assetsLibrary;
 
     std::unique_ptr<vax::vk::TextureLoader> _textureLoader;
 
     std::optional<DrawableNode>
-    _loadURDFSceneModel(vax::engine::AssetsLibrary& modelsController, vax::engine::ModelDescriptor descriptor);
+    _loadURDFSceneModel(vax::engine::AssetsLibrary& assetsLibrary, vax::engine::ModelDescriptor descriptor);
 
     std::optional<DrawableNode>
-    _loadGLBSceneModel(vax::engine::AssetsLibrary& modelsController, vax::engine::ModelDescriptor descriptor);
+    _loadGLBSceneModel(vax::engine::AssetsLibrary& assetsLibrary, vax::engine::ModelDescriptor descriptor);
 };
 } // namespace vax::engine

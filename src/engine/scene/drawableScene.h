@@ -1,22 +1,23 @@
 #pragma once
 
+#include "assetsLibrary.h"
 #include "camera.h"
 #include "descriptorSetWriter.h"
 #include "drawContext.h"
 #include "drawableNode.h"
 #include "environmentMap.h"
 #include "frameTime.h"
-#include "gwSceneGraph.h"
+#include "gwDrawableWorld.h"
 #include "indirectDrawController.h"
 #include "inputController.h"
 #include "light.h"
 #include "luna.h"
 #include "modelLoader.h"
-#include "assetsLibrary.h"
 #include "renderContext.h"
 #include "resourceManager.h"
 #include "shaderUniforms.h"
 #include "vkEngine.h"
+#include "drawableWorld.h"
 
 namespace vax::rl {
 struct GridWorldDrawableDescriptor;
@@ -37,16 +38,17 @@ class DrawableScene final : public vax::InputController::Observer {
 
     explicit DrawableScene(
         vax::vk::Engine& vkEngine,
+        std::unique_ptr<vax::rl::GWDrawableWorld> drawableWorld,
         std::unique_ptr<vax::vk::ResourceManager> resourceManager,
-        std::unique_ptr<vax::engine::AssetsLibrary> modelsController,
+        std::unique_ptr<vax::engine::AssetsLibrary> assetsLibrary,
         std::unique_ptr<vax::engine::EnvironmentMap> environmentMap
     )
         : _vkEngine(vkEngine)
+        , _drawableWorld(std::move(drawableWorld))
         , _resourceManager(std::move(resourceManager))
-        , _modelsController(std::move(modelsController))
+        , _assetsLibrary(std::move(assetsLibrary))
         , _environmentMap(std::move(environmentMap)) {
-        _indirectDrawController = std::make_unique<IndirectDrawController>(*_vkEngine.get().device);
-        _sceneGraph = std::make_unique<vax::rl::GwSceneGraph>();
+        _indirectDrawController = std::make_unique<IndirectDrawController>(*_vkEngine.get().device);;
     };
 
     ~DrawableScene() {
@@ -90,7 +92,7 @@ class DrawableScene final : public vax::InputController::Observer {
 
     void onKeyEvent(const vax::KeyEvent& keyEvent);
 
-    vax::rl::GwSceneGraph* sceneGraph() const { return _sceneGraph.get(); }
+    vax::rl::GWDrawableWorld* drawableWorld() const { return _drawableWorld.get(); }
 
     bool shouldDrawSecondaryWindow() const { return _shouldDrawSecondaryWindow; }
 
@@ -104,10 +106,11 @@ class DrawableScene final : public vax::InputController::Observer {
     std::reference_wrapper<vax::vk::Engine> _vkEngine;
 
     std::unique_ptr<IndirectDrawController> _indirectDrawController;
-    std::unique_ptr<vax::rl::GwSceneGraph> _sceneGraph;
+    std::unique_ptr<vax::rl::GWDrawableWorld> _drawableWorld;
     std::unique_ptr<vax::vk::ResourceManager> _resourceManager;
-    std::unique_ptr<vax::engine::AssetsLibrary> _modelsController;
+    std::unique_ptr<vax::engine::AssetsLibrary> _assetsLibrary;
     std::unique_ptr<vax::engine::EnvironmentMap> _environmentMap;
+    std::unique_ptr<vax::ecs::World> _world;
 
     std::unique_ptr<vax::engine::Camera> _gizmoCamera;
     std::unique_ptr<vax::engine::DrawableNode> _gizmoModel;

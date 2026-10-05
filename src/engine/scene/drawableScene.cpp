@@ -48,9 +48,9 @@ void DrawableScene::update(engine::SceneUpdateContext sceneUpdateContext) {
     _sceneUpdateContext = sceneUpdateContext;
     _ubo = _mainCamera.getUniformBufferObject();
     _ubo.environmentMapIndex = 0;
-    _sceneGraph->update(sceneUpdateContext.frameTime);
+    _drawableWorld->update(sceneUpdateContext.frameTime);
 
-    auto& roverCamera = _sceneGraph->roverCamera();
+    auto& roverCamera = _drawableWorld->roverCamera();
     _roverCameraUbo = roverCamera.getUniformBufferObject();
     _roverCameraUbo.environmentMapIndex = 0;
     _sunLightUbo = _sunLight.camera().getUniformBufferObject();
@@ -245,7 +245,7 @@ void DrawableScene::beginDrawing(CommandBuffer& commandBuffer, uint32_t frameInd
     _indirectDrawController->prepareForDraw(frameIndex);
 
     _indirectDrawController->addDrawScope("scene", [&]() {
-        _sceneGraph->prepareDrawing(_indirectDrawController.get(), frameIndex);
+        _drawableWorld->prepareDrawing(_indirectDrawController.get(), frameIndex);
     });
 
     // auto gizmoDrawRange = _indirectDrawController->addDrawScope([&]() {

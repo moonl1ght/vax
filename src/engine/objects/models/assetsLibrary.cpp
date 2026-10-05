@@ -7,7 +7,27 @@ using namespace vax::vk;
 using namespace vax;
 
 void AssetsLibrary::preloadv2(const std::vector<vax::engine::ModelDescriptor>& modelDescriptors) {
-    for (const auto& modelDescriptor : modelDescriptors) {
+    for (const auto& descriptor : modelDescriptors) {
+        if (_prefabs.contains(descriptor.id)) {
+            continue;
+        }
+        auto prefabResult = _prefabLoader->loadPrefab(descriptor);
+        if (!prefabResult.has_value()) {
+            _logger.error("Failed to load prefab: ", descriptor.id);
+            continue;
+        }
+        auto& [prefab, models] = *prefabResult;
+        auto baseModelId = static_cast<vax::ecs::DrawableModelId>(_drawableModels.size());
+        for (auto& model : models) {
+            _drawableModels.push_back(std::move(model));
+        }
+        for (auto& node : prefab.nodes) {
+            if (node.model.has_value()) {
+                *node.model += baseModelId;
+            }
+        }
+        prefab.id = descriptor.id;
+        _prefabs.emplace(descriptor.id, std::move(prefab));
     }
 }
 
@@ -82,10 +102,6 @@ void AssetsLibrary::preload(const std::vector<vax::engine::ModelDescriptor>& mod
             _globalInstanceCursor += instanceCount;
         }
     }
-
-    for (const auto& modelDescriptor : modelDescriptors) {
-        auto prefab = _prefabLoader->loadPrefab(modelDescriptor);
-    }
 }
 
 std::vector<std::string> AssetsLibrary::getModelIds() const {
@@ -156,8 +172,7 @@ AssetsLibrary::getPreloadedDrawableNodeById(const std::string& id, uint32_t inst
     return std::nullopt;
 }
 
-DrawableModelHandle
-AssetsLibrary::_addDrawableModel(std::string id, std::string path, DrawableModel&& drawableModel) {
+DrawableModelHandle AssetsLibrary::_addDrawableModel(std::string id, DrawableModel&& drawableModel) {
     auto itModelInfo = _modelMap.find(id);
     if (itModelInfo != _modelMap.end()) {
         // TODO: handle multiple instances

@@ -89,6 +89,7 @@ PrefabLoader::_loadURDFPrefab(const ModelDescriptor& descriptor) {
     auto mainPath = descriptor.getMainPath();
     std::vector<DrawableModel> models;
     Prefab prefab;
+    prefab.id = descriptor.id;
     _processURDFLink(_modelLoader, _resourceManager.get(), prefab, models, -1, mainPath, model->getRoot());
     return std::optional<std::pair<Prefab, std::vector<DrawableModel>>>(
         std::in_place, std::make_pair(std::move(prefab), std::move(models))

@@ -77,12 +77,12 @@ void RoverView::load(Engine& engine, InputController& inputController) {
     _gridWorld->createRandomGrid();
 
     auto sceneLoader = vax::engine::SceneLoader(engine);
-    _drawableScene =
+    _scene =
         sceneLoader.load(RELATIVE_PATH("assets/scenes/gridWorld.json"), _gridWorld->getDrawableDescriptor());
-    _drawableScene->resize();
+    _scene->drawableScene().resize();
     // _drawableScene->loadScene(_gridWorld->getDrawableDescriptor(), engine.queueManager->graphicsQueue);
-    _gridWorld->linkSceneGraph(_drawableScene->sceneGraph());
-    inputController.addObserver(_drawableScene.get());
+    _gridWorld->linkDrawableWorld(_scene->drawableScene().drawableWorld());
+    inputController.addObserver(&_scene->drawableScene());
     inputController.addObserver(_gridWorld.get());
 }
 
@@ -135,9 +135,9 @@ void RoverView::_showRoverCamera() {
     }
     _windowController.get().getWindow(1)->setWindowWillHideCallback([this]() {
         _isRoverCameraShown = false;
-        _drawableScene->setShouldDrawSecondaryWindow(false);
+        _scene->drawableScene().setShouldDrawSecondaryWindow(false);
     });
-    _drawableScene->setShouldDrawSecondaryWindow(true);
+    _scene->drawableScene().setShouldDrawSecondaryWindow(true);
     _isRoverCameraShown = true;
 }
 
@@ -147,12 +147,12 @@ void RoverView::_drawScene(const vax::engine::FrameTime& frameTime) {
     bool renderResult = false;
     vax::engine::SceneUpdateContext sceneUpdateContext{.frameTime = frameTime};
     if (firstTime) {
-        _renderer.get().prepare(_drawableScene.get());
+        _renderer.get().prepare(&_scene->drawableScene());
         firstTime = false;
     }
-    _drawableScene->update(sceneUpdateContext);
+    _scene->drawableScene().update(sceneUpdateContext);
 
-    renderResult = _renderer.get().render(_drawableScene.get(), frameTime);
+    renderResult = _renderer.get().render(&_scene->drawableScene(), frameTime);
 
     if (!renderResult) {
         _logger.error("Failed to render scene!");

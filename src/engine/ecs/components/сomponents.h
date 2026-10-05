@@ -37,4 +37,12 @@ struct DrawableModelComponent final {
 struct NameComponent final {
     std::string value;
 };
+
+struct HighlightComponent final {
+    uint32_t packedColor = 0;
+};
+
+struct InstanceComponent final {
+    uint32_t instanceIndex = 0;
+};
 } // namespace vax::ecs

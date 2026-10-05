@@ -2,7 +2,7 @@
 
 #include "gridWorldDescriptor.h"
 #include "gwAgent.h"
-#include "gwSceneGraph.h"
+#include "gwDrawableWorld.h"
 #include "gwenv.h"
 #include "inputController.h"
 #include "logger.h"
@@ -55,7 +55,7 @@ class GridWorld final : public vax::InputController::Observer,
 
     void onKeyEvent(const vax::KeyEvent& keyEvent);
 
-    void linkSceneGraph(GwSceneGraph* sceneGraph);
+    void linkDrawableWorld(GWDrawableWorld* drawableWorld);
 
     void agentMoved();
 
@@ -87,12 +87,12 @@ class GridWorld final : public vax::InputController::Observer,
     std::string _name = "GridWorld";
     vax::math::Tensor _grid;
     vax::rl::GWAgent _agent = vax::rl::GWAgent(_qlConfig);
-    std::vector<vax::math::Position2DFloat> _sceneGraphPositions;
+    std::vector<vax::math::Position2DFloat> _drawableWorldPositions;
     float _moveSpeed = 1.0f;
     float _rotationSpeed = 0.5f;
 
     std::string blockTypeToPath(BlockType blockType) const;
-    GwSceneGraph* _sceneGraph;
+    GWDrawableWorld* _drawableWorld;
     vax::rl::EvalMode _evalMode = vax::rl::EvalMode::EVALUATION;
 
     void _updateAgentPosition();

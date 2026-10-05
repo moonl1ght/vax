@@ -1,6 +1,6 @@
 #pragma once
 
-#include "drawableScene.h"
+#include "scene.h"
 #include "gridWorld.h"
 #include "gwTrainingManager.h"
 #include "inputController.h"
@@ -45,7 +45,7 @@ class RoverView final : public View {
     std::reference_wrapper<UIEngine> _uiEngine;
     std::reference_wrapper<vax::WindowController> _windowController;
     std::unique_ptr<StatsView> _statsView;
-    std::unique_ptr<vax::engine::DrawableScene> _drawableScene;
+    std::unique_ptr<vax::engine::Scene> _scene;
     std::unique_ptr<vax::rl::GridWorld> _gridWorld;
     std::unique_ptr<vax::rl::GWTrainingManager> _trainingManager;
     std::shared_ptr<vax::FrameProfiler> _frameProfiler;
