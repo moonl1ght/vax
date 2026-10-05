@@ -10,7 +10,7 @@
 #include "indirectDrawController.h"
 #include "logger.h"
 #include "modelLoader.h"
-#include "modelsController.h"
+#include "assetsLibrary.h"
 #include "vaxMath.h"
 
 namespace vax::rl {

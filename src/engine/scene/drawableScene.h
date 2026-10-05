@@ -12,7 +12,7 @@
 #include "light.h"
 #include "luna.h"
 #include "modelLoader.h"
-#include "modelsController.h"
+#include "assetsLibrary.h"
 #include "renderContext.h"
 #include "resourceManager.h"
 #include "shaderUniforms.h"

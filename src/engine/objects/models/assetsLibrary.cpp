@@ -1,4 +1,4 @@
-#include "modelsController.h"
+#include "assetsLibrary.h"
 #include "transform.h"
 #include <strings.h>
 
@@ -6,9 +6,12 @@ using namespace vax::engine;
 using namespace vax::vk;
 using namespace vax;
 
-void ModelsController::preload(
-    const std::vector<vax::engine::ModelDescriptor>& modelDescriptors
-) {
+void ModelsController::preloadv2(const std::vector<vax::engine::ModelDescriptor>& modelDescriptors) {
+    for (const auto& modelDescriptor : modelDescriptors) {
+    }
+}
+
+void ModelsController::preload(const std::vector<vax::engine::ModelDescriptor>& modelDescriptors) {
     uint32_t totalModelsCount = 0;
     _globalInstanceCursor = 0;
     for (const auto& modelDescriptor : modelDescriptors) {
@@ -39,8 +42,7 @@ void ModelsController::preload(
                     isURDF = true;
                 }
             } else {
-                auto model =
-                    _modelLoader->loadModel(modelDescriptor.path, modelDescriptor.instancesCount);
+                auto model = _modelLoader->loadModel(modelDescriptor.path, modelDescriptor.instancesCount);
                 if (model) {
                     _drawableModels.push_back(std::move(*model));
                 }
@@ -79,6 +81,10 @@ void ModelsController::preload(
             _modelMap[modelDescriptor.id] = modelInfo;
             _globalInstanceCursor += instanceCount;
         }
+    }
+
+    for (const auto& modelDescriptor : modelDescriptors) {
+        auto prefab = _prefabLoader->loadPrefab(modelDescriptor);
     }
 }
 

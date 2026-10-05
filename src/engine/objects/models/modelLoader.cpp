@@ -1,5 +1,5 @@
 #include "modelLoader.h"
-#include "modelsController.h"
+#include "assetsLibrary.h"
 #include "shaderSharedUtils.h"
 #include <assimp/GltfMaterial.h>
 #include <assimp/Importer.hpp>

@@ -29,6 +29,7 @@ struct ModelDescriptor {
     bool isIdentifiable;
 
     ModelExtension getModelExtension() const;
+
     const std::string_view getMainPath() const;
 };
 } // namespace vax::engine

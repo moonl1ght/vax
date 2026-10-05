@@ -5,6 +5,7 @@
 #include "logger.h"
 #include "modelDescriptor.h"
 #include "modelLoader.h"
+#include "prefabLoader.h"
 #include "primitivesBuilder.h"
 #include "resourceManager.h"
 #include "vkUtils.h"
@@ -21,6 +22,7 @@ class ModelsController {
         , _maxDrawableInstances(maxDrawableInstances) {
         _modelLoader = std::make_unique<vax::engine::ModelLoader>(device, resourceManager, *this);
         _primitivesBuilder = std::make_unique<vax::engine::PrimitivesBuilder>(resourceManager);
+        _prefabLoader = std::make_unique<vax::engine::PrefabLoader>(*_modelLoader, resourceManager);
         _drawableModels.reserve(_maxDrawableInstances);
     };
 
@@ -31,8 +33,9 @@ class ModelsController {
     ModelsController(ModelsController&& other) noexcept = delete;
     ModelsController& operator=(ModelsController&& other) noexcept = delete;
 
-    void
-    preload(const std::vector<vax::engine::ModelDescriptor>& modelDescriptors);
+    void preload(const std::vector<vax::engine::ModelDescriptor>& modelDescriptors);
+
+    void preloadv2(const std::vector<vax::engine::ModelDescriptor>& modelDescriptors);
 
     std::vector<std::string> getModelIds() const;
 
@@ -68,6 +71,7 @@ class ModelsController {
 
     std::unique_ptr<vax::engine::ModelLoader> _modelLoader;
     std::unique_ptr<vax::engine::PrimitivesBuilder> _primitivesBuilder;
+    std::unique_ptr<vax::engine::PrefabLoader> _prefabLoader;
 
     std::unordered_map<std::string, vax::engine::DrawableNode> _cachedDrawableNodeMap;
 
