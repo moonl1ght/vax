@@ -93,7 +93,7 @@ GridWorldDrawableDescriptor GridWorld::getDrawableDescriptor() const {
     GridWorldDrawableDescriptor worldDescriptor;
     worldDescriptor.drawableDescriptors.reserve(_grid.totalSize());
     int flatIndex = 0;
-    std::unordered_map<std::string, engine::ModelDescriptor> descriptors;
+    std::unordered_map<std::string, engine::PrefabDescriptor> descriptors;
     for (const auto& block : _grid) {
         BlockType blockType = static_cast<BlockType>(block);
         auto blockTypeString = blockTypeToPath(blockType);
@@ -103,24 +103,24 @@ GridWorldDrawableDescriptor GridWorld::getDrawableDescriptor() const {
             transform.position.y = 0.5f;
         }
         if (descriptors.find(blockTypeString) == descriptors.end()) {
-            std::vector<engine::ModelDescriptor::SelectedInstanceInfo> selectedInstanceInfos;
+            std::vector<engine::PrefabDescriptor::SelectedInstanceInfo> selectedInstanceInfos;
             if (blockType == BlockType::START) {
                 selectedInstanceInfos.push_back(
-                    engine::ModelDescriptor::SelectedInstanceInfo{0, engine::ColorPalette::Blue}
+                    engine::PrefabDescriptor::SelectedInstanceInfo{0, engine::ColorPalette::Blue}
                 );
             }
             if (blockType == BlockType::FINISH) {
                 selectedInstanceInfos.push_back(
-                    engine::ModelDescriptor::SelectedInstanceInfo{0, engine::ColorPalette::Green}
+                    engine::PrefabDescriptor::SelectedInstanceInfo{0, engine::ColorPalette::Green}
                 );
             }
-            descriptors[blockTypeString] = engine::ModelDescriptor{
-                .primitiveDescriptor = engine::ModelDescriptor::PrimitiveDescriptor(),
+            descriptors[blockTypeString] = engine::PrefabDescriptor{
+                .primitiveDescriptor = engine::PrefabDescriptor::PrimitiveDescriptor(),
                 .path = blockTypeString,
                 .id = blockTypeString,
                 .transforms = {transform},
                 .selectedInstanceInfos = selectedInstanceInfos,
-                .modelType = engine::ModelDescriptor::ModelType::MODEL,
+                .modelType = engine::PrefabDescriptor::ModelType::MODEL,
                 .instancesCount = 1,
                 .isIdentifiable = true,
             };
@@ -134,7 +134,7 @@ GridWorldDrawableDescriptor GridWorld::getDrawableDescriptor() const {
                 auto color =
                     (blockType == BlockType::FINISH) ? engine::ColorPalette::Green : engine::ColorPalette::Blue;
                 descriptor.selectedInstanceInfos.push_back(
-                    engine::ModelDescriptor::SelectedInstanceInfo{instanceIndex, color}
+                    engine::PrefabDescriptor::SelectedInstanceInfo{instanceIndex, color}
                 );
             }
         }

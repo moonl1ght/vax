@@ -1,8 +1,8 @@
-#include "modelDescriptor.h"
+#include "prefabDescriptor.h"
 
 using namespace vax::engine;
 
-ModelDescriptor::ModelExtension ModelDescriptor::getModelExtension() const {
+PrefabDescriptor::ModelExtension PrefabDescriptor::getModelExtension() const {
     auto dot = path.rfind('.');
     if (dot == std::string::npos)
         return ModelExtension::UNKNOWN;
@@ -18,7 +18,7 @@ ModelDescriptor::ModelExtension ModelDescriptor::getModelExtension() const {
     return ModelExtension::UNKNOWN;
 }
 
-const std::string_view ModelDescriptor::getMainPath() const {
+const std::string_view PrefabDescriptor::getMainPath() const {
     auto dot = path.rfind('/');
     if (dot == std::string::npos)
         return std::string_view("");

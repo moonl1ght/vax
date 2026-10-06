@@ -1,6 +1,6 @@
 #pragma once
 
-#include "modelDescriptor.h"
+#include "prefabDescriptor.h"
 #include "modelLoader.h"
 #include "prefab.h"
 #include "resourceManager.h"
@@ -19,7 +19,7 @@ class PrefabLoader {
     PrefabLoader(PrefabLoader&& other) noexcept = delete;
     PrefabLoader& operator=(PrefabLoader&& other) noexcept = delete;
 
-    std::optional<std::pair<Prefab, std::vector<DrawableModel>>> loadPrefab(const ModelDescriptor& descriptor);
+    std::optional<std::pair<Prefab, std::vector<DrawableModel>>> loadPrefab(const PrefabDescriptor& descriptor);
 
   private:
     vax::Logger _logger = vax::Logger("PrefabLoader");
@@ -27,8 +27,8 @@ class PrefabLoader {
     std::reference_wrapper<vax::engine::ModelLoader> _modelLoader;
     std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;
 
-    std::optional<std::pair<Prefab, std::vector<DrawableModel>>> _loadURDFPrefab(const ModelDescriptor& descriptor);
+    std::optional<std::pair<Prefab, std::vector<DrawableModel>>> _loadURDFPrefab(const PrefabDescriptor& descriptor);
 
-    std::optional<std::pair<Prefab, std::vector<DrawableModel>>> _loadGLBPrefab(const ModelDescriptor& descriptor);
+    std::optional<std::pair<Prefab, std::vector<DrawableModel>>> _loadGLBPrefab(const PrefabDescriptor& descriptor);
 };
 } // namespace vax::engine

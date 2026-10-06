@@ -32,19 +32,19 @@ SceneLoader::_initDrawableScene(ecs::World& world, const vax::rl::GridWorldDrawa
         },
     });
 
-    std::vector<vax::engine::ModelDescriptor> legacyModelDescriptors = {
+    std::vector<vax::engine::PrefabDescriptor> legacyModelDescriptors = {
         {
         .path = "",
         .id = "background",
-        .modelType = vax::engine::ModelDescriptor::ModelType::PRIMITIVE_PLANE,
+        .modelType = vax::engine::PrefabDescriptor::ModelType::PRIMITIVE_PLANE,
         },
         {
         .path = RES_PATH("assets/models/gizmo.glb"),
         .id = "gizmo",
-        .modelType = vax::engine::ModelDescriptor::ModelType::MODEL,
+        .modelType = vax::engine::PrefabDescriptor::ModelType::MODEL,
         },
     };
-    std::vector<vax::engine::ModelDescriptor> prefabDescriptors = descriptor.drawableDescriptors;
+    std::vector<vax::engine::PrefabDescriptor> prefabDescriptors = descriptor.drawableDescriptors;
     prefabDescriptors.push_back(descriptor.agentDrawableDescriptor);
 
     assetsLibrary->preload(legacyModelDescriptors);

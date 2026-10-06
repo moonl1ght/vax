@@ -70,11 +70,11 @@ void _processURDFLink(
 }
 
 std::optional<std::pair<Prefab, std::vector<DrawableModel>>>
-PrefabLoader::loadPrefab(const ModelDescriptor& descriptor) {
+PrefabLoader::loadPrefab(const PrefabDescriptor& descriptor) {
     switch (descriptor.getModelExtension()) {
-    case ModelDescriptor::ModelExtension::URDF:
+    case PrefabDescriptor::ModelExtension::URDF:
         return _loadURDFPrefab(descriptor);
-    case ModelDescriptor::ModelExtension::GLB:
+    case PrefabDescriptor::ModelExtension::GLB:
         return _loadGLBPrefab(descriptor);
     default:
         _logger.error("Unsupported model extension: ", descriptor.path);
@@ -84,7 +84,7 @@ PrefabLoader::loadPrefab(const ModelDescriptor& descriptor) {
 }
 
 std::optional<std::pair<Prefab, std::vector<DrawableModel>>>
-PrefabLoader::_loadURDFPrefab(const ModelDescriptor& descriptor) {
+PrefabLoader::_loadURDFPrefab(const PrefabDescriptor& descriptor) {
     auto path = descriptor.path;
     auto model = urdf::parseURDFFile(path);
     if (!model) {
@@ -102,7 +102,7 @@ PrefabLoader::_loadURDFPrefab(const ModelDescriptor& descriptor) {
 }
 
 std::optional<std::pair<Prefab, std::vector<DrawableModel>>>
-PrefabLoader::_loadGLBPrefab(const ModelDescriptor& descriptor) {
+PrefabLoader::_loadGLBPrefab(const PrefabDescriptor& descriptor) {
     auto model = _modelLoader.get().loadModel(descriptor.path);
     if (!model.has_value()) {
         _logger.error("Failed to load GLB model: " + descriptor.path);

@@ -1,11 +1,11 @@
 #pragma once
 
 #include "drawableModel.h"
-#include "modelDescriptor.h"
+#include "prefabDescriptor.h"
 
 namespace vax::rl {
 struct GridWorldDrawableDescriptor final {
-    std::vector<vax::engine::ModelDescriptor> drawableDescriptors;
-    vax::engine::ModelDescriptor agentDrawableDescriptor;
+    std::vector<vax::engine::PrefabDescriptor> drawableDescriptors;
+    vax::engine::PrefabDescriptor agentDrawableDescriptor;
 };
 } // namespace vax::rl

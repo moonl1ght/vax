@@ -2,7 +2,7 @@
 
 #include "agent.h"
 #include "gwenv.h"
-#include "modelDescriptor.h"
+#include "prefabDescriptor.h"
 #include "logger.h"
 #include "luna.h"
 #include "qlConfig.h"
@@ -35,7 +35,7 @@ class GWAgent final : public vax::rl::Agent<GWAgent, State, MoveAction> {
     GWAgent(GWAgent&& other) noexcept = delete;
     GWAgent& operator=(GWAgent&& other) noexcept = delete;
 
-    vax::engine::ModelDescriptor getDrawableDescriptor() const;
+    vax::engine::PrefabDescriptor getDrawableDescriptor() const;
 
     void moveByOutsideAction(MoveAction action);
 

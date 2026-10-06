@@ -4,7 +4,7 @@
 #include "transform.h"
 
 namespace vax::engine {
-struct ModelDescriptor {
+struct PrefabDescriptor {
     enum class ModelExtension { GLB, URDF, UNKNOWN };
 
     enum class ModelType { MODEL, PRIMITIVE_CUBE, PRIMITIVE_PLANE };

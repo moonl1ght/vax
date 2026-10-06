@@ -9,7 +9,7 @@ using namespace vax::rl;
 using namespace vax::math;
 using namespace vax::engine;
 
-vax::engine::ModelDescriptor GWAgent::getDrawableDescriptor() const {
+vax::engine::PrefabDescriptor GWAgent::getDrawableDescriptor() const {
     auto transform = Transform();
     transform.scale = {0.5f, 0.5f, 0.5f};
     return {
@@ -17,7 +17,7 @@ vax::engine::ModelDescriptor GWAgent::getDrawableDescriptor() const {
         .id = "rover",
         .transforms = {transform},
         .selectedInstanceInfos = {},
-        .modelType = vax::engine::ModelDescriptor::ModelType::MODEL,
+        .modelType = vax::engine::PrefabDescriptor::ModelType::MODEL,
         .instancesCount = 1,
         .isIdentifiable = true,
     };

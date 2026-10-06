@@ -1,7 +1,7 @@
 #include "gwDrawableWorld.h"
 #include "colorPalette.h"
 #include "gridWorldDescriptor.h"
-#include "modelDescriptor.h"
+#include "prefabDescriptor.h"
 #include "shaderSharedUtils.h"
 
 using namespace vax;

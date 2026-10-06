@@ -376,7 +376,7 @@ DrawableNode processURDFLink(
 }
 
 std::optional<DrawableNode>
-ModelLoader::_loadURDFSceneModel(AssetsLibrary& assetsLibrary, ModelDescriptor descriptor) {
+ModelLoader::_loadURDFSceneModel(AssetsLibrary& assetsLibrary, PrefabDescriptor descriptor) {
     auto path = descriptor.path;
     auto model = urdf::parseURDFFile(path);
     if (!model) {
@@ -409,7 +409,7 @@ ModelLoader::_loadURDFSceneModel(AssetsLibrary& assetsLibrary, ModelDescriptor d
 }
 
 std::optional<DrawableNode>
-ModelLoader::_loadGLBSceneModel(AssetsLibrary& assetsLibrary, ModelDescriptor descriptor) {
+ModelLoader::_loadGLBSceneModel(AssetsLibrary& assetsLibrary, PrefabDescriptor descriptor) {
     auto path = descriptor.path;
     auto model = loadModel(path, 1);
     if (!model.has_value()) {
@@ -431,10 +431,10 @@ ModelLoader::_loadGLBSceneModel(AssetsLibrary& assetsLibrary, ModelDescriptor de
 }
 
 std::optional<DrawableNode>
-ModelLoader::loadSceneModel(const vax::engine::ModelDescriptor& descriptor) {
-    if (descriptor.getModelExtension() == vax::engine::ModelDescriptor::ModelExtension::URDF) {
+ModelLoader::loadSceneModel(const vax::engine::PrefabDescriptor& descriptor) {
+    if (descriptor.getModelExtension() == vax::engine::PrefabDescriptor::ModelExtension::URDF) {
         return _loadURDFSceneModel(_assetsLibrary.get(), descriptor);
-    } else if (descriptor.getModelExtension() == vax::engine::ModelDescriptor::ModelExtension::GLB) {
+    } else if (descriptor.getModelExtension() == vax::engine::PrefabDescriptor::ModelExtension::GLB) {
         return _loadGLBSceneModel(_assetsLibrary.get(), descriptor);
     }
     return std::nullopt;

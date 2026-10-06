@@ -6,7 +6,7 @@ using namespace vax::engine;
 using namespace vax::vk;
 using namespace vax;
 
-void AssetsLibrary::preloadv2(const std::vector<vax::engine::ModelDescriptor>& modelDescriptors) {
+void AssetsLibrary::preloadv2(const std::vector<vax::engine::PrefabDescriptor>& modelDescriptors) {
     for (const auto& descriptor : modelDescriptors) {
         if (_prefabs.contains(descriptor.id)) {
             continue;
@@ -31,11 +31,11 @@ void AssetsLibrary::preloadv2(const std::vector<vax::engine::ModelDescriptor>& m
     }
 }
 
-void AssetsLibrary::preload(const std::vector<vax::engine::ModelDescriptor>& modelDescriptors) {
+void AssetsLibrary::preload(const std::vector<vax::engine::PrefabDescriptor>& descriptors) {
     uint32_t totalModelsCount = 0;
     _globalInstanceCursor = 0;
-    for (const auto& modelDescriptor : modelDescriptors) {
-        totalModelsCount += modelDescriptor.instancesCount;
+    for (const auto& descriptor : descriptors) {
+        totalModelsCount += descriptor.instancesCount;
         if (totalModelsCount > _maxDrawableInstances) {
             _logger.error(
                 "Total models count exceeds the maximum number of drawable instances: " +
@@ -43,41 +43,41 @@ void AssetsLibrary::preload(const std::vector<vax::engine::ModelDescriptor>& mod
             );
             break;
         }
-        auto itModelInfo = _modelMap.find(modelDescriptor.id);
+        auto itModelInfo = _modelMap.find(descriptor.id);
         if (itModelInfo != _modelMap.end()) {
             continue;
         }
         bool isURDF = false;
-        switch (modelDescriptor.modelType) {
-        case vax::engine::ModelDescriptor::ModelType::MODEL: {
+        switch (descriptor.modelType) {
+        case vax::engine::PrefabDescriptor::ModelType::MODEL: {
             // TODO: refactor this with ECS adopting
-            if (modelDescriptor.getModelExtension() == vax::engine::ModelDescriptor::ModelExtension::URDF) {
-                auto drawableNode = _modelLoader->loadSceneModel(modelDescriptor);
+            if (descriptor.getModelExtension() == vax::engine::PrefabDescriptor::ModelExtension::URDF) {
+                auto drawableNode = _modelLoader->loadSceneModel(descriptor);
                 if (drawableNode) {
-                    if (modelDescriptor.isIdentifiable) {
+                    if (descriptor.isIdentifiable) {
                         drawableNode->setNodeId(_lastObjectId);
-                        _lastObjectId += modelDescriptor.instancesCount;
+                        _lastObjectId += descriptor.instancesCount;
                     }
-                    _cachedDrawableNodeMap.insert_or_assign(modelDescriptor.id, std::move(*drawableNode));
+                    _cachedDrawableNodeMap.insert_or_assign(descriptor.id, std::move(*drawableNode));
                     isURDF = true;
                 }
             } else {
-                auto model = _modelLoader->loadModel(modelDescriptor.path, modelDescriptor.instancesCount);
+                auto model = _modelLoader->loadModel(descriptor.path, descriptor.instancesCount);
                 if (model) {
                     _drawableModels.push_back(std::move(*model));
                 }
             }
             break;
         }
-        case vax::engine::ModelDescriptor::ModelType::PRIMITIVE_CUBE: {
-            auto primitiveDescriptor = modelDescriptor.primitiveDescriptor;
+        case vax::engine::PrefabDescriptor::ModelType::PRIMITIVE_CUBE: {
+            auto primitiveDescriptor = descriptor.primitiveDescriptor;
             auto primitive = _primitivesBuilder->createCube(primitiveDescriptor.size, primitiveDescriptor.color);
             if (primitive) {
                 _drawableModels.push_back(std::move(*primitive));
             }
             break;
         }
-        case ModelDescriptor::ModelType::PRIMITIVE_PLANE: {
+        case PrefabDescriptor::ModelType::PRIMITIVE_PLANE: {
             auto primitive = _primitivesBuilder->createPlane();
             if (primitive) {
                 _drawableModels.push_back(std::move(*primitive));
@@ -86,7 +86,7 @@ void AssetsLibrary::preload(const std::vector<vax::engine::ModelDescriptor>& mod
         }
         }
         if (!isURDF) {
-            auto instanceCount = modelDescriptor.instancesCount + 10;
+            auto instanceCount = descriptor.instancesCount + 10;
             ModelInfo::SSBOChunkInfo ssboChunkInfo = {
                 .instanceOffset = _globalInstanceCursor,
                 .cursor = 0,
@@ -96,9 +96,9 @@ void AssetsLibrary::preload(const std::vector<vax::engine::ModelDescriptor>& mod
                 .modelIndex = _drawableModels.size() - 1,
                 .ssboChunkInfos = {ssboChunkInfo},
                 .ssboChunkCursor = 0,
-                .isIdentifiable = modelDescriptor.isIdentifiable,
+                .isIdentifiable = descriptor.isIdentifiable,
             };
-            _modelMap[modelDescriptor.id] = modelInfo;
+            _modelMap[descriptor.id] = modelInfo;
             _globalInstanceCursor += instanceCount;
         }
     }

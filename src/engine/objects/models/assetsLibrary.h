@@ -3,7 +3,7 @@
 #include "drawableModel.h"
 #include "drawableNode.h"
 #include "logger.h"
-#include "modelDescriptor.h"
+#include "prefabDescriptor.h"
 #include "modelLoader.h"
 #include "prefab.h"
 #include "prefabLoader.h"
@@ -33,9 +33,9 @@ class AssetsLibrary {
     AssetsLibrary(AssetsLibrary&& other) noexcept = delete;
     AssetsLibrary& operator=(AssetsLibrary&& other) noexcept = delete;
 
-    void preload(const std::vector<vax::engine::ModelDescriptor>& modelDescriptors);
+    void preload(const std::vector<vax::engine::PrefabDescriptor>& descriptors);
 
-    void preloadv2(const std::vector<vax::engine::ModelDescriptor>& modelDescriptors);
+    void preloadv2(const std::vector<vax::engine::PrefabDescriptor>& descriptors);
 
     std::vector<std::string> getModelIds() const;
 
