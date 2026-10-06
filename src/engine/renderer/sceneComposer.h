@@ -30,10 +30,15 @@ class SceneComposer final {
     compose(vax::ecs::World& world, vax::engine::IndirectDrawController& indirectDrawController, uint32_t frameIndex);
 
   private:
+    struct DebugEntity final {
+        vax::ecs::Entity entity;
+        std::string name;
+    };
+
     struct TransformEntry final {
         uint32_t depth;
-        vax::ecs::Entity entity;
-        vax::ecs::Entity parent;
+        DebugEntity entity;
+        DebugEntity parent;
         vax::ecs::LocalTransformComponent* local;
         vax::ecs::WorldTransformComponent* world;
     };

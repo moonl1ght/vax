@@ -2,67 +2,116 @@
 #include "colorPalette.h"
 #include "gridWorldDescriptor.h"
 #include "modelDescriptor.h"
+#include "shaderSharedUtils.h"
 
 using namespace vax;
 using namespace vax::math;
 using namespace vax::rl;
 using namespace vax::engine;
 
+namespace {
+constexpr std::array<std::string_view, 4> WheelLinkNames = {
+    "front_right_wheel_link",
+    "front_left_wheel_link",
+    "rear_right_wheel_link",
+    "rear_left_wheel_link",
+};
+} // namespace
+
 bool GWDrawableWorld::load(
     engine::AssetsLibrary& assetsLibrary, const vax::rl::GridWorldDrawableDescriptor& descriptor
 ) {
-    auto agentNode = assetsLibrary.getPreloadedDrawableNodeById(descriptor.agentDrawableDescriptor.id, 1);
-    if (!agentNode.has_value()) {
-        _logger.error("Failed to load agent model: {}", descriptor.agentDrawableDescriptor.id);
+    if (!_loadAgent()) {
         return false;
     }
-    agentNode->setIsSelected(true);
-    agentNode->setNodeSelectionColor(ColorPalette::Clear);
-    _gwAgentNode =
-        std::make_unique<vax::rl::GWAgentNode>(std::make_unique<vax::engine::DrawableNode>(std::move(agentNode.value())));
 
-    _gwAgentNode->agentNode().updateTransform([&](TransformHandle& transformHandle) {
-        transformHandle.updateTransform([&](Transform& transform) {
-            transform.updateRotationInDegrees({-90.0f, 0.0f, 0.0f});
-        });
+    _envEntities.clear();
+    _world.get().each<ecs::InstanceComponent>([&](ecs::Entity entity, ecs::InstanceComponent& instance) {
+        if (instance.typeIndex >= descriptor.drawableDescriptors.size()) {
+            return;
+        }
+        auto& entities = _envEntities[descriptor.drawableDescriptors[instance.typeIndex].id];
+        if (entities.size() <= instance.instanceIndex) {
+            entities.resize(instance.instanceIndex + 1, ecs::NullEntity);
+        }
+        entities[instance.instanceIndex] = entity;
     });
 
-    _envNodes.reserve(descriptor.drawableDescriptors.size());
     for (const auto& drawableDescriptor : descriptor.drawableDescriptors) {
-        auto node = assetsLibrary.createDrawableNodeById(drawableDescriptor.id, drawableDescriptor.transforms);
-        for (auto& selectedInstanceInfo : drawableDescriptor.selectedInstanceInfos) {
-            node->selectInstance(selectedInstanceInfo.instanceIndex);
-            node->setSelectionColor(selectedInstanceInfo.instanceIndex, selectedInstanceInfo.color);
-        }
-        if (!node.has_value()) {
-            _logger.error("Failed to load model: {}", drawableDescriptor.id);
+        if (!_envEntities.contains(drawableDescriptor.id)) {
+            _logger.error("No entities spawned for model: ", drawableDescriptor.id);
             continue;
         }
-        _envNodes.push_back(std::move(node.value()));
+        for (const auto& selectedInstanceInfo : drawableDescriptor.selectedInstanceInfos) {
+            highlightInstance(drawableDescriptor.id, selectedInstanceInfo.instanceIndex, selectedInstanceInfo.color);
+        }
     }
 
     return true;
 }
 
-void GWDrawableWorld::prepareDrawing(engine::IndirectDrawController* indirectDrawController, uint32_t frameIndex) {
-    if (_gwAgentNode) {
-        _gwAgentNode->agentNode().prepareDrawing(indirectDrawController, frameIndex);
-    } else {
-        _logger.warning("Agent node not loaded!");
+bool GWDrawableWorld::_loadAgent() {
+    auto& world = _world.get();
+    _agent = ecs::NullEntity;
+    world.each<ecs::AgentComponent>([&](ecs::Entity entity, ecs::AgentComponent&) { _agent = entity; });
+    if (_agent.isNull()) {
+        _logger.error("Agent entity not spawned");
+        return false;
     }
-    for (auto& node : _envNodes) {
-        node.prepareDrawing(indirectDrawController, frameIndex);
+
+    std::vector<ecs::Entity> agentEntities;
+    _forEachInSubtree(_agent, [&](ecs::Entity entity) { agentEntities.push_back(entity); });
+    for (ecs::Entity entity : agentEntities) {
+        world.addComponentFor<ecs::HighlightComponent>(entity, packRGBA(ColorPalette::Clear));
+    }
+
+    _wheels.clear();
+    for (std::string_view wheelName : WheelLinkNames) {
+        ecs::Entity wheel = _findInSubtree(_agent, wheelName);
+        if (wheel.isNull()) {
+            _logger.warning("Wheel link not found: ", wheelName);
+            continue;
+        }
+        auto local = world.getComponentFor<ecs::LocalTransformComponent>(wheel);
+        _wheels.push_back({.entity = wheel, .jointOrigin = local ? local->transform : Transform()});
+    }
+
+    _agentState = AgentState();
+    _updateAgentTransform([](Transform& transform) { transform.updateRotationInDegrees({-90.0f, 0.0f, 0.0f}); });
+    return true;
+}
+
+ecs::Entity GWDrawableWorld::_findInSubtree(ecs::Entity root, std::string_view name) {
+    auto& world = _world.get();
+    ecs::Entity found = ecs::NullEntity;
+    _forEachInSubtree(root, [&](ecs::Entity entity) {
+        if (!found.isNull() || !world.hasComponent<ecs::NameComponent>(entity)) {
+            return;
+        }
+        if (world.getComponentFor<ecs::NameComponent>(entity)->value == name) {
+            found = entity;
+        }
+    });
+    return found;
+}
+
+void GWDrawableWorld::_spinWheels(const engine::FrameTime& frameTime) {
+    auto& world = _world.get();
+    Transform spin;
+    spin.updateRotationInDegrees({0.0f, frameTime.timestamp * -100.0f, 0.0f});
+    for (const auto& wheel : _wheels) {
+        ecs::LocalTransformComponent local{
+            .transform = Transform(wheel.jointOrigin.getModelMatrix() * spin.getModelMatrix())
+        };
+        world.addComponentFor<ecs::LocalTransformComponent>(wheel.entity, local);
+        world.addComponentFor<ecs::TransformDirtyComponent>(wheel.entity);
     }
 }
 
 void GWDrawableWorld::update(const engine::FrameTime& frameTime) {
     if (_animations.has_value()) {
         auto isCompleted = _animations->update(frameTime);
-        if (_gwAgentNode) {
-            _gwAgentNode->update(frameTime);
-        } else {
-            _logger.warning("Rover model proxy not loaded!");
-        }
+        _spinWheels(frameTime);
         if (isCompleted) {
             _animations = std::nullopt;
             if (_onAllAnimationsCompleted.has_value()) {
@@ -78,127 +127,113 @@ bool GWDrawableWorld::isMovingAgent() const { return _animations.has_value(); }
 void GWDrawableWorld::moveAgentTo(
     Position2DFloat position, AgentOrientation orientation, bool withAnimation, float moveSpeed, float rotationSpeed
 ) {
-    if (_gwAgentNode) {
-        if (withAnimation) {
-            auto startRotation = _gwAgentNode->agentNode().getTransform().getRotationInDegrees().y;
-            if (!_animations.has_value()) {
-                _animations = std::make_optional(vax::AnimationGroup(vax::AnimationGroup::Mode::SERIAL));
-            } else {
-                if (auto metadata = _gwAgentNode->agentNode().getMetadata("latest_rotation_end_value");
-                    metadata.has_value() && std::holds_alternative<float>(*metadata)) {
-                    startRotation = std::get<float>(*metadata);
-                }
-            }
-            auto previousPositionX =
-                std::get<float>(_gwAgentNode->agentNode().getMetadata("position.x").value_or(position.x));
-            auto previousPositionY =
-                std::get<float>(_gwAgentNode->agentNode().getMetadata("position.y").value_or(position.y));
-            auto orientationValue = static_cast<int>(orientation);
-            auto previousOrientation = orientationValue;
-            if (auto metadata = _gwAgentNode->agentNode().getMetadata("orientation");
-                metadata.has_value() && std::holds_alternative<int>(*metadata)) {
-                previousOrientation = std::get<int>(*metadata);
-            }
-            auto orientationDelta = orientationValue - previousOrientation;
-            if (orientationDelta != 0) {
-                orientationDelta = orientationDelta == 3 ? -1 : orientationDelta == -3 ? 1 : orientationDelta;
-                float rotation = startRotation + orientationDelta * 90.0f;
-                _gwAgentNode->agentNode().setMetadata("latest_rotation_end_value", rotation);
-                auto animation = vax::ValueAnimation(rotationSpeed, startRotation, rotation);
-                animation.addAnimationHandler([&](float value) {
-                    auto xValue = -cos(value * M_PI / 180.0f);
-                    auto zValue = sin(value * M_PI / 180.0f);
-                    _gwAgentNode->camera().setDirection({xValue, 0.0f, zValue});
-                    _gwAgentNode->agentNode().updateTransform([&](TransformHandle& transformHandle) {
-                        transformHandle.updateTransform([&](Transform& transform) {
-                            transform.updateRotationInDegrees({-90.0f, value, 0.0f});
-                        });
-                    });
-                });
-                _animations->pushAnimation(std::move(animation));
-            }
-            float startPosition;
-            float endPosition;
-            bool isX = false;
-            if (previousPositionX != position.x) {
-                isX = true;
-                startPosition = previousPositionX;
-                endPosition = position.x;
-            } else {
-                startPosition = previousPositionY;
-                endPosition = position.y;
-            }
-            auto moveAnimation = vax::ValueAnimation(moveSpeed, startPosition, endPosition);
-            moveAnimation.addAnimationHandler([=, this](float value) {
-                if (isX) {
-                    _gwAgentNode->camera().setPosition({value, 0.5f, position.y});
-                } else {
-                    _gwAgentNode->camera().setPosition({position.x, 0.5f, value});
-                }
-                _gwAgentNode->agentNode().updateTransform([=](TransformHandle& transformHandle) {
-                    transformHandle.updateTransform([=](Transform& transform) {
-                        if (isX) {
-                            transform.position = {value, 0.0f, position.y};
-                        } else {
-                            transform.position = {position.x, 0.0f, value};
-                        }
-                    });
-                });
-            });
-            _animations->pushAnimation(std::move(moveAnimation));
-        } else {
-            float rotation = 0.0f;
-            glm::vec3 direction = {0.0f, 0.0f, 0.0f};
-            switch (orientation) {
-            case AgentOrientation::NORTH:
-                rotation = 90.0f;
-                direction = {0.0f, 0.0f, 1.0f};
-                break;
-            case AgentOrientation::SOUTH:
-                rotation = 270.0f;
-                direction = {0.0f, 0.0f, -1.0f};
-                break;
-            case AgentOrientation::EAST:
-                rotation = 0.0f;
-                direction = {-1.0f, 0.0f, 0.0f};
-                break;
-            case AgentOrientation::WEST:
-                rotation = 180.0f;
-                direction = {1.0f, 0.0f, 0.0f};
-                break;
-            }
-            _gwAgentNode->camera().setDirection(direction);
-            _gwAgentNode->camera().setPosition({position.x, 0.5f, position.y});
-            _gwAgentNode->agentNode().updateTransform([&](TransformHandle& transformHandle) {
-                transformHandle.updateTransform([&](Transform& transform) {
-                    transform.position = {position.x, 0.0f, position.y};
-                    transform.updateRotationInDegrees({-90.0f, rotation, 0.0f});
-                });
-            });
-        }
-        _gwAgentNode->agentNode().setMetadata("orientation", static_cast<int>(orientation));
-        _gwAgentNode->agentNode().setMetadata("position.x", position.x);
-        _gwAgentNode->agentNode().setMetadata("position.y", position.y);
-    } else {
-        _logger.warning("Agent node not loaded!");
+    if (_agent.isNull()) {
+        _logger.warning("Agent not loaded!");
+        return;
     }
+    if (withAnimation) {
+        auto local = _world.get().getComponentFor<ecs::LocalTransformComponent>(_agent);
+        auto startRotation = local.has_value() ? local->transform.getRotationInDegrees().y : 0.0f;
+        if (!_animations.has_value()) {
+            _animations = std::make_optional(vax::AnimationGroup(vax::AnimationGroup::Mode::SERIAL));
+        } else if (_agentState.latestRotationEnd.has_value()) {
+            startRotation = *_agentState.latestRotationEnd;
+        }
+        auto previousPosition = _agentState.position.value_or(position);
+        auto orientationValue = static_cast<int>(orientation);
+        auto previousOrientation = _agentState.orientation.value_or(orientationValue);
+        auto orientationDelta = orientationValue - previousOrientation;
+        if (orientationDelta != 0) {
+            orientationDelta = orientationDelta == 3 ? -1 : orientationDelta == -3 ? 1 : orientationDelta;
+            float rotation = startRotation + orientationDelta * 90.0f;
+            _agentState.latestRotationEnd = rotation;
+            auto animation = vax::ValueAnimation(rotationSpeed, startRotation, rotation);
+            animation.addAnimationHandler([this](float value) {
+                auto xValue = -cos(value * M_PI / 180.0f);
+                auto zValue = sin(value * M_PI / 180.0f);
+                _roverCamera.setDirection({xValue, 0.0f, zValue});
+                _updateAgentTransform([value](Transform& transform) {
+                    transform.updateRotationInDegrees({-90.0f, value, 0.0f});
+                });
+            });
+            _animations->pushAnimation(std::move(animation));
+        }
+        float startPosition;
+        float endPosition;
+        bool isX = false;
+        if (previousPosition.x != position.x) {
+            isX = true;
+            startPosition = previousPosition.x;
+            endPosition = position.x;
+        } else {
+            startPosition = previousPosition.y;
+            endPosition = position.y;
+        }
+        auto moveAnimation = vax::ValueAnimation(moveSpeed, startPosition, endPosition);
+        moveAnimation.addAnimationHandler([=, this](float value) {
+            if (isX) {
+                _roverCamera.setPosition({value, 0.5f, position.y});
+            } else {
+                _roverCamera.setPosition({position.x, 0.5f, value});
+            }
+            _updateAgentTransform([=](Transform& transform) {
+                if (isX) {
+                    transform.position = {value, 0.0f, position.y};
+                } else {
+                    transform.position = {position.x, 0.0f, value};
+                }
+            });
+        });
+        _animations->pushAnimation(std::move(moveAnimation));
+    } else {
+        float rotation = 0.0f;
+        glm::vec3 direction = {0.0f, 0.0f, 0.0f};
+        switch (orientation) {
+        case AgentOrientation::NORTH:
+            rotation = 90.0f;
+            direction = {0.0f, 0.0f, 1.0f};
+            break;
+        case AgentOrientation::SOUTH:
+            rotation = 270.0f;
+            direction = {0.0f, 0.0f, -1.0f};
+            break;
+        case AgentOrientation::EAST:
+            rotation = 0.0f;
+            direction = {-1.0f, 0.0f, 0.0f};
+            break;
+        case AgentOrientation::WEST:
+            rotation = 180.0f;
+            direction = {1.0f, 0.0f, 0.0f};
+            break;
+        }
+        _roverCamera.setDirection(direction);
+        _roverCamera.setPosition({position.x, 0.5f, position.y});
+        _updateAgentTransform([&](Transform& transform) {
+            transform.position = {position.x, 0.0f, position.y};
+            transform.updateRotationInDegrees({-90.0f, rotation, 0.0f});
+        });
+    }
+    _agentState.orientation = static_cast<int>(orientation);
+    _agentState.position = position;
 }
 
 void GWDrawableWorld::resetInstancesHighlight(std::string instanceId) {
-    for (auto& node : _envNodes) {
-        if (node.name() == instanceId) {
-            node.unselectAllInstances();
-        }
+    auto it = _envEntities.find(instanceId);
+    if (it == _envEntities.end()) {
+        return;
+    }
+    for (ecs::Entity entity : it->second) {
+        _world.get().removeComponentFor<ecs::HighlightComponent>(entity);
     }
 }
 
 void GWDrawableWorld::highlightInstance(std::string instanceId, uint32_t instanceIndex, vax::engine::Color color) {
-    for (auto& node : _envNodes) {
-        if (node.name() == instanceId) {
-            node.selectInstance(instanceIndex);
-            node.setSelectionColor(instanceIndex, color);
-        }
+    auto it = _envEntities.find(instanceId);
+    if (it == _envEntities.end() || instanceIndex >= it->second.size() || it->second[instanceIndex].isNull()) {
+        _logger.warning("No env instance ", instanceId, "[", instanceIndex, "]");
+        return;
     }
+    _world.get().addComponentFor<ecs::HighlightComponent>(it->second[instanceIndex], packRGBA(color));
 }
 
 void GWDrawableWorld::setOnAllAnimationsCompleted(std::function<void()> onAllAnimationsCompleted) {

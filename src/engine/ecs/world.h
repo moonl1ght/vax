@@ -41,44 +41,44 @@ class World final {
 
     size_t aliveEntityCount() const { return _generations.size() - _freeIndices.size(); }
 
-    template <typename T, typename... Args> T& addComponentFor(Entity entity, Args&&... args) {
+    template <typename ComponentType, typename... Args> ComponentType& addComponentFor(Entity entity, Args&&... args) {
         assert(isEntityAlive(entity));
-        return _getOrCreatePool<T>().emplace(entity.index, std::forward<Args>(args)...);
+        return _getOrCreatePool<ComponentType>().emplace(entity.index, std::forward<Args>(args)...);
     }
 
-    template <typename T> void removeComponentFor(Entity entity) {
+    template <typename ComponentType> void removeComponentFor(Entity entity) {
         if (!isEntityAlive(entity)) {
             return;
         }
-        if (auto* pool = _findPool<T>()) {
+        if (auto* pool = _findPool<ComponentType>()) {
             pool->remove(entity.index);
         }
     }
 
-    template <typename T> bool hasComponent(Entity entity) const {
-        const auto* pool = _findPool<T>();
+    template <typename ComponentType> bool hasComponent(Entity entity) const {
+        const auto* pool = _findPool<ComponentType>();
         return pool != nullptr && isEntityAlive(entity) && pool->contains(entity.index);
     }
 
-    template <typename T> std::optional<T> getComponentFor(Entity entity) {
+    template <typename ComponentType> std::optional<ComponentType> getComponentFor(Entity entity) {
         if (!isEntityAlive(entity)) {
             return std::nullopt;
         }
-        auto* pool = _findPool<T>();
-        return pool != nullptr ? std::optional<T>(pool->get(entity.index)) : std::nullopt;
+        auto* pool = _findPool<ComponentType>();
+        return pool != nullptr ? std::optional<ComponentType>(pool->get(entity.index)) : std::nullopt;
     }
 
-    template <typename T> std::optional<const T> getComponentFor(Entity entity) const {
+    template <typename ComponentType> std::optional<const ComponentType> getComponentFor(Entity entity) const {
         if (!isEntityAlive(entity)) {
             return std::nullopt;
         }
-        const auto* pool = _findPool<T>();
-        return pool != nullptr ? std::optional<const T>(pool->get(entity.index)) : std::nullopt;
+        const auto* pool = _findPool<ComponentType>();
+        return pool != nullptr ? std::optional<const ComponentType>(pool->get(entity.index)) : std::nullopt;
     }
 
-    template <typename... Ts, typename F> void each(F&& f) {
-        static_assert(sizeof...(Ts) > 0, "each requires at least one component type");
-        auto pools = std::make_tuple(_findPool<Ts>()...);
+    template <typename... ComponentTypes, typename Function> void each(Function&& function) {
+        static_assert(sizeof...(ComponentTypes) > 0, "each requires at least one component type");
+        auto pools = std::make_tuple(_findPool<ComponentTypes>()...);
         bool hasMissingPool = std::apply([](auto*... pool) { return ((pool == nullptr) || ...); }, pools);
         if (hasMissingPool) {
             return;
@@ -101,7 +101,7 @@ class World final {
                 continue;
             }
             Entity entity{.index = index, .generation = _generations[index]};
-            std::apply([&](auto*... pool) { f(entity, pool->get(index)...); }, pools);
+            std::apply([&](auto*... pool) { function(entity, pool->get(index)...); }, pools);
         }
     }
 
@@ -113,25 +113,26 @@ class World final {
 
     std::vector<std::unique_ptr<IComponentPool>> _pools;
 
-    template <typename T> ComponentPool<T>* _findPool() {
-        ComponentTypeId typeId = componentTypeId<T>();
-        return typeId < _pools.size() ? static_cast<ComponentPool<T>*>(_pools[typeId].get()) : nullptr;
+    template <typename ComponentType> ComponentPool<ComponentType>* _findPool() {
+        ComponentTypeId typeId = componentTypeId<ComponentType>();
+        return typeId < _pools.size() ? static_cast<ComponentPool<ComponentType>*>(_pools[typeId].get()) : nullptr;
     }
 
-    template <typename T> const ComponentPool<T>* _findPool() const {
-        ComponentTypeId typeId = componentTypeId<T>();
-        return typeId < _pools.size() ? static_cast<const ComponentPool<T>*>(_pools[typeId].get()) : nullptr;
+    template <typename ComponentType> const ComponentPool<ComponentType>* _findPool() const {
+        ComponentTypeId typeId = componentTypeId<ComponentType>();
+        return typeId < _pools.size() ? static_cast<const ComponentPool<ComponentType>*>(_pools[typeId].get())
+                                      : nullptr;
     }
 
-    template <typename T> ComponentPool<T>& _getOrCreatePool() {
-        ComponentTypeId typeId = componentTypeId<T>();
+    template <typename ComponentType> ComponentPool<ComponentType>& _getOrCreatePool() {
+        ComponentTypeId typeId = componentTypeId<ComponentType>();
         if (typeId >= _pools.size()) {
             _pools.resize(typeId + 1);
         }
         if (!_pools[typeId]) {
-            _pools[typeId] = std::make_unique<ComponentPool<T>>();
+            _pools[typeId] = std::make_unique<ComponentPool<ComponentType>>();
         }
-        return static_cast<ComponentPool<T>&>(*_pools[typeId]);
+        return static_cast<ComponentPool<ComponentType>&>(*_pools[typeId]);
     }
 };
 } // namespace vax::ecs

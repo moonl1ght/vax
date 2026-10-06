@@ -11,15 +11,19 @@ using namespace vax::ecs;
 void SceneComposer::updateTransforms(World& world) {
     ZoneScopedN("SceneComposer::updateTransforms");
     _transformEntries.clear();
-    world.each<LocalTransformComponent, WorldTransformComponent, HierarchyComponent>(
+    world.each<LocalTransformComponent, WorldTransformComponent, HierarchyComponent, NameComponent>(
         [&](Entity entity,
             LocalTransformComponent& local,
             WorldTransformComponent& worldTransform,
-            HierarchyComponent& hierarchy) {
+            HierarchyComponent& hierarchy,
+            NameComponent& name) {
+            DebugEntity debugEntity{entity, name.value};
+            std::optional<NameComponent> parentName = world.getComponentFor<NameComponent>(hierarchy.parent);
+            DebugEntity parentEntity{hierarchy.parent, parentName ? parentName->value : ""};
             _transformEntries.push_back({
                 .depth = hierarchy.depth,
-                .entity = entity,
-                .parent = hierarchy.parent,
+                .entity = debugEntity,
+                .parent = parentEntity,  
                 .local = &local,
                 .world = &worldTransform,
             });
@@ -32,7 +36,7 @@ void SceneComposer::updateTransforms(World& world) {
     _entryIndexByEntity.assign(_entryIndexByEntity.size(), -1);
     _isEntryUpdated.assign(_transformEntries.size(), 0);
     for (size_t i = 0; i < _transformEntries.size(); ++i) {
-        uint32_t index = _transformEntries[i].entity.index;
+        uint32_t index = _transformEntries[i].entity.entity.index;
         if (index >= _entryIndexByEntity.size()) {
             _entryIndexByEntity.resize(index + 1, -1);
         }
@@ -42,11 +46,11 @@ void SceneComposer::updateTransforms(World& world) {
     for (size_t i = 0; i < _transformEntries.size(); ++i) {
         auto& entry = _transformEntries[i];
         int32_t parentEntryIndex = -1;
-        if (!entry.parent.isNull() && entry.parent.index < _entryIndexByEntity.size()) {
-            parentEntryIndex = _entryIndexByEntity[entry.parent.index];
+        if (!entry.parent.entity.isNull() && entry.parent.entity.index < _entryIndexByEntity.size()) {
+            parentEntryIndex = _entryIndexByEntity[entry.parent.entity.index];
         }
         bool isParentUpdated = parentEntryIndex >= 0 && _isEntryUpdated[parentEntryIndex];
-        if (!isParentUpdated && !world.hasComponent<TransformDirtyComponent>(entry.entity)) {
+        if (!isParentUpdated && !world.hasComponent<TransformDirtyComponent>(entry.entity.entity)) {
             continue;
         }
         glm::mat4 parentMatrix =
@@ -104,7 +108,7 @@ void SceneComposer::compose(World& world, IndirectDrawController& indirectDrawCo
                 .normalMatrix = worldTransform.normalMatrix,
                 .packedColor = 0,
                 .flags = InstanceFlags::InstanceFlagsNone,
-                .instanceId = NO_ID,
+                .instanceId = entity.index,
                 .padding = 0,
             };
             if (world.hasComponent<HighlightComponent>(entity)) {

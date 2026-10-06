@@ -18,6 +18,7 @@
 #include "shaderUniforms.h"
 #include "vkEngine.h"
 #include "drawableWorld.h"
+#include "sceneComposer.h"
 
 namespace vax::rl {
 struct GridWorldDrawableDescriptor;
@@ -48,7 +49,10 @@ class DrawableScene final : public vax::InputController::Observer {
         , _resourceManager(std::move(resourceManager))
         , _assetsLibrary(std::move(assetsLibrary))
         , _environmentMap(std::move(environmentMap)) {
-        _indirectDrawController = std::make_unique<IndirectDrawController>(*_vkEngine.get().device);;
+        _indirectDrawController = std::make_unique<IndirectDrawController>(*_vkEngine.get().device);
+        _sceneComposer = std::make_unique<SceneComposer>(
+            *_assetsLibrary, _resourceManager->ssboManager(), vax::vk::MAX_DRAWABLE_INSTANCES
+        );
     };
 
     ~DrawableScene() {
@@ -110,6 +114,7 @@ class DrawableScene final : public vax::InputController::Observer {
     std::unique_ptr<vax::vk::ResourceManager> _resourceManager;
     std::unique_ptr<vax::engine::AssetsLibrary> _assetsLibrary;
     std::unique_ptr<vax::engine::EnvironmentMap> _environmentMap;
+    std::unique_ptr<vax::engine::SceneComposer> _sceneComposer;
     std::unique_ptr<vax::ecs::World> _world;
 
     std::unique_ptr<vax::engine::Camera> _gizmoCamera;

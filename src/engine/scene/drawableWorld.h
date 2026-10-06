@@ -16,6 +16,10 @@ class DrawableWorld {
     DrawableWorld& operator=(const DrawableWorld&) = delete;
     DrawableWorld& operator=(DrawableWorld&&) = delete;
 
+    vax::ecs::World& world() { return _world.get(); }
+
+    const vax::ecs::World& world() const { return _world.get(); }
+
   protected:
     std::reference_wrapper<vax::ecs::World> _world;
 };

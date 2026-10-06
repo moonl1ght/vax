@@ -51,6 +51,9 @@ void _processURDFLink(
         const auto* mesh = static_cast<const urdf::Mesh*>(visual->geometry.get());
         auto model = modelsLoader.loadModel(std::string(mainPath) + "/" + mesh->filename);
         if (model.has_value()) {
+            for (size_t submeshIndex = 0; submeshIndex < model->submeshCount(); ++submeshIndex) {
+                model->submesh(submeshIndex).materialIndex = materialId;
+            }
             auto modelId = models.size();
             models.push_back(std::move(*model));
             prefab.nodes.push_back({
