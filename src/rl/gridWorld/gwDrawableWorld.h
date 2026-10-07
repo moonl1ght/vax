@@ -51,8 +51,6 @@ class GWDrawableWorld final : public vax::engine::DrawableWorld {
 
     void setOnAllAnimationsCompleted(std::function<void()> onAllAnimationsCompleted);
 
-    const vax::engine::Camera& roverCamera() const { return _roverCamera; }
-
     vax::engine::Camera& roverCamera() { return _roverCamera; }
 
   private:

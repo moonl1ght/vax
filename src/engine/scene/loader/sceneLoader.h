@@ -3,6 +3,7 @@
 #include "drawableScene.h"
 #include "gridWorldDescriptor.h"
 #include "scene.h"
+#include "sceneDescriptor.h"
 #include "world.h"
 
 namespace vax::engine {
@@ -31,6 +32,8 @@ class SceneLoader {
         std::unique_ptr<ecs::World>& world,
         std::unique_ptr<DrawableScene>& drawableScene
     );
+
+    std::optional<SceneDescriptor> _loadSceneDescriptor(const std::string& path);
 };
 
 } // namespace vax::engine

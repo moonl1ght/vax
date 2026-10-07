@@ -78,10 +78,9 @@ void RoverView::load(Engine& engine, InputController& inputController) {
 
     auto sceneLoader = vax::engine::SceneLoader(engine);
     _scene =
-        sceneLoader.load(RELATIVE_PATH("assets/scenes/gridWorld.json"), _gridWorld->getDrawableDescriptor());
+        sceneLoader.load(RES_PATH("scenes/rover_demo_scene.json"), _gridWorld->getDrawableDescriptor());
     _scene->drawableScene().resize();
-    // _drawableScene->loadScene(_gridWorld->getDrawableDescriptor(), engine.queueManager->graphicsQueue);
-    _gridWorld->linkDrawableWorld(_scene->drawableScene().drawableWorld());
+    _gridWorld->linkDrawableWorld(dynamic_cast<vax::rl::GWDrawableWorld*>(_scene->drawableScene().drawableWorld()));
     inputController.addObserver(&_scene->drawableScene());
     inputController.addObserver(_gridWorld.get());
 }

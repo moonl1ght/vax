@@ -6,12 +6,9 @@
 namespace vax::engine {
 
 struct GizmoDescriptor final {
-  public:
-    GizmoDescriptor(const CameraDescriptor& cameraDescriptor) : _cameraDescriptor(cameraDescriptor) {}
-    ~GizmoDescriptor() = default;
-
-  private:
-    CameraDescriptor _cameraDescriptor;
+    CameraDescriptor cameraDescriptor;
 };
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(GizmoDescriptor, cameraDescriptor)
 
 } // namespace vax::engine

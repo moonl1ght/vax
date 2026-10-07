@@ -2,16 +2,35 @@
 #include "environmentMap.h"
 #include "prefabSpawner.h"
 #include "resourceManager.h"
+#include "sceneDescriptor.h"
+#include <fstream>
+#include <nlohmann/json.hpp>
+#include <stdexcept>
 
 using namespace vax::engine;
 using namespace vax::ecs;
 
 std::unique_ptr<Scene>
 SceneLoader::load(const std::string& path, const vax::rl::GridWorldDrawableDescriptor& descriptor) {
+    auto sceneDescriptor = _loadSceneDescriptor(path);
+    if (!sceneDescriptor.has_value()) {
+        return nullptr;
+    }
     std::unique_ptr<ecs::World> world = std::make_unique<ecs::World>();
     auto drawableScene = _initDrawableScene(*world, descriptor);
     _loadSceneAndWorld(world, drawableScene);
     return std::make_unique<Scene>(std::move(world), std::move(drawableScene));
+}
+
+std::optional<SceneDescriptor> SceneLoader::_loadSceneDescriptor(const std::string& path) {
+    std::ifstream file(path);
+    if (!file.is_open()) {
+        return std::nullopt;
+    }
+    nlohmann::json json;
+    file >> json;
+    SceneDescriptor descriptor = json.get<SceneDescriptor>();
+    return descriptor;
 }
 
 std::unique_ptr<DrawableScene>
@@ -94,7 +113,6 @@ SceneLoader::_initDrawableScene(ecs::World& world, const vax::rl::GridWorldDrawa
 
     return std::make_unique<DrawableScene>(
         _vkEngine.get(),
-        world,
         std::move(gizmoWorld),
         std::move(backgroundWorld),
         std::move(drawableWorld),

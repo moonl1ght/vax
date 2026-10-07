@@ -1,17 +1,14 @@
 #pragma once
 
-#include <string>
 #include <nlohmann/json.hpp>
+#include <string>
 
 namespace vax::engine {
 
 struct CameraDescriptor final {
-  public:
-    CameraDescriptor(const std::string& name) : _name(name) {}
-    ~CameraDescriptor() = default;
-
-  private:
-    std::string _name;
+    std::string name;
 };
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(CameraDescriptor, name)
 
 } // namespace vax::engine

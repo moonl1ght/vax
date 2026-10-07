@@ -37,16 +37,14 @@ class DrawableScene final : public vax::InputController::Observer {
 
     explicit DrawableScene(
         vax::vk::Engine& vkEngine,
-        vax::ecs::World& world,
         std::unique_ptr<vax::ecs::World> gizmoWorld,
         std::unique_ptr<vax::ecs::World> backgroundWorld,
-        std::unique_ptr<vax::rl::GWDrawableWorld> drawableWorld,
+        std::unique_ptr<vax::engine::DrawableWorld> drawableWorld,
         std::unique_ptr<vax::vk::ResourceManager> resourceManager,
         std::unique_ptr<vax::engine::EnvironmentMap> environmentMap,
         std::unique_ptr<vax::engine::SceneComposer> sceneComposer
     )
         : _vkEngine(vkEngine)
-        , _world(world)
         , _gizmoWorld(std::move(gizmoWorld))
         , _backgroundWorld(std::move(backgroundWorld))
         , _drawableWorld(std::move(drawableWorld))
@@ -97,7 +95,7 @@ class DrawableScene final : public vax::InputController::Observer {
 
     void onKeyEvent(const vax::KeyEvent& keyEvent);
 
-    vax::rl::GWDrawableWorld* drawableWorld() const { return _drawableWorld.get(); }
+    vax::engine::DrawableWorld* drawableWorld() const { return _drawableWorld.get(); }
 
     bool shouldDrawSecondaryWindow() const { return _shouldDrawSecondaryWindow; }
 
@@ -109,10 +107,9 @@ class DrawableScene final : public vax::InputController::Observer {
     vax::Logger _logger = vax::Logger("DrawableScene");
 
     std::reference_wrapper<vax::vk::Engine> _vkEngine;
-    std::reference_wrapper<vax::ecs::World> _world;
 
     std::unique_ptr<IndirectDrawController> _indirectDrawController;
-    std::unique_ptr<vax::rl::GWDrawableWorld> _drawableWorld;
+    std::unique_ptr<vax::engine::DrawableWorld> _drawableWorld;
     std::unique_ptr<vax::vk::ResourceManager> _resourceManager;
     std::unique_ptr<vax::engine::EnvironmentMap> _environmentMap;
     std::unique_ptr<vax::engine::SceneComposer> _sceneComposer;

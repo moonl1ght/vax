@@ -1,6 +1,8 @@
 #pragma once
 
 #include "world.h"
+#include "frameTime.h"
+#include "camera.h"
 
 namespace vax::engine {
 
@@ -19,6 +21,10 @@ class DrawableWorld {
     vax::ecs::World& world() { return _world.get(); }
 
     const vax::ecs::World& world() const { return _world.get(); }
+
+    virtual void update(const vax::engine::FrameTime& frameTime) = 0;
+
+    virtual vax::engine::Camera& roverCamera() = 0;
 
   protected:
     std::reference_wrapper<vax::ecs::World> _world;
