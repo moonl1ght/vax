@@ -12,14 +12,16 @@ using namespace vax::engine;
 vax::engine::PrefabDescriptor GWAgent::getDrawableDescriptor() const {
     auto transform = Transform();
     transform.scale = {0.5f, 0.5f, 0.5f};
-    return {
+    auto assetDescriptor = vax::engine::PrefabDescriptor::AssetDescriptor{
         .path = RES_PATH("assets/models/rover/rover.urdf"),
+    };
+    return {
         .id = "rover",
         .transforms = {transform},
-        .selectedInstanceInfos = {},
-        .modelType = vax::engine::PrefabDescriptor::ModelType::MODEL,
+        .assetDescriptor = assetDescriptor,
         .instancesCount = 1,
         .isIdentifiable = true,
+        .prefabType = PrefabDescriptor::PrefabType::ASSET,
     };
 }
 

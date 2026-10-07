@@ -20,9 +20,7 @@ class AssetsLibrary {
     )
         : _resourceManager(resourceManager)
         , _maxDrawableInstances(maxDrawableInstances) {
-        _modelLoader = std::make_unique<vax::engine::ModelLoader>(device, resourceManager, *this);
-        _primitivesBuilder = std::make_unique<vax::engine::PrimitivesBuilder>(resourceManager);
-        _prefabLoader = std::make_unique<vax::engine::PrefabLoader>(*_modelLoader, resourceManager);
+        _prefabLoader = std::make_unique<vax::engine::PrefabLoader>(device, resourceManager);
         _drawableModels.reserve(_maxDrawableInstances);
     };
 
@@ -32,8 +30,6 @@ class AssetsLibrary {
     AssetsLibrary& operator=(const AssetsLibrary& other) = delete;
     AssetsLibrary(AssetsLibrary&& other) noexcept = delete;
     AssetsLibrary& operator=(AssetsLibrary&& other) noexcept = delete;
-
-    void preload(const std::vector<vax::engine::PrefabDescriptor>& descriptors);
 
     void preloadv2(const std::vector<vax::engine::PrefabDescriptor>& descriptors);
 
@@ -80,7 +76,6 @@ class AssetsLibrary {
     std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;
 
     std::unique_ptr<vax::engine::ModelLoader> _modelLoader;
-    std::unique_ptr<vax::engine::PrimitivesBuilder> _primitivesBuilder;
     std::unique_ptr<vax::engine::PrefabLoader> _prefabLoader;
 
     std::unordered_map<std::string, vax::engine::Prefab> _prefabs;

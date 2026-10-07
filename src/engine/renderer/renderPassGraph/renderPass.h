@@ -30,9 +30,7 @@ class RenderPass : public RenderPassNode {
         , _renderDestination(std::move(renderDestination))
         , _renderDescriptor(std::move(renderDescriptor)) {
         if (auto renderDescriptorShared = _renderDescriptor.lock()) {
-            _clearValues.assign(
-                renderDescriptorShared->colorAttachmentCount, VkClearValue{.color = {{0.0f, 0.0f, 0.0f, 0.0f}}}
-            );
+            _clearValues = renderDescriptorShared->colorClearValues;
             _clearValues.push_back(VkClearValue{.depthStencil = {0.0f, 0}});
         }
     };

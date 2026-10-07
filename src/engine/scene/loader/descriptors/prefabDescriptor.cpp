@@ -2,23 +2,23 @@
 
 using namespace vax::engine;
 
-PrefabDescriptor::ModelExtension PrefabDescriptor::getModelExtension() const {
+PrefabDescriptor::AssetExtension PrefabDescriptor::AssetDescriptor::getAssetExtension() const {
     auto dot = path.rfind('.');
     if (dot == std::string::npos)
-        return ModelExtension::UNKNOWN;
+        return AssetExtension::UNKNOWN;
 
     std::string ext = path.substr(dot + 1);
     for (auto& c : ext)
         c = std::tolower(c);
 
     if (ext == "glb")
-        return ModelExtension::GLB;
+        return AssetExtension::GLB;
     if (ext == "urdf")
-        return ModelExtension::URDF;
-    return ModelExtension::UNKNOWN;
+        return AssetExtension::URDF;
+    return AssetExtension::UNKNOWN;
 }
 
-const std::string_view PrefabDescriptor::getMainPath() const {
+const std::string_view PrefabDescriptor::AssetDescriptor::getMainPath() const {
     auto dot = path.rfind('/');
     if (dot == std::string::npos)
         return std::string_view("");

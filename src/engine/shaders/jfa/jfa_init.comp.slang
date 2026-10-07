@@ -1,5 +1,7 @@
 #include "jfa.h"
 
+import uniforms;
+
 [vk::binding(0, 0)]
 Texture2D<uint> inputMask;
 
@@ -30,7 +32,7 @@ void compMain(uint3 dtid : SV_DispatchThreadID)
     // textureA[pixelCoords] = point;
     bool isEdge = false;
 
-    if (objectId > 0) {
+    if (objectId != NO_ID) {
         int2 offsets[4] = { int2(1, 0), int2(-1, 0), int2(0, 1), int2(0, -1) };
 
         for (int i = 0; i < 4; ++i) {
@@ -43,7 +45,7 @@ void compMain(uint3 dtid : SV_DispatchThreadID)
                 float neighborDepth = inputDepth.Load(int3(neighborCoords, 0));
 
                 if (neighborId != objectId) {
-                    if (neighborId == 0 || currentDepth == 0) {
+                    if (neighborId == NO_ID || currentDepth == 0) {
                         isEdge = true;
                         break;
                     } else {

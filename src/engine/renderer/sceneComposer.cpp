@@ -70,7 +70,9 @@ void SceneComposer::updateTransforms(World& world) {
     }
 }
 
-void SceneComposer::compose(World& world, IndirectDrawController& indirectDrawController, uint32_t frameIndex) {
+uint32_t SceneComposer::compose(
+    World& world, IndirectDrawController& indirectDrawController, uint32_t frameIndex, uint32_t baseInstance
+) {
     ZoneScopedN("SceneComposer::compose");
     auto& assetsLibrary = _assetsLibrary.get();
     const size_t modelCount = assetsLibrary.drawableModelCount();
@@ -84,12 +86,11 @@ void SceneComposer::compose(World& world, IndirectDrawController& indirectDrawCo
         }
     );
 
-    const uint32_t baseInstance = assetsLibrary.legacyInstanceCount();
     const uint32_t totalInstances =
         std::accumulate(_modelInstanceCounts.begin(), _modelInstanceCounts.end(), baseInstance);
     if (totalInstances > _maxInstances) {
         _logger.error("Instance buffer overflow: ", totalInstances, " > ", _maxInstances);
-        return;
+        return baseInstance;
     }
 
     _modelInstanceOffsets.resize(modelCount);
@@ -132,4 +133,5 @@ void SceneComposer::compose(World& world, IndirectDrawController& indirectDrawCo
             }
         );
     }
+    return totalInstances;
 }

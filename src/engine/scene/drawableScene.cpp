@@ -1,6 +1,5 @@
 #include "drawableScene.h"
 #include "camera.h"
-#include "gridWorldDescriptor.h"
 #include "profiler.h"
 #include "swapchain.h"
 
@@ -177,8 +176,6 @@ void vax::engine::DrawableScene::draw(const DrawContext& drawContext) {
 }
 
 void vax::engine::DrawableScene::drawBackground(const DrawContext& drawContext) {
-    if (!_background)
-        return;
     VkBuffer vertexBuffers[] = {_resourceManager->meshManager().globalVertexBuffer(0)};
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(drawContext.commandBuffer.vkCommandBuffer, 0, 1, vertexBuffers, offsets);
@@ -245,8 +242,10 @@ void DrawableScene::beginDrawing(CommandBuffer& commandBuffer, uint32_t frameInd
     // });
     _indirectDrawController->prepareForDraw(frameIndex);
 
+    uint32_t instanceCursor = 0;
     _indirectDrawController->addDrawScope("scene", [&]() {
-        _sceneComposer->compose(_drawableWorld->world(), *_indirectDrawController, frameIndex);
+        instanceCursor =
+            _sceneComposer->compose(_drawableWorld->world(), *_indirectDrawController, frameIndex, instanceCursor);
     });
 
     // auto gizmoDrawRange = _indirectDrawController->addDrawScope([&]() {
@@ -254,7 +253,8 @@ void DrawableScene::beginDrawing(CommandBuffer& commandBuffer, uint32_t frameInd
     // });
 
     _indirectDrawController->addDrawScope("background", [&]() {
-        _background->prepareDrawing(_indirectDrawController.get(), frameIndex);
+        instanceCursor =
+            _sceneComposer->compose(*_backgroundWorld, *_indirectDrawController, frameIndex, instanceCursor);
     });
 
     _indirectDrawController->submitCommands(frameIndex);

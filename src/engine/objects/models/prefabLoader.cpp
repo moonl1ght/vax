@@ -71,31 +71,86 @@ void _processURDFLink(
 
 std::optional<std::pair<Prefab, std::vector<DrawableModel>>>
 PrefabLoader::loadPrefab(const PrefabDescriptor& descriptor) {
-    switch (descriptor.getModelExtension()) {
-    case PrefabDescriptor::ModelExtension::URDF:
-        return _loadURDFPrefab(descriptor);
-    case PrefabDescriptor::ModelExtension::GLB:
-        return _loadGLBPrefab(descriptor);
+    switch (descriptor.prefabType) {
+    case PrefabDescriptor::PrefabType::PRESET:
+        return _loadPrimitivePrefab(descriptor);
+    case PrefabDescriptor::PrefabType::ASSET:
+        return _loadAssetPrefab(descriptor);
     default:
-        _logger.error("Unsupported model extension: ", descriptor.path);
+        _logger.error("Unsupported prefab type: " + std::to_string(static_cast<int>(descriptor.prefabType)));
         return std::nullopt;
     }
-    return std::nullopt;
+}
+
+std::optional<std::pair<Prefab, std::vector<DrawableModel>>>
+PrefabLoader::_loadPrimitivePrefab(const PrefabDescriptor& descriptor) {
+    auto primitiveDescriptor = descriptor.primitiveDescriptor;
+    if (!primitiveDescriptor) {
+        _logger.error("Primitive descriptor is null");
+        return std::nullopt;
+    }
+    std::vector<DrawableModel> models;
+    switch (primitiveDescriptor->primitiveType) {
+    case PrefabDescriptor::PrimitiveType::CUBE:
+        models.push_back(
+            std::move(_primitivesBuilder->createCube(primitiveDescriptor->size, primitiveDescriptor->color).value())
+        );
+        break;
+    case PrefabDescriptor::PrimitiveType::PLANE:
+        models.push_back(std::move(_primitivesBuilder->createPlane().value()));
+        break;
+    default:
+        _logger.error(
+            "Unsupported primitive type: " + std::to_string(static_cast<int>(primitiveDescriptor->primitiveType))
+        );
+        return std::nullopt;
+    }
+    if (models.empty()) {
+        _logger.error("Failed to create primitive");
+        return std::nullopt;
+    }
+    Prefab prefab{
+        .id = descriptor.id,
+        .nodes = {{.name = descriptor.id, .model = 0}},
+    };
+    return std::optional<std::pair<Prefab, std::vector<DrawableModel>>>(
+        std::in_place, std::make_pair(std::move(prefab), std::move(models))
+    );
+}
+
+std::optional<std::pair<Prefab, std::vector<DrawableModel>>>
+PrefabLoader::_loadAssetPrefab(const PrefabDescriptor& descriptor) {
+    switch (descriptor.assetDescriptor->getAssetExtension()) {
+    case PrefabDescriptor::AssetExtension::GLB:
+        return _loadGLBPrefab(descriptor);
+    case PrefabDescriptor::AssetExtension::URDF:
+        return _loadURDFPrefab(descriptor);
+    default:
+        _logger.error(
+            "Unsupported asset extension: " +
+            std::to_string(static_cast<int>(descriptor.assetDescriptor->getAssetExtension()))
+        );
+        return std::nullopt;
+    }
 }
 
 std::optional<std::pair<Prefab, std::vector<DrawableModel>>>
 PrefabLoader::_loadURDFPrefab(const PrefabDescriptor& descriptor) {
-    auto path = descriptor.path;
+    if (!descriptor.assetDescriptor) {
+        _logger.error("Asset descriptor is null");
+        return std::nullopt;
+    }
+    auto path = descriptor.assetDescriptor->path;
     auto model = urdf::parseURDFFile(path);
     if (!model) {
         _logger.error("Failed to load URDF model: " + path);
         return std::nullopt;
     }
-    auto mainPath = descriptor.getMainPath();
+    auto mainPath = descriptor.assetDescriptor->getMainPath();
     std::vector<DrawableModel> models;
     Prefab prefab;
     prefab.id = descriptor.id;
-    _processURDFLink(_modelLoader, _resourceManager.get(), prefab, models, -1, mainPath, model->getRoot());
+    _processURDFLink(*_modelLoader, _resourceManager.get(), prefab, models, -1, mainPath, model->getRoot());
     return std::optional<std::pair<Prefab, std::vector<DrawableModel>>>(
         std::in_place, std::make_pair(std::move(prefab), std::move(models))
     );
@@ -103,9 +158,13 @@ PrefabLoader::_loadURDFPrefab(const PrefabDescriptor& descriptor) {
 
 std::optional<std::pair<Prefab, std::vector<DrawableModel>>>
 PrefabLoader::_loadGLBPrefab(const PrefabDescriptor& descriptor) {
-    auto model = _modelLoader.get().loadModel(descriptor.path);
+    if (!descriptor.assetDescriptor) {
+        _logger.error("Asset descriptor is null");
+        return std::nullopt;
+    }
+    auto model = _modelLoader->loadModel(descriptor.assetDescriptor->path);
     if (!model.has_value()) {
-        _logger.error("Failed to load GLB model: " + descriptor.path);
+        _logger.error("Failed to load GLB model: " + descriptor.assetDescriptor->path);
         return std::nullopt;
     }
     std::vector<DrawableModel> models;

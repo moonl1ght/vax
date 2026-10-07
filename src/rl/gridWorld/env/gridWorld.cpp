@@ -114,15 +114,17 @@ GridWorldDrawableDescriptor GridWorld::getDrawableDescriptor() const {
                     engine::PrefabDescriptor::SelectedInstanceInfo{0, engine::ColorPalette::Green}
                 );
             }
-            descriptors[blockTypeString] = engine::PrefabDescriptor{
-                .primitiveDescriptor = engine::PrefabDescriptor::PrimitiveDescriptor(),
+            auto assetDescriptor = engine::PrefabDescriptor::AssetDescriptor{
                 .path = blockTypeString,
+            };
+            descriptors[blockTypeString] = engine::PrefabDescriptor{
                 .id = blockTypeString,
                 .transforms = {transform},
                 .selectedInstanceInfos = selectedInstanceInfos,
-                .modelType = engine::PrefabDescriptor::ModelType::MODEL,
+                .assetDescriptor = assetDescriptor,
                 .instancesCount = 1,
                 .isIdentifiable = true,
+                .prefabType = engine::PrefabDescriptor::PrefabType::ASSET,
             };
         } else {
             auto& descriptor = descriptors[blockTypeString];

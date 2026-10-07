@@ -1,6 +1,7 @@
 #include "renderPassDescriptorBuilder.h"
 #include "device.h"
 #include "luna.h"
+#include "shaderUniforms.h"
 #include "vkUtils.h"
 
 using namespace vax::vk;
@@ -96,7 +97,7 @@ RenderPassDescriptorBuilder::buildOffscreen(VkFormat imageFormat, bool allowComp
     };
 
     VkAttachmentDescription maskAttachment{
-        .format = VK_FORMAT_R8_UINT,
+        .format = VK_FORMAT_R32_UINT,
         .samples = VK_SAMPLE_COUNT_1_BIT,
         .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
         .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -183,8 +184,17 @@ RenderPassDescriptorBuilder::buildOffscreen(VkFormat imageFormat, bool allowComp
         return std::nullopt;
     }
 
+    std::vector<VkClearValue> colorClearValues;
+    for (size_t i = 0; i < colorAttachmentRefs.size(); ++i) {
+        colorClearValues.push_back(VkClearValue{.color = {.float32 = {0.0f, 0.0f, 0.0f, 0.0f}}});
+    }
     return std::make_optional<vax::vk::RenderPassDescriptor>(
-        _device.get(), renderPass, imageFormat, depthFormat, static_cast<uint32_t>(colorAttachmentRefs.size())
+        _device.get(),
+        renderPass,
+        imageFormat,
+        depthFormat,
+        static_cast<uint32_t>(colorAttachmentRefs.size()),
+        std::move(colorClearValues)
     );
 }
 

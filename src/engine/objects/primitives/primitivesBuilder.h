@@ -4,11 +4,6 @@
 #include "drawableModel.h"
 #include "resourceManager.h"
 
-namespace vax::vk {
-class CommandManager;
-class QueueManager;
-} // namespace vax::vk
-
 namespace vax::engine {
 class PrimitivesBuilder {
   public:
@@ -28,7 +23,5 @@ class PrimitivesBuilder {
 
   private:
     std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;
-    // std::reference_wrapper<vax::vk::CommandManager> _commandManager;
-    // std::reference_wrapper<vax::vk::QueueManager> _queueManager;
 };
 } // namespace vax::engine

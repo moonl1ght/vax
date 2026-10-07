@@ -4,7 +4,7 @@
 #include "camera.h"
 #include "descriptorSetWriter.h"
 #include "drawContext.h"
-#include "drawableNode.h"
+#include "drawableWorld.h"
 #include "environmentMap.h"
 #include "frameTime.h"
 #include "gwDrawableWorld.h"
@@ -15,10 +15,9 @@
 #include "modelLoader.h"
 #include "renderContext.h"
 #include "resourceManager.h"
+#include "sceneComposer.h"
 #include "shaderUniforms.h"
 #include "vkEngine.h"
-#include "drawableWorld.h"
-#include "sceneComposer.h"
 
 namespace vax::rl {
 struct GridWorldDrawableDescriptor;
@@ -39,12 +38,18 @@ class DrawableScene final : public vax::InputController::Observer {
 
     explicit DrawableScene(
         vax::vk::Engine& vkEngine,
+        vax::ecs::World& world,
+        std::unique_ptr<vax::ecs::World> gizmoWorld,
+        std::unique_ptr<vax::ecs::World> backgroundWorld,
         std::unique_ptr<vax::rl::GWDrawableWorld> drawableWorld,
         std::unique_ptr<vax::vk::ResourceManager> resourceManager,
         std::unique_ptr<vax::engine::AssetsLibrary> assetsLibrary,
         std::unique_ptr<vax::engine::EnvironmentMap> environmentMap
     )
         : _vkEngine(vkEngine)
+        , _world(world)
+        , _gizmoWorld(std::move(gizmoWorld))
+        , _backgroundWorld(std::move(backgroundWorld))
         , _drawableWorld(std::move(drawableWorld))
         , _resourceManager(std::move(resourceManager))
         , _assetsLibrary(std::move(assetsLibrary))
@@ -108,6 +113,7 @@ class DrawableScene final : public vax::InputController::Observer {
     vax::Logger _logger = vax::Logger("DrawableScene");
 
     std::reference_wrapper<vax::vk::Engine> _vkEngine;
+    std::reference_wrapper<vax::ecs::World> _world;
 
     std::unique_ptr<IndirectDrawController> _indirectDrawController;
     std::unique_ptr<vax::rl::GWDrawableWorld> _drawableWorld;
@@ -115,10 +121,10 @@ class DrawableScene final : public vax::InputController::Observer {
     std::unique_ptr<vax::engine::AssetsLibrary> _assetsLibrary;
     std::unique_ptr<vax::engine::EnvironmentMap> _environmentMap;
     std::unique_ptr<vax::engine::SceneComposer> _sceneComposer;
-    std::unique_ptr<vax::ecs::World> _world;
+    std::unique_ptr<vax::ecs::World> _gizmoWorld;
+    std::unique_ptr<vax::ecs::World> _backgroundWorld;
 
     std::unique_ptr<vax::engine::Camera> _gizmoCamera;
-    std::unique_ptr<vax::engine::DrawableNode> _gizmoModel;
 
     std::vector<vax::vk::AnyBuffer*> _sceneUniformBuffers;
     std::vector<vax::vk::AnyBuffer*> _roverCameraUniformBuffers;
@@ -129,7 +135,6 @@ class DrawableScene final : public vax::InputController::Observer {
     UniformBufferObject _ubo;
     UniformBufferObject _sunLightUbo;
     UniformBufferObject _roverCameraUbo;
-    std::optional<vax::engine::DrawableNode> _background;
 
     vax::engine::RenderCallContext _renderCallContext;
     vax::engine::SceneUpdateContext _sceneUpdateContext;

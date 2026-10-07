@@ -5,13 +5,24 @@
 
 namespace vax::engine {
 struct PrefabDescriptor {
-    enum class ModelExtension { GLB, URDF, UNKNOWN };
+    enum class PrefabType { ASSET, PRESET };
 
-    enum class ModelType { MODEL, PRIMITIVE_CUBE, PRIMITIVE_PLANE };
+    enum class AssetExtension { GLB, URDF, UNKNOWN };
+
+    enum class PrimitiveType { CUBE, PLANE };
 
     struct PrimitiveDescriptor {
+        PrimitiveType primitiveType;
         float size = 1.0f;
         Color color = ColorPalette::White;
+    };
+
+    struct AssetDescriptor {
+        std::string path;
+
+        AssetExtension getAssetExtension() const;
+
+        const std::string_view getMainPath() const;
     };
 
     struct SelectedInstanceInfo {
@@ -19,17 +30,13 @@ struct PrefabDescriptor {
         Color color = ColorPalette::Clear;
     };
 
-    PrimitiveDescriptor primitiveDescriptor;
-    std::string path;
     std::string id;
     std::vector<vax::math::Transform> transforms;
     std::vector<SelectedInstanceInfo> selectedInstanceInfos;
-    ModelType modelType;
+    std::optional<AssetDescriptor> assetDescriptor;
+    std::optional<PrimitiveDescriptor> primitiveDescriptor;
     uint32_t instancesCount;
     bool isIdentifiable;
-
-    ModelExtension getModelExtension() const;
-
-    const std::string_view getMainPath() const;
+    PrefabType prefabType;
 };
 } // namespace vax::engine

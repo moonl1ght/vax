@@ -26,8 +26,12 @@ class SceneComposer final {
 
     void updateTransforms(vax::ecs::World& world);
 
-    void
-    compose(vax::ecs::World& world, vax::engine::IndirectDrawController& indirectDrawController, uint32_t frameIndex);
+    uint32_t compose(
+        vax::ecs::World& world,
+        vax::engine::IndirectDrawController& indirectDrawController,
+        uint32_t frameIndex,
+        uint32_t baseInstance
+    );
 
   private:
     struct DebugEntity final {

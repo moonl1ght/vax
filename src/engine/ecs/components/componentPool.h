@@ -7,6 +7,8 @@
 #include <utility>
 #include <vector>
 
+#include "сomponents.h"
+
 namespace vax::ecs {
 
 class IComponentPool {
@@ -103,4 +105,16 @@ template <typename T> class ComponentPool final : public IComponentPool {
     std::vector<uint32_t> _denseIndices;
     std::vector<T> _components;
 };
+
+typedef ComponentPool<LocalTransformComponent> LocalTransformPool;
+typedef ComponentPool<WorldTransformComponent> WorldTransformPool;
+typedef ComponentPool<TransformDirtyComponent> TransformDirtyPool;
+typedef ComponentPool<HierarchyComponent> HierarchyPool;
+typedef ComponentPool<DrawableModelComponent> DrawableModelPool;
+typedef ComponentPool<NameComponent> NamePool;
+typedef ComponentPool<HighlightComponent> HighlightPool;
+typedef ComponentPool<InstanceComponent> InstancePool;
+typedef ComponentPool<AgentComponent> AgentPool;
+typedef ComponentPool<BackgroundComponent> BackgroundPool;
+typedef ComponentPool<GizmoComponent> GizmoPool;
 } // namespace vax::ecs

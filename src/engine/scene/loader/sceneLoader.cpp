@@ -1,7 +1,7 @@
 #include "sceneLoader.h"
 #include "environmentMap.h"
-#include "resourceManager.h"
 #include "prefabSpawner.h"
+#include "resourceManager.h"
 
 using namespace vax::engine;
 using namespace vax::ecs;
@@ -16,6 +16,8 @@ SceneLoader::load(const std::string& path, const vax::rl::GridWorldDrawableDescr
 
 std::unique_ptr<DrawableScene>
 SceneLoader::_initDrawableScene(ecs::World& world, const vax::rl::GridWorldDrawableDescriptor& descriptor) {
+    std::unique_ptr<ecs::World> gizmoWorld = std::make_unique<ecs::World>();
+    std::unique_ptr<ecs::World> backgroundWorld = std::make_unique<ecs::World>();
     auto drawableWorld = std::make_unique<vax::rl::GWDrawableWorld>(world);
     auto maxDrawableInstances = vax::vk::MAX_DRAWABLE_INSTANCES;
     auto resourceManager = std::make_unique<vax::vk::ResourceManager>(*_vkEngine.get().device);
@@ -32,22 +34,27 @@ SceneLoader::_initDrawableScene(ecs::World& world, const vax::rl::GridWorldDrawa
         },
     });
 
-    std::vector<vax::engine::PrefabDescriptor> legacyModelDescriptors = {
-        {
-        .path = "",
+    PrefabDescriptor backgroundDescriptor = {
         .id = "background",
-        .modelType = vax::engine::PrefabDescriptor::ModelType::PRIMITIVE_PLANE,
-        },
-        {
-        .path = RES_PATH("assets/models/gizmo.glb"),
+        .primitiveDescriptor =
+            vax::engine::PrefabDescriptor::PrimitiveDescriptor{
+            .primitiveType = vax::engine::PrefabDescriptor::PrimitiveType::PLANE,
+            },
+        .prefabType = vax::engine::PrefabDescriptor::PrefabType::PRESET,
+    };
+    PrefabDescriptor gizmoDescriptor = {
         .id = "gizmo",
-        .modelType = vax::engine::PrefabDescriptor::ModelType::MODEL,
-        },
+        .assetDescriptor =
+            vax::engine::PrefabDescriptor::AssetDescriptor{
+            .path = RES_PATH("assets/models/gizmo.glb"),
+            },
+        .prefabType = vax::engine::PrefabDescriptor::PrefabType::ASSET,
     };
     std::vector<vax::engine::PrefabDescriptor> prefabDescriptors = descriptor.drawableDescriptors;
     prefabDescriptors.push_back(descriptor.agentDrawableDescriptor);
+    prefabDescriptors.push_back(backgroundDescriptor);
+    prefabDescriptors.push_back(gizmoDescriptor);
 
-    assetsLibrary->preload(legacyModelDescriptors);
     assetsLibrary->preloadv2(prefabDescriptors);
 
     const auto& agentDescriptor = descriptor.agentDrawableDescriptor;
@@ -70,8 +77,21 @@ SceneLoader::_initDrawableScene(ecs::World& world, const vax::rl::GridWorldDrawa
         }
     }
 
+    if (const Prefab* backgroundPrefab = assetsLibrary->findPrefab("background")) {
+        Entity background = PrefabSpawner::spawnPrefab(*backgroundWorld, *backgroundPrefab, vax::math::Transform());
+        backgroundWorld->addComponentFor<BackgroundComponent>(background);
+    }
+
+    if (const Prefab* gizmoPrefab = assetsLibrary->findPrefab("gizmo")) {
+        Entity gizmo = PrefabSpawner::spawnPrefab(*gizmoWorld, *gizmoPrefab, vax::math::Transform());
+        gizmoWorld->addComponentFor<GizmoComponent>(gizmo);
+    }
+
     return std::make_unique<DrawableScene>(
         _vkEngine.get(),
+        world,
+        std::move(gizmoWorld),
+        std::move(backgroundWorld),
         std::move(drawableWorld),
         std::move(resourceManager),
         std::move(assetsLibrary),
@@ -133,8 +153,6 @@ void SceneLoader::_loadSceneAndWorld(
     drawableScene->_indirectDrawController->setup(10000);
 
     drawableScene->_drawableWorld->load(*drawableScene->_assetsLibrary, descriptor);
-
-    drawableScene->_background = std::move(drawableScene->_assetsLibrary->createDrawableNodeById("background"));
 
     auto loadQueue = _vkEngine.get().queueManager->graphicsQueue;
     auto loadCommandBuffer = _vkEngine.get().commandManager->createSingleTimeCommandBuffer();

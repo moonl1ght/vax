@@ -106,7 +106,7 @@ file(GLOB_RECURSE SLANG_SOURCE_FILES
 
 file(MAKE_DIRECTORY "${PROJECT_SOURCE_DIR}/src/engine/shaders/out")
 
-file(GLOB SHADER_SHARED_FILES "${PROJECT_SOURCE_DIR}/src/engine/shaders/*.h")
+file(GLOB_RECURSE SHADER_SHARED_FILES "${PROJECT_SOURCE_DIR}/src/engine/shaders/*.h")
 file(GLOB SHADER_SHARED_SLANG_FILES "${PROJECT_SOURCE_DIR}/src/engine/shaders/*.slang")
 list(REMOVE_ITEM SHADER_SHARED_SLANG_FILES ${SLANG_SOURCE_FILES})
 list(APPEND SHADER_SHARED_FILES ${SHADER_SHARED_SLANG_FILES})
@@ -123,6 +123,7 @@ foreach(SLANG ${SLANG_SOURCE_FILES})
         OUTPUT ${SPIRV}
         COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_SOURCE_DIR}/src/engine/shaders/out"
         COMMAND ${SLANG_COMPILER} "${SLANG}"
+            -I "${PROJECT_SOURCE_DIR}/src/engine/shaders"
             -entry ${EP}
             -stage ${STAGE}
             -target spirv

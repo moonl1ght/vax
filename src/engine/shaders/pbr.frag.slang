@@ -129,7 +129,8 @@ FragmentOutput fragMain(uniform GlobalPushConstants pushConstants, FragmentInput
     }
     uint isInstanceSelected = (instance.flags & InstanceFlags::IsInstanceSelected) != 0u;
     uint isNoId = instance.instanceId == NO_ID;
-    uint finalId = instanceIndex * isInstanceSelected * (1u - isNoId);
+    uint hasMaskId = isInstanceSelected * (1u - isNoId);
+    uint finalId = instanceIndex * hasMaskId + NO_ID * (1u - hasMaskId);
     float4 shadowColor = float4(0, shadowFactor, shadowFactor, 1.0f);
     return FragmentOutput(finalColor, finalId);
 }

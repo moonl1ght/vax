@@ -60,7 +60,7 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildMainOffscreen(
                                .makeTextureDetached(
                                    TextureFactory::TextureCreateInfo{
                                    .name = "main_offscreen_mask_" + std::to_string(i),
-                                   .format = VK_FORMAT_R8_UINT,
+                                   .format = VK_FORMAT_R32_UINT,
                                    .size = math::SizeUI(extent),
                                    .imageUsageFlags = colorImageUsage,
                                    }

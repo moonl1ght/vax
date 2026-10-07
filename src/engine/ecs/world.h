@@ -11,20 +11,13 @@
 #include <vector>
 
 namespace vax::ecs {
-using ComponentTypeId = uint32_t;
-
-inline ComponentTypeId nextComponentTypeId() {
-    static ComponentTypeId nextId = 0;
-    return nextId++;
-}
-
-template <typename T> ComponentTypeId componentTypeId() {
-    static const ComponentTypeId id = nextComponentTypeId();
-    return id;
-}
-
 class World final {
   public:
+    using ComponentTypeId = uint32_t;
+
+    template <typename... ComponentTypes> struct Include {};
+    template <typename... ComponentTypes> struct Exclude {};
+
     World() = default;
     ~World() = default;
 
@@ -77,8 +70,14 @@ class World final {
     }
 
     template <typename... ComponentTypes, typename Function> void each(Function&& function) {
+        each(Include<ComponentTypes...>{}, Exclude<>{}, std::forward<Function>(function));
+    }
+
+    template <typename... ComponentTypes, typename... ExcludedTypes, typename Function>
+    void each(Include<ComponentTypes...>, Exclude<ExcludedTypes...>, Function&& function) {
         static_assert(sizeof...(ComponentTypes) > 0, "each requires at least one component type");
         auto pools = std::make_tuple(_findPool<ComponentTypes>()...);
+        auto excludedPools = std::make_tuple(_findPool<ExcludedTypes>()...);
         bool hasMissingPool = std::apply([](auto*... pool) { return ((pool == nullptr) || ...); }, pools);
         if (hasMissingPool) {
             return;
@@ -100,6 +99,12 @@ class World final {
             if (!hasAllComponents) {
                 continue;
             }
+            bool hasExcludedComponent = std::apply(
+                [&](auto*... pool) { return ((pool != nullptr && pool->contains(index)) || ...); }, excludedPools
+            );
+            if (hasExcludedComponent) {
+                continue;
+            }
             Entity entity{.index = index, .generation = _generations[index]};
             std::apply([&](auto*... pool) { function(entity, pool->get(index)...); }, pools);
         }
@@ -113,19 +118,29 @@ class World final {
 
     std::vector<std::unique_ptr<IComponentPool>> _pools;
 
+    static ComponentTypeId _nextComponentTypeId() {
+        static ComponentTypeId nextId = 0;
+        return nextId++;
+    }
+
+    template <typename ComponentType> static ComponentTypeId _componentTypeId() {
+        static const ComponentTypeId id = _nextComponentTypeId();
+        return id;
+    }
+
     template <typename ComponentType> ComponentPool<ComponentType>* _findPool() {
-        ComponentTypeId typeId = componentTypeId<ComponentType>();
+        ComponentTypeId typeId = World::_componentTypeId<ComponentType>();
         return typeId < _pools.size() ? static_cast<ComponentPool<ComponentType>*>(_pools[typeId].get()) : nullptr;
     }
 
     template <typename ComponentType> const ComponentPool<ComponentType>* _findPool() const {
-        ComponentTypeId typeId = componentTypeId<ComponentType>();
+        ComponentTypeId typeId = World::_componentTypeId<ComponentType>();
         return typeId < _pools.size() ? static_cast<const ComponentPool<ComponentType>*>(_pools[typeId].get())
                                       : nullptr;
     }
 
     template <typename ComponentType> ComponentPool<ComponentType>& _getOrCreatePool() {
-        ComponentTypeId typeId = componentTypeId<ComponentType>();
+        ComponentTypeId typeId = World::_componentTypeId<ComponentType>();
         if (typeId >= _pools.size()) {
             _pools.resize(typeId + 1);
         }

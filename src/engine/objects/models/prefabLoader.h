@@ -1,16 +1,19 @@
 #pragma once
 
-#include "prefabDescriptor.h"
 #include "modelLoader.h"
 #include "prefab.h"
+#include "prefabDescriptor.h"
+#include "primitivesBuilder.h"
 #include "resourceManager.h"
 
 namespace vax::engine {
 class PrefabLoader {
   public:
-    PrefabLoader(vax::engine::ModelLoader& modelLoader, vax::vk::ResourceManager& resourceManager)
-        : _modelLoader(modelLoader)
-        , _resourceManager(resourceManager) {};
+    PrefabLoader(const vax::vk::Device& device, vax::vk::ResourceManager& resourceManager)
+        : _resourceManager(resourceManager) {
+        _modelLoader = std::make_unique<vax::engine::ModelLoader>(device, resourceManager);
+        _primitivesBuilder = std::make_unique<vax::engine::PrimitivesBuilder>(resourceManager);
+    };
 
     ~PrefabLoader() = default;
 
@@ -24,11 +27,18 @@ class PrefabLoader {
   private:
     vax::Logger _logger = vax::Logger("PrefabLoader");
 
-    std::reference_wrapper<vax::engine::ModelLoader> _modelLoader;
     std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;
+
+    std::unique_ptr<vax::engine::ModelLoader> _modelLoader;
+    std::unique_ptr<vax::engine::PrimitivesBuilder> _primitivesBuilder;
 
     std::optional<std::pair<Prefab, std::vector<DrawableModel>>> _loadURDFPrefab(const PrefabDescriptor& descriptor);
 
     std::optional<std::pair<Prefab, std::vector<DrawableModel>>> _loadGLBPrefab(const PrefabDescriptor& descriptor);
+
+    std::optional<std::pair<Prefab, std::vector<DrawableModel>>>
+    _loadPrimitivePrefab(const PrefabDescriptor& descriptor);
+
+    std::optional<std::pair<Prefab, std::vector<DrawableModel>>> _loadAssetPrefab(const PrefabDescriptor& descriptor);
 };
 } // namespace vax::engine

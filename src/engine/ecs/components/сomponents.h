@@ -48,4 +48,8 @@ struct InstanceComponent final {
 };
 
 struct AgentComponent final {};
+
+struct BackgroundComponent final {};
+
+struct GizmoComponent final {};
 } // namespace vax::ecs

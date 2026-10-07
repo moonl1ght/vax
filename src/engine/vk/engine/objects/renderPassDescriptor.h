@@ -2,6 +2,7 @@
 
 #include "device.h"
 #include "luna.h"
+#include <vector>
 
 namespace vax::vk {
 class RenderPassDescriptor final {
@@ -9,19 +10,22 @@ class RenderPassDescriptor final {
     VkFormat imageFormat;
     VkFormat depthFormat;
     uint32_t colorAttachmentCount;
+    std::vector<VkClearValue> colorClearValues;
 
     explicit RenderPassDescriptor(
         const vax::vk::Device& device,
         VkRenderPass renderPass,
         VkFormat imageFormat,
         VkFormat depthFormat,
-        uint32_t colorAttachmentCount = 1
+        uint32_t colorAttachmentCount = 1,
+        std::vector<VkClearValue> colorClearValues = {}
     )
         : _device(device)
         , _renderPass(renderPass)
         , imageFormat(imageFormat)
         , depthFormat(depthFormat)
-        , colorAttachmentCount(colorAttachmentCount) {};
+        , colorAttachmentCount(colorAttachmentCount)
+        , colorClearValues(std::move(colorClearValues)) {};
 
     RenderPassDescriptor(const RenderPassDescriptor& other) = delete;
     RenderPassDescriptor& operator=(const RenderPassDescriptor& other) = delete;
@@ -31,7 +35,8 @@ class RenderPassDescriptor final {
         , _renderPass(other._renderPass)
         , imageFormat(other.imageFormat)
         , depthFormat(other.depthFormat)
-        , colorAttachmentCount(other.colorAttachmentCount) {
+        , colorAttachmentCount(other.colorAttachmentCount)
+        , colorClearValues(std::move(other.colorClearValues)) {
         other._renderPass = VK_NULL_HANDLE;
     }
 
@@ -43,6 +48,7 @@ class RenderPassDescriptor final {
             imageFormat = other.imageFormat;
             depthFormat = other.depthFormat;
             colorAttachmentCount = other.colorAttachmentCount;
+            colorClearValues = std::move(other.colorClearValues);
             other._renderPass = VK_NULL_HANDLE;
         }
         return *this;
