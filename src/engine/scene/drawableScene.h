@@ -4,7 +4,6 @@
 #include "camera.h"
 #include "descriptorSetWriter.h"
 #include "drawContext.h"
-#include "drawableWorld.h"
 #include "environmentMap.h"
 #include "frameTime.h"
 #include "gwDrawableWorld.h"
@@ -43,8 +42,8 @@ class DrawableScene final : public vax::InputController::Observer {
         std::unique_ptr<vax::ecs::World> backgroundWorld,
         std::unique_ptr<vax::rl::GWDrawableWorld> drawableWorld,
         std::unique_ptr<vax::vk::ResourceManager> resourceManager,
-        std::unique_ptr<vax::engine::AssetsLibrary> assetsLibrary,
-        std::unique_ptr<vax::engine::EnvironmentMap> environmentMap
+        std::unique_ptr<vax::engine::EnvironmentMap> environmentMap,
+        std::unique_ptr<vax::engine::SceneComposer> sceneComposer
     )
         : _vkEngine(vkEngine)
         , _world(world)
@@ -52,12 +51,9 @@ class DrawableScene final : public vax::InputController::Observer {
         , _backgroundWorld(std::move(backgroundWorld))
         , _drawableWorld(std::move(drawableWorld))
         , _resourceManager(std::move(resourceManager))
-        , _assetsLibrary(std::move(assetsLibrary))
-        , _environmentMap(std::move(environmentMap)) {
+        , _environmentMap(std::move(environmentMap))
+        , _sceneComposer(std::move(sceneComposer)) {
         _indirectDrawController = std::make_unique<IndirectDrawController>(*_vkEngine.get().device);
-        _sceneComposer = std::make_unique<SceneComposer>(
-            *_assetsLibrary, _resourceManager->ssboManager(), vax::vk::MAX_DRAWABLE_INSTANCES
-        );
     };
 
     ~DrawableScene() {
@@ -118,7 +114,6 @@ class DrawableScene final : public vax::InputController::Observer {
     std::unique_ptr<IndirectDrawController> _indirectDrawController;
     std::unique_ptr<vax::rl::GWDrawableWorld> _drawableWorld;
     std::unique_ptr<vax::vk::ResourceManager> _resourceManager;
-    std::unique_ptr<vax::engine::AssetsLibrary> _assetsLibrary;
     std::unique_ptr<vax::engine::EnvironmentMap> _environmentMap;
     std::unique_ptr<vax::engine::SceneComposer> _sceneComposer;
     std::unique_ptr<vax::ecs::World> _gizmoWorld;

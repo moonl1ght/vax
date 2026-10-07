@@ -10,7 +10,7 @@ std::unique_ptr<Scene>
 SceneLoader::load(const std::string& path, const vax::rl::GridWorldDrawableDescriptor& descriptor) {
     std::unique_ptr<ecs::World> world = std::make_unique<ecs::World>();
     auto drawableScene = _initDrawableScene(*world, descriptor);
-    _loadSceneAndWorld(world, drawableScene, descriptor);
+    _loadSceneAndWorld(world, drawableScene);
     return std::make_unique<Scene>(std::move(world), std::move(drawableScene));
 }
 
@@ -25,6 +25,9 @@ SceneLoader::_initDrawableScene(ecs::World& world, const vax::rl::GridWorldDrawa
     auto environmentMap = std::make_unique<EnvironmentMap>(*_vkEngine.get().device, *resourceManager);
     auto assetsLibrary =
         std::make_unique<AssetsLibrary>(*_vkEngine.get().device, maxDrawableInstances, *resourceManager);
+
+    auto sceneComposer =
+        std::make_unique<SceneComposer>(*assetsLibrary, resourceManager->ssboManager(), maxDrawableInstances);
 
     environmentMap->load({
         .textures = {
@@ -55,7 +58,7 @@ SceneLoader::_initDrawableScene(ecs::World& world, const vax::rl::GridWorldDrawa
     prefabDescriptors.push_back(backgroundDescriptor);
     prefabDescriptors.push_back(gizmoDescriptor);
 
-    assetsLibrary->preloadv2(prefabDescriptors);
+    assetsLibrary->preload(prefabDescriptors);
 
     const auto& agentDescriptor = descriptor.agentDrawableDescriptor;
     if (const Prefab* agentPrefab = assetsLibrary->findPrefab(agentDescriptor.id)) {
@@ -87,6 +90,8 @@ SceneLoader::_initDrawableScene(ecs::World& world, const vax::rl::GridWorldDrawa
         gizmoWorld->addComponentFor<GizmoComponent>(gizmo);
     }
 
+    drawableWorld->load(*assetsLibrary, descriptor);
+
     return std::make_unique<DrawableScene>(
         _vkEngine.get(),
         world,
@@ -94,15 +99,14 @@ SceneLoader::_initDrawableScene(ecs::World& world, const vax::rl::GridWorldDrawa
         std::move(backgroundWorld),
         std::move(drawableWorld),
         std::move(resourceManager),
-        std::move(assetsLibrary),
-        std::move(environmentMap)
+        std::move(environmentMap),
+        std::move(sceneComposer)
     );
 }
 
 void SceneLoader::_loadSceneAndWorld(
     std::unique_ptr<ecs::World>& world,
-    std::unique_ptr<DrawableScene>& drawableScene,
-    const vax::rl::GridWorldDrawableDescriptor& descriptor
+    std::unique_ptr<DrawableScene>& drawableScene
 ) {
 
     drawableScene->_sceneUniformBuffers.reserve(vax::vk::MAX_FRAMES_IN_FLIGHT);
@@ -151,8 +155,6 @@ void SceneLoader::_loadSceneAndWorld(
     }
 
     drawableScene->_indirectDrawController->setup(10000);
-
-    drawableScene->_drawableWorld->load(*drawableScene->_assetsLibrary, descriptor);
 
     auto loadQueue = _vkEngine.get().queueManager->graphicsQueue;
     auto loadCommandBuffer = _vkEngine.get().commandManager->createSingleTimeCommandBuffer();

@@ -29,8 +29,7 @@ class SceneLoader {
 
     void _loadSceneAndWorld(
         std::unique_ptr<ecs::World>& world,
-        std::unique_ptr<DrawableScene>& drawableScene,
-        const vax::rl::GridWorldDrawableDescriptor& descriptor
+        std::unique_ptr<DrawableScene>& drawableScene
     );
 };
 

@@ -1,13 +1,11 @@
 #pragma once
 
 #include "drawableModel.h"
-#include "drawableNode.h"
 #include "logger.h"
-#include "prefabDescriptor.h"
 #include "modelLoader.h"
 #include "prefab.h"
+#include "prefabDescriptor.h"
 #include "prefabLoader.h"
-#include "primitivesBuilder.h"
 #include "resourceManager.h"
 
 namespace vax::engine {
@@ -31,18 +29,9 @@ class AssetsLibrary {
     AssetsLibrary(AssetsLibrary&& other) noexcept = delete;
     AssetsLibrary& operator=(AssetsLibrary&& other) noexcept = delete;
 
-    void preloadv2(const std::vector<vax::engine::PrefabDescriptor>& descriptors);
-
-    std::vector<std::string> getModelIds() const;
+    void preload(const std::vector<vax::engine::PrefabDescriptor>& descriptors);
 
     std::vector<std::string> getDrawableNodeIds() const;
-
-    std::optional<vax::engine::DrawableNode>
-    getPreloadedDrawableNodeById(const std::string& id, uint32_t instancesCount);
-
-    std::optional<vax::engine::DrawableNode> createDrawableNodeById(
-        const std::string& id, std::vector<vax::math::Transform> transforms = {vax::math::Transform()}
-    );
 
     const Prefab* findPrefab(const std::string& id) const {
         return _prefabs.find(id) != _prefabs.end() ? &_prefabs.at(id) : nullptr;
@@ -52,42 +41,16 @@ class AssetsLibrary {
 
     size_t drawableModelCount() const { return _drawableModels.size(); }
 
-    uint32_t legacyInstanceCount() const { return _globalInstanceCursor; }
-
   private:
-    struct ModelInfo final {
-        struct SSBOChunkInfo final {
-            uint32_t instanceOffset;
-            uint32_t cursor;
-            uint32_t maxInstances;
-
-            bool isFull() const { return cursor >= maxInstances; }
-        };
-
-        size_t modelIndex;
-        std::vector<SSBOChunkInfo> ssboChunkInfos;
-        uint32_t ssboChunkCursor = 0;
-        bool isIdentifiable = true;
-    };
-
     vax::Logger _logger = vax::Logger("AssetsLibrary");
     const uint32_t _maxDrawableInstances;
 
     std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;
 
-    std::unique_ptr<vax::engine::ModelLoader> _modelLoader;
     std::unique_ptr<vax::engine::PrefabLoader> _prefabLoader;
 
     std::unordered_map<std::string, vax::engine::Prefab> _prefabs;
 
-    std::unordered_map<std::string, vax::engine::DrawableNode> _cachedDrawableNodeMap;
-
-    std::unordered_map<std::string, ModelInfo> _modelMap;
     std::vector<vax::engine::DrawableModel> _drawableModels;
-
-    uint32_t _globalInstanceCursor = 0;
-    uint32_t _lastObjectId = 1;
-
-    DrawableModelHandle _addDrawableModel(std::string id, vax::engine::DrawableModel&& drawableModel);
 };
 } // namespace vax::engine
