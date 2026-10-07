@@ -31,7 +31,7 @@ class GWDrawableWorld final : public vax::engine::DrawableWorld {
     GWDrawableWorld(GWDrawableWorld&& other) noexcept = delete;
     GWDrawableWorld& operator=(GWDrawableWorld&& other) noexcept = delete;
 
-    bool load(vax::engine::AssetsLibrary& assetsLibrary, const vax::rl::GridWorldDrawableDescriptor& descriptor);
+    bool load(const vax::rl::GridWorldDrawableDescriptor& descriptor);
 
     void update(const vax::engine::FrameTime& frameTime);
 

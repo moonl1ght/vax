@@ -12,8 +12,12 @@
 namespace vax::engine {
 class SceneComposer final {
   public:
-    SceneComposer(vax::engine::AssetsLibrary& assetsLibrary, vax::vk::SSBOManager& ssboManager, uint32_t maxInstances)
-        : _assetsLibrary(assetsLibrary)
+    SceneComposer(
+        std::unique_ptr<vax::engine::AssetsLibrary> assetsLibrary,
+        vax::vk::SSBOManager& ssboManager,
+        uint32_t maxInstances
+    )
+        : _assetsLibrary(std::move(assetsLibrary))
         , _ssboManager(ssboManager)
         , _maxInstances(maxInstances) {};
 
@@ -49,7 +53,8 @@ class SceneComposer final {
 
     vax::Logger _logger = vax::Logger("SceneComposer");
 
-    std::reference_wrapper<vax::engine::AssetsLibrary> _assetsLibrary;
+    std::unique_ptr<vax::engine::AssetsLibrary> _assetsLibrary;
+
     std::reference_wrapper<vax::vk::SSBOManager> _ssboManager;
     uint32_t _maxInstances;
 

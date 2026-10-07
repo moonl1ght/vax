@@ -74,8 +74,7 @@ uint32_t SceneComposer::compose(
     World& world, IndirectDrawController& indirectDrawController, uint32_t frameIndex, uint32_t baseInstance
 ) {
     ZoneScopedN("SceneComposer::compose");
-    auto& assetsLibrary = _assetsLibrary.get();
-    const size_t modelCount = assetsLibrary.drawableModelCount();
+    const size_t modelCount = _assetsLibrary->drawableModelCount();
 
     _modelInstanceCounts.assign(modelCount, 0);
     world.each<WorldTransformComponent, DrawableModelComponent>(
@@ -124,7 +123,7 @@ uint32_t SceneComposer::compose(
         if (_modelInstanceCounts[modelId] == 0) {
             continue;
         }
-        assetsLibrary.drawableModel(modelId).prepareDrawing(
+        _assetsLibrary->drawableModel(modelId).prepareDrawing(
             &indirectDrawController,
             frameIndex,
             DrawableModel::DrawSettings{

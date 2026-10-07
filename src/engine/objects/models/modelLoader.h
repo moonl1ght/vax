@@ -6,10 +6,6 @@
 #include <functional>
 
 namespace vax::engine {
-class AssetsLibrary;
-} // namespace vax::engine
-
-namespace vax::engine {
 class ModelLoader final {
   public:
     explicit ModelLoader(const vax::vk::Device& device, vax::vk::ResourceManager& resourceManager)

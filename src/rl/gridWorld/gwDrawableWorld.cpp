@@ -18,9 +18,7 @@ constexpr std::array<std::string_view, 4> WheelLinkNames = {
 };
 } // namespace
 
-bool GWDrawableWorld::load(
-    engine::AssetsLibrary& assetsLibrary, const vax::rl::GridWorldDrawableDescriptor& descriptor
-) {
+bool GWDrawableWorld::load(const vax::rl::GridWorldDrawableDescriptor& descriptor) {
     if (!_loadAgent()) {
         return false;
     }

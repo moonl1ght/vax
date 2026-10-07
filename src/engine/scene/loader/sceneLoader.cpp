@@ -26,9 +26,6 @@ SceneLoader::_initDrawableScene(ecs::World& world, const vax::rl::GridWorldDrawa
     auto assetsLibrary =
         std::make_unique<AssetsLibrary>(*_vkEngine.get().device, maxDrawableInstances, *resourceManager);
 
-    auto sceneComposer =
-        std::make_unique<SceneComposer>(*assetsLibrary, resourceManager->ssboManager(), maxDrawableInstances);
-
     environmentMap->load({
         .textures = {
         {engine::EnvironmentMap::TextureType::BRDFLUT, RES_PATH("brdf/brdfLUT.ktx")},
@@ -90,7 +87,10 @@ SceneLoader::_initDrawableScene(ecs::World& world, const vax::rl::GridWorldDrawa
         gizmoWorld->addComponentFor<GizmoComponent>(gizmo);
     }
 
-    drawableWorld->load(*assetsLibrary, descriptor);
+    drawableWorld->load(descriptor);
+
+    auto sceneComposer =
+        std::make_unique<SceneComposer>(std::move(assetsLibrary), resourceManager->ssboManager(), maxDrawableInstances);
 
     return std::make_unique<DrawableScene>(
         _vkEngine.get(),
@@ -105,8 +105,7 @@ SceneLoader::_initDrawableScene(ecs::World& world, const vax::rl::GridWorldDrawa
 }
 
 void SceneLoader::_loadSceneAndWorld(
-    std::unique_ptr<ecs::World>& world,
-    std::unique_ptr<DrawableScene>& drawableScene
+    std::unique_ptr<ecs::World>& world, std::unique_ptr<DrawableScene>& drawableScene
 ) {
 
     drawableScene->_sceneUniformBuffers.reserve(vax::vk::MAX_FRAMES_IN_FLIGHT);
