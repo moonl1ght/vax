@@ -1,5 +1,6 @@
 #include "roverView.h"
 #include "fileSystem.h"
+#include "gridWorldSceneBuilder.h"
 #include "imgui.h"
 #include "qlConfig.h"
 #include "sceneLoader.h"
@@ -77,8 +78,10 @@ void RoverView::load(Engine& engine, InputController& inputController) {
     _gridWorld->createRandomGrid();
 
     auto sceneLoader = vax::engine::SceneLoader(engine);
-    _scene =
-        sceneLoader.load(RES_PATH("scenes/rover_demo_scene.json"), _gridWorld->getDrawableDescriptor());
+    auto gridWorldSceneDescriptor = GridWorldSceneBuilder().buildScene(
+        _gridWorld->getGrid(), _gridWorld->getDrawableWorldPosition(), _gridWorld->getAgent()
+    );
+    _scene = sceneLoader.load(gridWorldSceneDescriptor);
     _scene->drawableScene().resize();
     _gridWorld->linkDrawableWorld(dynamic_cast<vax::rl::GWDrawableWorld*>(_scene->drawableScene().drawableWorld()));
     inputController.addObserver(&_scene->drawableScene());

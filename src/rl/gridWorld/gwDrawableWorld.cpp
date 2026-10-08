@@ -1,7 +1,6 @@
 #include "gwDrawableWorld.h"
 #include "colorPalette.h"
-#include "gridWorldDescriptor.h"
-#include "prefabDescriptor.h"
+#include "entityDescriptor.h"
 #include "shaderSharedUtils.h"
 
 using namespace vax;
@@ -18,30 +17,36 @@ constexpr std::array<std::string_view, 4> WheelLinkNames = {
 };
 } // namespace
 
-bool GWDrawableWorld::load(const vax::rl::GridWorldDrawableDescriptor& descriptor) {
+bool GWDrawableWorld::load(const vax::engine::SceneDescriptor& descriptor) {
     if (!_loadAgent()) {
         return false;
     }
 
     _envEntities.clear();
+
     _world.get().each<ecs::InstanceComponent>([&](ecs::Entity entity, ecs::InstanceComponent& instance) {
-        if (instance.typeIndex >= descriptor.drawableDescriptors.size()) {
+        if (instance.typeIndex >= descriptor.entities.size()) {
             return;
         }
-        auto& entities = _envEntities[descriptor.drawableDescriptors[instance.typeIndex].id];
+        auto& entities = _envEntities[descriptor.entities[instance.typeIndex].id];
         if (entities.size() <= instance.instanceIndex) {
             entities.resize(instance.instanceIndex + 1, ecs::NullEntity);
         }
         entities[instance.instanceIndex] = entity;
     });
 
-    for (const auto& drawableDescriptor : descriptor.drawableDescriptors) {
-        if (!_envEntities.contains(drawableDescriptor.id)) {
-            _logger.error("No entities spawned for model: ", drawableDescriptor.id);
+    auto envEntities = descriptor.forEachEntityOfType(engine::EntityDescriptor::Type::Environment);
+    for (const auto& envEntity : envEntities) {
+        if (!_envEntities.contains(envEntity.id)) {
+            _logger.error("No entities spawned for model: ", envEntity.id);
             continue;
         }
-        for (const auto& selectedInstanceInfo : drawableDescriptor.selectedInstanceInfos) {
-            highlightInstance(drawableDescriptor.id, selectedInstanceInfo.instanceIndex, selectedInstanceInfo.color);
+        for (size_t instanceIndex = 0; instanceIndex < envEntity.prefabDescriptor->instanceInfos.size();
+             ++instanceIndex) {
+            const auto& instanceInfo = envEntity.prefabDescriptor->instanceInfos[instanceIndex];
+            if (instanceInfo.isSelected) {
+                highlightInstance(envEntity.id, instanceIndex, instanceInfo.selectionColor);
+            }
         }
     }
 

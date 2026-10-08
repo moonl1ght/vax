@@ -1,11 +1,9 @@
 #include "gridWorld.h"
 #include "colorPalette.h"
-#include "fileSystem.h"
 #include "inputController.h"
 #include "nlohmann/json.hpp"
 #include "randomGenerator.h"
-#include "tensorOp.h"
-#include "transform.h"
+#include "gridWorldSceneBuilder.h"
 
 using namespace vax;
 using namespace vax::math;
@@ -87,81 +85,6 @@ void GridWorld::createRandomGrid() {
 void GridWorld::linkDrawableWorld(GWDrawableWorld* drawableWorld) {
     _drawableWorld = drawableWorld;
     _updateAgentPosition();
-}
-
-GridWorldDrawableDescriptor GridWorld::getDrawableDescriptor() const {
-    GridWorldDrawableDescriptor worldDescriptor;
-    worldDescriptor.drawableDescriptors.reserve(_grid.totalSize());
-    int flatIndex = 0;
-    std::unordered_map<std::string, engine::PrefabDescriptor> descriptors;
-    for (const auto& block : _grid) {
-        BlockType blockType = static_cast<BlockType>(block);
-        auto blockTypeString = blockTypeToPath(blockType);
-        Transform transform = Transform();
-        transform.position = {_drawableWorldPositions[flatIndex].x, 0.0f, _drawableWorldPositions[flatIndex].y};
-        if (blockType == BlockType::WALL) {
-            transform.position.y = 0.5f;
-        }
-        if (descriptors.find(blockTypeString) == descriptors.end()) {
-            std::vector<engine::PrefabDescriptor::SelectedInstanceInfo> selectedInstanceInfos;
-            if (blockType == BlockType::START) {
-                selectedInstanceInfos.push_back(
-                    engine::PrefabDescriptor::SelectedInstanceInfo{0, engine::ColorPalette::Blue}
-                );
-            }
-            if (blockType == BlockType::FINISH) {
-                selectedInstanceInfos.push_back(
-                    engine::PrefabDescriptor::SelectedInstanceInfo{0, engine::ColorPalette::Green}
-                );
-            }
-            auto assetDescriptor = engine::PrefabDescriptor::AssetDescriptor{
-                .path = blockTypeString,
-            };
-            descriptors[blockTypeString] = engine::PrefabDescriptor{
-                .id = blockTypeString,
-                .transforms = {transform},
-                .selectedInstanceInfos = selectedInstanceInfos,
-                .assetDescriptor = assetDescriptor,
-                .instancesCount = 1,
-                .isIdentifiable = true,
-                .prefabType = engine::PrefabDescriptor::PrefabType::ASSET,
-            };
-        } else {
-            auto& descriptor = descriptors[blockTypeString];
-            auto instanceIndex = descriptor.instancesCount;
-            descriptor.transforms.push_back(transform);
-            descriptor.instancesCount += 1;
-            descriptor.isIdentifiable = true;
-            if (blockType == BlockType::FINISH || blockType == BlockType::START) {
-                auto color =
-                    (blockType == BlockType::FINISH) ? engine::ColorPalette::Green : engine::ColorPalette::Blue;
-                descriptor.selectedInstanceInfos.push_back(
-                    engine::PrefabDescriptor::SelectedInstanceInfo{instanceIndex, color}
-                );
-            }
-        }
-        ++flatIndex;
-    }
-    for (const auto& [blockType, descriptor] : descriptors) {
-        worldDescriptor.drawableDescriptors.push_back(descriptor);
-    }
-    worldDescriptor.agentDrawableDescriptor = _agent.getDrawableDescriptor();
-    return worldDescriptor;
-}
-
-std::string GridWorld::blockTypeToPath(BlockType blockType) const {
-    switch (blockType) {
-    case BlockType::FLOOR:
-        return RES_PATH("assets/models/floor.glb");
-    case BlockType::WALL:
-        return RES_PATH("assets/models/wall.glb");
-    case BlockType::TRAP:
-        return RES_PATH("assets/models/floor.glb");
-    case BlockType::FINISH:
-        return RES_PATH("assets/models/floor.glb");
-    default:
-        return RES_PATH("assets/models/floor.glb");
-    }
 }
 
 bool GridWorld::canMoveAgent(const Position2DInt& newPosition) const {
@@ -326,12 +249,12 @@ void GridWorld::_updateAgentPosition() {
 }
 
 void GridWorld::_updateGridInstancesHighlight() {
-    auto blockTypeString = blockTypeToPath(BlockType::FLOOR);
+    auto blockTypeString = GridWorldSceneBuilder::blockTypeToPath(BlockType::FLOOR);
     _drawableWorld->resetInstancesHighlight(blockTypeString);
     uint32_t instanceIndex = 0;
     for (auto& block : _grid) {
         auto blockType = static_cast<BlockType>(block);
-        auto blockTypeString = blockTypeToPath(blockType);
+        auto blockTypeString = GridWorldSceneBuilder::blockTypeToPath(blockType);
         if (blockType == BlockType::FLOOR || blockType == BlockType::START || blockType == BlockType::FINISH) {
             if (blockType == BlockType::START) {
                 _drawableWorld->highlightInstance(blockTypeString, instanceIndex, engine::ColorPalette::Blue);

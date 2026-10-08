@@ -1,6 +1,5 @@
 #pragma once
 
-#include "gridWorldDescriptor.h"
 #include "gwAgent.h"
 #include "gwDrawableWorld.h"
 #include "gwenv.h"
@@ -45,8 +44,6 @@ class GridWorld final : public vax::InputController::Observer,
 
     bool load(const std::string& folderPath);
 
-    vax::rl::GridWorldDrawableDescriptor getDrawableDescriptor() const;
-
     bool canMoveAgent(const vax::math::Position2DInt& newPosition) const;
 
     void onMouseMove(const vax::MouseMoveValue& value) {};
@@ -81,6 +78,8 @@ class GridWorld final : public vax::InputController::Observer,
 
     void setInitialGrid(vax::math::Tensor&& grid);
 
+    const std::vector<vax::math::Position2DFloat>& getDrawableWorldPosition() const { return _drawableWorldPositions; }
+
   private:
     vax::Logger _logger = vax::Logger("GridWorld");
     vax::rl::QLearningConfig _qlConfig;
@@ -91,7 +90,6 @@ class GridWorld final : public vax::InputController::Observer,
     float _moveSpeed = 1.0f;
     float _rotationSpeed = 0.5f;
 
-    std::string blockTypeToPath(BlockType blockType) const;
     GWDrawableWorld* _drawableWorld;
     vax::rl::EvalMode _evalMode = vax::rl::EvalMode::EVALUATION;
 

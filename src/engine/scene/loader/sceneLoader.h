@@ -1,7 +1,6 @@
 #pragma once
 
 #include "drawableScene.h"
-#include "gridWorldDescriptor.h"
 #include "scene.h"
 #include "sceneDescriptor.h"
 #include "world.h"
@@ -19,19 +18,18 @@ class SceneLoader {
     SceneLoader(SceneLoader&& other) noexcept = default;
     SceneLoader& operator=(SceneLoader&& other) noexcept = default;
 
-    std::unique_ptr<Scene> load(const std::string& path, const vax::rl::GridWorldDrawableDescriptor& descriptor);
+    std::unique_ptr<Scene> load(const std::string& path);
+
+    std::unique_ptr<Scene> load(SceneDescriptor& descriptor);
 
   private:
     std::reference_wrapper<vax::vk::Engine> _vkEngine;
 
     std::string _name;
 
-    std::unique_ptr<DrawableScene> _initDrawableScene(ecs::World& world, const vax::rl::GridWorldDrawableDescriptor& descriptor);
+    std::unique_ptr<DrawableScene> _initDrawableScene(ecs::World& world, const SceneDescriptor& descriptor);
 
-    void _loadSceneAndWorld(
-        std::unique_ptr<ecs::World>& world,
-        std::unique_ptr<DrawableScene>& drawableScene
-    );
+    void _loadSceneAndWorld(std::unique_ptr<ecs::World>& world, std::unique_ptr<DrawableScene>& drawableScene);
 
     std::optional<SceneDescriptor> _loadSceneDescriptor(const std::string& path);
 };

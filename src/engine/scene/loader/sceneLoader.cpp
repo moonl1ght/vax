@@ -10,12 +10,15 @@
 using namespace vax::engine;
 using namespace vax::ecs;
 
-std::unique_ptr<Scene>
-SceneLoader::load(const std::string& path, const vax::rl::GridWorldDrawableDescriptor& descriptor) {
+std::unique_ptr<Scene> SceneLoader::load(const std::string& path) {
     auto sceneDescriptor = _loadSceneDescriptor(path);
     if (!sceneDescriptor.has_value()) {
         return nullptr;
     }
+    return load(sceneDescriptor.value());
+}
+
+std::unique_ptr<Scene> SceneLoader::load(SceneDescriptor& descriptor) {
     std::unique_ptr<ecs::World> world = std::make_unique<ecs::World>();
     auto drawableScene = _initDrawableScene(*world, descriptor);
     _loadSceneAndWorld(world, drawableScene);
@@ -33,8 +36,7 @@ std::optional<SceneDescriptor> SceneLoader::_loadSceneDescriptor(const std::stri
     return descriptor;
 }
 
-std::unique_ptr<DrawableScene>
-SceneLoader::_initDrawableScene(ecs::World& world, const vax::rl::GridWorldDrawableDescriptor& descriptor) {
+std::unique_ptr<DrawableScene> SceneLoader::_initDrawableScene(ecs::World& world, const SceneDescriptor& descriptor) {
     std::unique_ptr<ecs::World> gizmoWorld = std::make_unique<ecs::World>();
     std::unique_ptr<ecs::World> backgroundWorld = std::make_unique<ecs::World>();
     auto drawableWorld = std::make_unique<vax::rl::GWDrawableWorld>(world);
@@ -54,46 +56,52 @@ SceneLoader::_initDrawableScene(ecs::World& world, const vax::rl::GridWorldDrawa
     });
 
     PrefabDescriptor backgroundDescriptor = {
-        .id = "background",
-        .primitiveDescriptor =
-            vax::engine::PrefabDescriptor::PrimitiveDescriptor{
-            .primitiveType = vax::engine::PrefabDescriptor::PrimitiveType::PLANE,
-            },
         .prefabType = vax::engine::PrefabDescriptor::PrefabType::PRESET,
+        .id = "background",
+        .primitiveDescriptor = vax::engine::PrefabDescriptor::PrimitiveDescriptor{
+        .primitiveType = vax::engine::PrefabDescriptor::PrimitiveType::PLANE,
+        },
     };
     PrefabDescriptor gizmoDescriptor = {
-        .id = "gizmo",
-        .assetDescriptor =
-            vax::engine::PrefabDescriptor::AssetDescriptor{
-            .path = RES_PATH("assets/models/gizmo.glb"),
-            },
         .prefabType = vax::engine::PrefabDescriptor::PrefabType::ASSET,
+        .id = "gizmo",
+        .assetDescriptor = vax::engine::PrefabDescriptor::AssetDescriptor{
+        .path = RES_PATH("assets/models/gizmo.glb"),
+        },
     };
-    std::vector<vax::engine::PrefabDescriptor> prefabDescriptors = descriptor.drawableDescriptors;
-    prefabDescriptors.push_back(descriptor.agentDrawableDescriptor);
+    std::vector<vax::engine::PrefabDescriptor> prefabDescriptors;
+    prefabDescriptors.reserve(descriptor.entities.size() + 2);
+    for (const auto& entity : descriptor.entities) {
+        prefabDescriptors.push_back(*entity.prefabDescriptor);
+    }
     prefabDescriptors.push_back(backgroundDescriptor);
     prefabDescriptors.push_back(gizmoDescriptor);
 
     assetsLibrary->preload(prefabDescriptors);
 
-    const auto& agentDescriptor = descriptor.agentDrawableDescriptor;
-    if (const Prefab* agentPrefab = assetsLibrary->findPrefab(agentDescriptor.id)) {
-        auto agentTransform =
-            agentDescriptor.transforms.empty() ? vax::math::Transform() : agentDescriptor.transforms.front();
-        Entity agent = PrefabSpawner::spawnPrefab(world, *agentPrefab, agentTransform);
-        world.addComponentFor<AgentComponent>(agent);
+    auto agentEntities = descriptor.forEachEntityOfType(engine::EntityDescriptor::Type::Agent);
+    for (const auto& agentEntity : agentEntities) {
+        if (const Prefab* agentPrefab = assetsLibrary->findPrefab(agentEntity.prefabDescriptor->id)) {
+            auto agentTransform = agentEntity.prefabDescriptor->getTransformForInstance(0);
+            Entity agent = PrefabSpawner::spawnPrefab(world, *agentPrefab, agentTransform);
+            world.addComponentFor<AgentComponent>(agent);
+        }
     }
 
-    for (uint32_t typeIndex = 0; typeIndex < descriptor.drawableDescriptors.size(); ++typeIndex) {
-        const auto& blockDescriptor = descriptor.drawableDescriptors[typeIndex];
-        const Prefab* prefab = assetsLibrary->findPrefab(blockDescriptor.id);
+    auto envEntities = descriptor.forEachEntityOfType(engine::EntityDescriptor::Type::Environment);
+    uint32_t envEntityTypeIndex = 0;
+    for (const auto& envEntity : envEntities) {
+        auto prefabDescriptor = envEntity.prefabDescriptor;
+        const Prefab* prefab = assetsLibrary->findPrefab(prefabDescriptor->id);
         if (prefab == nullptr) {
             continue;
         }
-        for (uint32_t instanceIndex = 0; instanceIndex < blockDescriptor.transforms.size(); ++instanceIndex) {
-            Entity block = PrefabSpawner::spawnPrefab(world, *prefab, blockDescriptor.transforms[instanceIndex]);
-            world.addComponentFor<InstanceComponent>(block, typeIndex, instanceIndex);
+        for (uint32_t instanceIndex = 0; instanceIndex < prefabDescriptor->instanceInfos.size(); ++instanceIndex) {
+            Entity block =
+                PrefabSpawner::spawnPrefab(world, *prefab, prefabDescriptor->getTransformForInstance(instanceIndex));
+            world.addComponentFor<InstanceComponent>(block, envEntityTypeIndex, instanceIndex);
         }
+        ++envEntityTypeIndex;
     }
 
     if (const Prefab* backgroundPrefab = assetsLibrary->findPrefab("background")) {

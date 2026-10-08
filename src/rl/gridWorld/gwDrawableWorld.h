@@ -1,11 +1,10 @@
 #pragma once
 
 #include "animationGroup.h"
-#include "assetsLibrary.h"
 #include "camera.h"
+#include "sceneDescriptor.h"
 #include "drawableWorld.h"
 #include "frameTime.h"
-#include "gridWorldDescriptor.h"
 #include "gwenv.h"
 #include "logger.h"
 #include "vaxMath.h"
@@ -31,7 +30,7 @@ class GWDrawableWorld final : public vax::engine::DrawableWorld {
     GWDrawableWorld(GWDrawableWorld&& other) noexcept = delete;
     GWDrawableWorld& operator=(GWDrawableWorld&& other) noexcept = delete;
 
-    bool load(const vax::rl::GridWorldDrawableDescriptor& descriptor);
+    bool load(const vax::engine::SceneDescriptor& descriptor);
 
     void update(const vax::engine::FrameTime& frameTime);
 

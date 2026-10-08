@@ -2,11 +2,21 @@
     "name": "Physics Demo Scene",
     "shouldDrawGizmo": true,
     "sceneType": "other",
-    "gizmoCamera": {
-        "position": [0.0, 0.0, 0.0],
-        "rotation": [0.0, 0.0, 0.0],
-        "fov": 60.0,
-        "near": 0.1,
-        "far": 1000.0
-    }
+    "gizmoDescriptor": {
+        "cameraDescriptor": {
+            "name": "gizmoCamera"
+        }
+    },
+    "entities": [
+        {
+            "id": "environment_0",
+            "type": "environment",
+            "prefabDescriptor": {
+                "prefabType": "primitive",
+                "primitiveType": "cube",
+                "size": 1.0,
+                "color": "white"
+            }
+        }
+    ]
 }
