@@ -39,6 +39,12 @@ class Renderer final : public BaseRenderer {
         _frameProfiler = frameProfiler;
     }
 
+    void unlinkFrameProfiler(vax::FrameProfiler* frameProfiler) noexcept {
+        if (_frameProfiler == frameProfiler) {
+            _frameProfiler = nullptr;
+        }
+    }
+
   private:
     struct RenderPassInfo {
         vax::vk::CommandBuffer* commandBuffer;

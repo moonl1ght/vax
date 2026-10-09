@@ -14,6 +14,8 @@ class DebugView : public View {
             _statsView->linkFrameProfiler(_frameProfiler.get());
         }
 
+    ~DebugView() override { _renderer.get().unlinkFrameProfiler(_frameProfiler.get()); }
+
     void update(const vax::engine::FrameTime& frameTime) override {
         _statsView->update(frameTime);
     }

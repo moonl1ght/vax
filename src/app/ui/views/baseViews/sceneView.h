@@ -12,12 +12,11 @@ class SceneView : public DebugView {
 
     virtual void drawScene(const vax::engine::FrameTime& frameTime) {
         _frameProfiler->beginFrameZone("frame");
-        static bool firstTime = true;
         bool renderResult = false;
         vax::engine::SceneUpdateContext sceneUpdateContext{.frameTime = frameTime};
-        if (firstTime) {
+        if (!_isScenePrepared) {
             _renderer.get().prepare(&_scene->drawableScene());
-            firstTime = false;
+            _isScenePrepared = true;
         }
         _scene->drawableScene().update(sceneUpdateContext);
 
@@ -37,5 +36,8 @@ class SceneView : public DebugView {
     vax::Logger _logger = vax::Logger("SceneView");
 
     std::unique_ptr<vax::engine::Scene> _scene;
+
+  private:
+    bool _isScenePrepared = false;
 };
 } // namespace vax::ui

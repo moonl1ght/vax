@@ -2,9 +2,10 @@
 
 #include "appMode.h"
 #include "frameTime.h"
+#include "logger.h"
 #include "uiEngine.h"
-#include "view.h"
 #include "viewBuilder.h"
+#include "viewNode.h"
 
 namespace vax::ui {
 class ViewManager final {
@@ -24,21 +25,32 @@ class ViewManager final {
 
     void setRootView(std::unique_ptr<View> view);
 
+    void pushView(std::unique_ptr<View> view);
+
+    void popView();
+
     vax::AppMode getAppMode() const;
-
-    View& rootView() { return *_rootView; }
-
-    const View& rootView() const { return *_rootView; }
 
     ViewBuilder& viewBuilder() { return _viewBuilder.get(); }
 
   private:
+    vax::Logger _logger = vax::Logger("ViewManager");
+
     std::reference_wrapper<UIEngine> _uiEngine;
     std::reference_wrapper<ViewBuilder> _viewBuilder;
-    std::unique_ptr<View> _rootView = nullptr;
-    std::unique_ptr<View> _pendingRootView = nullptr;
+
+    std::unique_ptr<ViewNode> _rootNode = nullptr;
+
+    ViewNode* _topViewNode = nullptr; 
+
+    std::unique_ptr<ViewNode> _pendingRootViewNode = nullptr;
+    std::unique_ptr<ViewNode> _pendingPushViewNode = nullptr;
+    bool _isPendingPop = false;
+
     bool _isUpdating = false;
 
-    void _swapRootView(std::unique_ptr<View> view);
+    void _swapRootViewNode(std::unique_ptr<ViewNode> viewNode);
+
+    void _pushPendingViewNode(std::unique_ptr<ViewNode> viewNode);
 };
 } // namespace vax::ui

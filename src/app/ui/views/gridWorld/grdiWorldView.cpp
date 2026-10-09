@@ -4,6 +4,7 @@
 #include "imgui.h"
 #include "qlConfig.h"
 #include "sceneLoader.h"
+#include "viewManager.h"
 
 using namespace vax::ui;
 using namespace vax::rl;
@@ -19,7 +20,7 @@ GridWorldView::~GridWorldView() {
 
 void GridWorldView::update(const vax::engine::FrameTime& frameTime) {
     _mainThreadRunner.processThreadQueue();
-    ImGui::SetNextWindowSize(ImVec2(380, 320), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(380, 360), ImGuiCond_FirstUseEver);
     ImGui::Begin("Grid world demo");
     if (_isDemoLoaded) {
         if (_isDemoRunning) {
@@ -54,6 +55,9 @@ void GridWorldView::update(const vax::engine::FrameTime& frameTime) {
                 if (ImGui::Button("Show rover camera", ImVec2(-1, 55))) {
                     _showRoverCamera();
                 }
+            }
+            if (ImGui::Button("Back", ImVec2(-1, 55))) {
+                _viewManager->popView();
             }
             if (_isTrainingCompleted) {
                 ImGui::Text("Training completed");
