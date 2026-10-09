@@ -7,7 +7,8 @@
 namespace vax::ui {
 class TrainingView final : public View {
   public:
-    TrainingView(vax::engine::Renderer& renderer) : View(renderer) {};
+    TrainingView(vax::engine::Renderer& renderer)
+        : View(renderer) {};
 
     ~TrainingView() = default;
 

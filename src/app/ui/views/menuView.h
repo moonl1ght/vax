@@ -1,24 +1,20 @@
 #pragma once
 
-#include "statsView.h"
 #include "trainingView.h"
-#include "view.h"
+#include "debugView.h"
 #include "viewBuilder.h"
 
 namespace vax::ui {
-class MenuView final : public View {
+class MenuView final : public DebugView {
   public:
     enum class Action {
-        SHOW_ROVER_DEMO,
+        SHOW_GRID_WORLD_DEMO,
         TRAIN_Q_LEARNING,
         SHOW_PHYSICS_ENGINE_DEMO,
     };
 
-    MenuView(ViewBuilder& viewBuilder, vax::engine::Renderer& renderer)
-        : View(renderer)
-        , _viewBuilder(viewBuilder) {
-        _statsView = std::make_unique<StatsView>(renderer);
-    };
+    MenuView(vax::engine::Renderer& renderer)
+        : DebugView(renderer) {};
 
     ~MenuView() override = default;
 
@@ -30,9 +26,7 @@ class MenuView final : public View {
     void update(const vax::engine::FrameTime& frameTime) override;
 
   private:
-    std::reference_wrapper<ViewBuilder> _viewBuilder;
     std::unique_ptr<TrainingView> _trainingView = nullptr;
-    std::unique_ptr<StatsView> _statsView = nullptr;
     std::optional<Action> _pendingAction;
     bool _showTrainingStatus = false;
 

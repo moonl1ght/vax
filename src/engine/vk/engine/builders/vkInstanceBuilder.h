@@ -30,9 +30,9 @@ class VkInstanceBuilder {
         }
         VkApplicationInfo appInfo{};
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-        appInfo.pApplicationName = "Luna";
+        appInfo.pApplicationName = "VAX";
         appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-        appInfo.pEngineName = "Luna Engine";
+        appInfo.pEngineName = "VAX Engine";
         appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
         appInfo.apiVersion = vulkanApiVersion;
 

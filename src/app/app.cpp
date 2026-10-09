@@ -36,7 +36,7 @@ bool App::_setup() {
     RenderDoc::init();
     vax::NotificationCenter::getInstance().setup();
     _windowController = std::make_unique<WindowController>();
-    _windowController->setupWindow(0, vax::math::SizeUI{1920, 1080}, "Luna");
+    _windowController->setupWindow(0, vax::math::SizeUI{1920, 1080}, "VAX");
     if (!_windowController->getWindow(0)->load(true, true)) {
         return false;
     }
@@ -50,7 +50,7 @@ bool App::_setup() {
 
     _viewBuilder =
         std::make_unique<ui::ViewBuilder>(*_uiEngine, *_windowController, _inputController, *_renderer, *_engine);
-    _viewManager = std::make_unique<ui::ViewManager>(*_uiEngine);
+    _viewManager = std::make_unique<ui::ViewManager>(*_uiEngine, *_viewBuilder);
     _viewManager->setRootView(_viewBuilder->buildMenuView());
 
     return true;

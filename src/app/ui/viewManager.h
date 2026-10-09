@@ -4,12 +4,14 @@
 #include "frameTime.h"
 #include "uiEngine.h"
 #include "view.h"
+#include "viewBuilder.h"
 
 namespace vax::ui {
 class ViewManager final {
   public:
-    ViewManager(UIEngine& uiEngine)
-        : _uiEngine(uiEngine) {}
+    ViewManager(UIEngine& uiEngine, ViewBuilder& viewBuilder)
+        : _uiEngine(uiEngine)
+        , _viewBuilder(viewBuilder) {}
 
     ~ViewManager() = default;
 
@@ -28,8 +30,11 @@ class ViewManager final {
 
     const View& rootView() const { return *_rootView; }
 
+    ViewBuilder& viewBuilder() { return _viewBuilder.get(); }
+
   private:
     std::reference_wrapper<UIEngine> _uiEngine;
+    std::reference_wrapper<ViewBuilder> _viewBuilder;
     std::unique_ptr<View> _rootView = nullptr;
     std::unique_ptr<View> _pendingRootView = nullptr;
     bool _isUpdating = false;

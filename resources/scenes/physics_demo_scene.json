@@ -6,17 +6,5 @@
         "cameraDescriptor": {
             "name": "gizmoCamera"
         }
-    },
-    "entities": [
-        {
-            "id": "environment_0",
-            "type": "environment",
-            "prefabDescriptor": {
-                "prefabType": "primitive",
-                "primitiveType": "cube",
-                "size": 1.0,
-                "color": "white"
-            }
-        }
-    ]
+    }
 }

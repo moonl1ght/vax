@@ -2,10 +2,11 @@
 
 #include "inputController.h"
 #include "renderer.h"
-#include "roverView.h"
+#include "gridWorldView.h"
 #include "uiEngine.h"
 #include "vkEngine.h"
 #include "windowController.h"
+#include "physicsDemoView.h"
 
 namespace vax::ui {
 
@@ -31,9 +32,11 @@ class ViewBuilder {
 
     std::unique_ptr<MenuView> buildMenuView();
 
-    std::unique_ptr<RoverView> buildRoverView();
+    std::unique_ptr<GridWorldView> buildGridWorldView();
 
     std::unique_ptr<PhysicsDemoMenuView> buildPhysicsDemoMenuView();
+
+    std::unique_ptr<PhysicsDemoView> buildPhysicsDemoView();
 
   private:
     std::reference_wrapper<UIEngine> _uiEngine;

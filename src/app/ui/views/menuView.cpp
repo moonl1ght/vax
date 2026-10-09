@@ -24,8 +24,8 @@ void MenuView::update(const vax::engine::FrameTime& frameTime) {
         ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar
     );
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10.0f);
-    if (ImGui::Button("Show Rover Demo", ImVec2(-1, 55))) {
-        _pendingAction = Action::SHOW_ROVER_DEMO;
+    if (ImGui::Button("Show Grid World Demo", ImVec2(-1, 55))) {
+        _pendingAction = Action::SHOW_GRID_WORLD_DEMO;
     }
     ImGui::Spacing();
     if (ImGui::Button("Train Q Learning", ImVec2(-1, 55))) {
@@ -40,16 +40,15 @@ void MenuView::update(const vax::engine::FrameTime& frameTime) {
     if (_trainingView) {
         _trainingView->update(frameTime);
     }
-    if (_statsView) {
-        _statsView->update(frameTime);
-    }
+    DebugView::update(frameTime);
 }
 
 void MenuView::_handleAction(Action action) {
+    auto viewBuilder = _viewManager->viewBuilder();
     switch (action) {
-    case Action::SHOW_ROVER_DEMO:
+    case Action::SHOW_GRID_WORLD_DEMO:
         if (_viewManager) {
-            _viewManager->setRootView(_viewBuilder.get().buildRoverView());
+            _viewManager->setRootView(viewBuilder.buildGridWorldView());
         }
         break;
     case Action::TRAIN_Q_LEARNING:
@@ -58,7 +57,7 @@ void MenuView::_handleAction(Action action) {
         break;
     case Action::SHOW_PHYSICS_ENGINE_DEMO:
         if (_viewManager) {
-            _viewManager->setRootView(_viewBuilder.get().buildPhysicsDemoMenuView());
+            _viewManager->setRootView(viewBuilder.buildPhysicsDemoMenuView());
         }
         break;
     }

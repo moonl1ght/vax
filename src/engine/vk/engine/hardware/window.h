@@ -55,7 +55,7 @@ class Window final {
   private:
     VkInstance _instance = VK_NULL_HANDLE;
     vax::Logger _logger = vax::Logger("Window");
-    std::string _name = "Luna";
+    std::string _name = "VAX";
     std::unique_ptr<vax::vk::Swapchain> _swapchain;
     std::function<void()> _windowWillHideCallback;
     std::function<void()> _windowWillShowCallback;

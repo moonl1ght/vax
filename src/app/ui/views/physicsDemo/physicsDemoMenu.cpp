@@ -6,7 +6,7 @@
 
 using namespace vax::ui;
 
-void PhysicsDemoMenuView::update(const vax::engine::FrameTime&) {
+void PhysicsDemoMenuView::update(const vax::engine::FrameTime& frameTime) {
     auto action = _popPendingAction();
     if (action) {
         _handleAction(action.value());
@@ -24,23 +24,33 @@ void PhysicsDemoMenuView::update(const vax::engine::FrameTime&) {
     );
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10.0f);
     if (ImGui::Button("Show Simple Demo", ImVec2(-1, 55))) {
-        _pendingAction = Action::SHOW_SIMPLE_DEMO;
+        _showSimpleDemo();
     }
     ImGui::Spacing();
     if (ImGui::Button("Back", ImVec2(-1, 55))) {
         _pendingAction = Action::GO_TO_MAIN_MENU;
     }
     ImGui::End();
+
+    DebugView::update(frameTime);
 }
 
 void PhysicsDemoMenuView::_handleAction(Action action) {
+    auto viewBuilder = _viewManager->viewBuilder();
     switch (action) {
     case Action::GO_TO_MAIN_MENU:
         if (_viewManager) {
-            _viewManager->setRootView(_viewBuilder.get().buildMenuView());
+            _viewManager->setRootView(viewBuilder.buildMenuView());
         }
         break;
     case Action::SHOW_SIMPLE_DEMO:
         break;
+    }
+}
+
+void PhysicsDemoMenuView::_showSimpleDemo() {
+    auto viewBuilder = _viewManager->viewBuilder();
+    if (_viewManager) {
+        _viewManager->setRootView(viewBuilder.buildPhysicsDemoView());
     }
 }

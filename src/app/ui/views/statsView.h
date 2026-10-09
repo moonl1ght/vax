@@ -18,13 +18,13 @@ class StatsView final : public View {
 
     void update(const vax::engine::FrameTime& frameTime) override;
 
-    void linkFrameProfiler(std::shared_ptr<vax::FrameProfiler> frameProfiler) noexcept {
-        _frameProfiler = std::move(frameProfiler);
+    void linkFrameProfiler(vax::FrameProfiler* frameProfiler) noexcept {
+        _frameProfiler = frameProfiler;
     }
 
   private:
     SystemInfo _systemInfo;
-    std::shared_ptr<vax::FrameProfiler> _frameProfiler = nullptr;
+    FrameProfiler* _frameProfiler;
     vax::core::Debouncer _debouncer;
     SystemInfo::MemoryStats _memoryStats = SystemInfo::MemoryStats();
     SystemInfo::GPUStats _gpuStats = SystemInfo::GPUStats();

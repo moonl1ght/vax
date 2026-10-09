@@ -1,6 +1,6 @@
-#include "roverView.h"
 #include "fileSystem.h"
 #include "gridWorldSceneBuilder.h"
+#include "gridWorldView.h"
 #include "imgui.h"
 #include "qlConfig.h"
 #include "sceneLoader.h"
@@ -10,17 +10,17 @@ using namespace vax::rl;
 using namespace vax::vk;
 using namespace vax;
 
-RoverView::~RoverView() {
+GridWorldView::~GridWorldView() {
     if (_windowController.get().getWindow(1) != nullptr) {
         _windowController.get().getWindow(1)->cleanupSwapchain();
         _windowController.get().getWindow(1)->destroySurface();
     }
 }
 
-void RoverView::update(const vax::engine::FrameTime& frameTime) {
+void GridWorldView::update(const vax::engine::FrameTime& frameTime) {
     _mainThreadRunner.processThreadQueue();
     ImGui::SetNextWindowSize(ImVec2(380, 320), ImGuiCond_FirstUseEver);
-    ImGui::Begin("Rover demo");
+    ImGui::Begin("Grid world demo");
     if (_isDemoLoaded) {
         if (_isDemoRunning) {
             ImGui::Text("Demo running");
@@ -62,13 +62,13 @@ void RoverView::update(const vax::engine::FrameTime& frameTime) {
     }
     ImGui::End();
 
-    _statsView->update(frameTime);
+    SceneView::update(frameTime);
 }
 
-void RoverView::render(const vax::engine::FrameTime& frameTime) { _drawScene(frameTime); }
+void GridWorldView::render(const vax::engine::FrameTime& frameTime) { SceneView::drawScene(frameTime); }
 
-void RoverView::load(Engine& engine, InputController& inputController) {
-    _renderer.get().linkFrameProfiler(_frameProfiler);
+void GridWorldView::load(Engine& engine, InputController& inputController) {
+    _renderer.get().linkFrameProfiler(_frameProfiler.get());
     _gridWorld = std::make_unique<GridWorld>(QLearningConfig{
         .learningRate = 0.1,
         .gamma = 0.9,
@@ -88,7 +88,7 @@ void RoverView::load(Engine& engine, InputController& inputController) {
     inputController.addObserver(_gridWorld.get());
 }
 
-void RoverView::_startTraining() {
+void GridWorldView::_startTraining() {
     _isTrainingRunning = true;
     _trainingManager = std::make_unique<vax::rl::GWTrainingManager>();
     _trainingManager->setInititialGrid(_gridWorld->getGrid());
@@ -102,7 +102,7 @@ void RoverView::_startTraining() {
     });
 }
 
-void RoverView::_toggleDemo() {
+void GridWorldView::_toggleDemo() {
     if (_isDemoLoaded) {
         _isDemoLoaded = false;
         return;
@@ -115,16 +115,16 @@ void RoverView::_toggleDemo() {
     }
 }
 
-void RoverView::_reinitGrid() { _gridWorld->reinitWorld(); }
+void GridWorldView::_reinitGrid() { _gridWorld->reinitWorld(); }
 
-void RoverView::_startDemo() {
+void GridWorldView::_startDemo() {
     _isDemoRunning = true;
     _gridWorld->startDemo([this]() { _isDemoRunning = false; });
 }
 
-void RoverView::_changeStartPosition() { _gridWorld->changeAgentStartPosition(); }
+void GridWorldView::_changeStartPosition() { _gridWorld->changeAgentStartPosition(); }
 
-void RoverView::_showRoverCamera() {
+void GridWorldView::_showRoverCamera() {
     if (_windowController.get().getWindow(1) != nullptr) {
         _windowController.get().getWindow(1)->show();
     } else {
@@ -141,23 +141,4 @@ void RoverView::_showRoverCamera() {
     });
     _scene->drawableScene().setShouldDrawSecondaryWindow(true);
     _isRoverCameraShown = true;
-}
-
-void RoverView::_drawScene(const vax::engine::FrameTime& frameTime) {
-    _frameProfiler->beginFrameZone("frame");
-    static bool firstTime = true;
-    bool renderResult = false;
-    vax::engine::SceneUpdateContext sceneUpdateContext{.frameTime = frameTime};
-    if (firstTime) {
-        _renderer.get().prepare(&_scene->drawableScene());
-        firstTime = false;
-    }
-    _scene->drawableScene().update(sceneUpdateContext);
-
-    renderResult = _renderer.get().render(&_scene->drawableScene(), frameTime);
-
-    if (!renderResult) {
-        _logger.error("Failed to render scene!");
-    }
-    _frameProfiler->endFrameZone("frame");
 }
