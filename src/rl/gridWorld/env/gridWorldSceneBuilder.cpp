@@ -71,12 +71,17 @@ vax::engine::SceneDescriptor GridWorldSceneBuilder::buildScene(
         ++flatIndex;
     }
 
+    for (const auto& descriptor : descriptors) {
+        sceneDescriptor.entities.push_back(descriptor.second);
+    }
+
     auto agentPrefabDescriptor = agent.getPrefabDescriptor();
     auto agentDescriptor = engine::EntityDescriptor{
         .id = agentPrefabDescriptor.id,
         .type = engine::EntityDescriptor::Type::Agent,
         .prefabDescriptor = agentPrefabDescriptor,
     };
+    sceneDescriptor.entities.push_back(agentDescriptor);
 
     return sceneDescriptor;
 }
