@@ -5,7 +5,7 @@
 using namespace vax::engine;
 using namespace vax::vk;
 
-std::unique_ptr<RenderPassGraph> RenderPassGraphManager::buildRoverDemoGraph(bool withRoverCamera) {
+std::unique_ptr<RenderPassGraph> RenderPassGraphManager::buildRoverDemoGraph(bool withRoverCamera, bool withGizmo) {
     auto swapchain = _windowController.get().getWindow(0)->getSwapchain();
 
     auto shadowPass = std::make_shared<RenderPass>(
@@ -100,7 +100,9 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphManager::buildRoverDemoGraph(boo
     gizmoSubpass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = {256, 256}});
     gizmoSubpass->setSwapchainExtent(swapchain->swapchainExtent);
 
-    // mainPass->addSubpass(std::move(gizmoSubpass));
+    if (withGizmo) {
+        mainPass->addSubpass(std::move(gizmoSubpass));
+    }
 
     auto jfaPass = std::make_shared<JFAPass>("jfa_pass", _device.get(), _descriptorSetManager.get());
     jfaPass->setup(_renderDestinations.at("main"));

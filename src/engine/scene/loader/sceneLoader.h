@@ -29,8 +29,6 @@ class SceneLoader {
 
     std::unique_ptr<DrawableScene> _initDrawableScene(ecs::World& world, const SceneDescriptor& descriptor);
 
-    void _loadSceneAndWorld(std::unique_ptr<ecs::World>& world, std::unique_ptr<DrawableScene>& drawableScene);
-
     std::optional<SceneDescriptor> _loadSceneDescriptor(const std::string& path);
 };
 

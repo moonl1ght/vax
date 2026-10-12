@@ -6,5 +6,47 @@
         "cameraDescriptor": {
             "name": "gizmoCamera"
         }
-    }
+    },
+    "entities": [
+        {
+            "id": "ground",
+            "type": "environment",
+            "prefabDescriptor": {
+                "prefabType": "preset",
+                "id": "plane",
+                "instanceInfos": [
+                    {
+                        "isSelected": false,
+                        "transform": {
+                            "position": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "rotation": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "scale": [
+                                10,
+                                10,
+                                10
+                            ]
+                        }
+                    }
+                ],
+                "primitiveDescriptor": {
+                    "primitiveType": "plane",
+                    "size": 10,
+                    "color": [
+                        1,
+                        0,
+                        0,
+                        1
+                    ]
+                }
+            }
+        }
+    ]
 }

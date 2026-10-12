@@ -14,6 +14,7 @@ struct SceneDescriptor final {
     enum class SceneType { GridWorld, Other };
 
     std::string name;
+    bool shouldDrawGizmo;
     SceneType sceneType;
     std::optional<GizmoDescriptor> gizmoDescriptor;
     std::vector<EntityDescriptor> entities;
@@ -31,6 +32,8 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
     }
 )
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(SceneDescriptor, name, sceneType, gizmoDescriptor, entities)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
+    SceneDescriptor, name, shouldDrawGizmo, sceneType, gizmoDescriptor, entities
+)
 
 } // namespace vax::engine

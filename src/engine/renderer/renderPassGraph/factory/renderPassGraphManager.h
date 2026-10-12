@@ -41,7 +41,7 @@ class RenderPassGraphManager final {
         vax::vk::CommandManager& commandManager, vax::vk::QueueManager& queueManager, vax::vk::Swapchain& swapchain
     );
 
-    std::unique_ptr<RenderPassGraph> buildRoverDemoGraph(bool withRoverCamera);
+    std::unique_ptr<RenderPassGraph> buildRoverDemoGraph(bool withRoverCamera, bool withGizmo);
 
     std::unique_ptr<RenderPassGraph> buildUiGraph();
 

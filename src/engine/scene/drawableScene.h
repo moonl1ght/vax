@@ -1,22 +1,21 @@
 #pragma once
 
-#include "assetsLibrary.h"
 #include "camera.h"
 #include "descriptorSetWriter.h"
 #include "drawContext.h"
 #include "environmentMap.h"
 #include "frameTime.h"
-#include "gwDrawableWorld.h"
 #include "indirectDrawController.h"
 #include "inputController.h"
 #include "light.h"
 #include "luna.h"
-#include "modelLoader.h"
 #include "renderContext.h"
 #include "resourceManager.h"
 #include "sceneComposer.h"
 #include "shaderUniforms.h"
 #include "vkEngine.h"
+#include "drawableWorld.h"
+#include "sceneDescriptor.h"
 
 namespace vax::rl {
 struct GridWorldDrawableDescriptor;
@@ -66,6 +65,8 @@ class DrawableScene final : public vax::InputController::Observer {
     DrawableScene& operator=(DrawableScene&& other) noexcept = delete;
 
     void resize();
+
+    void load(const vax::engine::SceneDescriptor& descriptor);
 
     void prepareForDraw(vax::engine::RenderCallContext renderCallContext);
 
@@ -121,6 +122,8 @@ class DrawableScene final : public vax::InputController::Observer {
     std::vector<vax::vk::AnyBuffer*> _sceneUniformBuffers;
     std::vector<vax::vk::AnyBuffer*> _roverCameraUniformBuffers;
     std::vector<vax::vk::AnyBuffer*> _lightsUniformBuffer;
+
+    std::optional<vax::engine::SceneDescriptor> _descriptor;
 
     vax::engine::Camera _mainCamera;
     vax::engine::Light _sunLight;

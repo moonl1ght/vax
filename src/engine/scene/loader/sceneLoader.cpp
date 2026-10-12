@@ -5,7 +5,7 @@
 #include "sceneDescriptor.h"
 #include <fstream>
 #include <nlohmann/json.hpp>
-#include <stdexcept>
+#include "gwDrawableWorld.h"
 
 using namespace vax::engine;
 using namespace vax::ecs;
@@ -21,7 +21,7 @@ std::unique_ptr<Scene> SceneLoader::load(const std::string& path) {
 std::unique_ptr<Scene> SceneLoader::load(SceneDescriptor& descriptor) {
     std::unique_ptr<ecs::World> world = std::make_unique<ecs::World>();
     auto drawableScene = _initDrawableScene(*world, descriptor);
-    _loadSceneAndWorld(world, drawableScene);
+    drawableScene->load(descriptor);
     return std::make_unique<Scene>(std::move(world), std::move(drawableScene));
 }
 
@@ -128,80 +128,4 @@ std::unique_ptr<DrawableScene> SceneLoader::_initDrawableScene(ecs::World& world
         std::move(environmentMap),
         std::move(sceneComposer)
     );
-}
-
-void SceneLoader::_loadSceneAndWorld(
-    std::unique_ptr<ecs::World>& world, std::unique_ptr<DrawableScene>& drawableScene
-) {
-
-    drawableScene->_sceneUniformBuffers.reserve(vax::vk::MAX_FRAMES_IN_FLIGHT);
-    drawableScene->_roverCameraUniformBuffers.reserve(vax::vk::MAX_FRAMES_IN_FLIGHT);
-    drawableScene->_lightsUniformBuffer.reserve(vax::vk::MAX_FRAMES_IN_FLIGHT);
-
-    uint32_t lightCount = 1;
-    VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-
-    for (size_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
-        auto& bufferManager = drawableScene->_resourceManager->bufferManager();
-        auto passUboStride = _vkEngine.get().device->minUniformBufferOffsetAlignment<UniformBufferObject>();
-        auto allocation = bufferManager
-                              .allocateBuffer(
-                                  "frame_uniform_buffer",
-                                  passUboStride * (lightCount + 1),
-                                  VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                                  VMA_MEMORY_USAGE_CPU_TO_GPU,
-                                  VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
-                              )
-                              .value();
-        allocation.second->map();
-        drawableScene->_sceneUniformBuffers.push_back(allocation.second);
-        auto roverCameraAllocation = bufferManager
-                                         .allocateBuffer(
-                                             "rover_camera_uniform_buffer",
-                                             bufferSize,
-                                             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                                             VMA_MEMORY_USAGE_CPU_TO_GPU,
-                                             VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
-                                         )
-                                         .value();
-        roverCameraAllocation.second->map();
-        drawableScene->_roverCameraUniformBuffers.push_back(roverCameraAllocation.second);
-        auto lightAllocation = bufferManager
-                                   .allocateBuffer(
-                                       "light_uniform_buffer",
-                                       sizeof(LightUBO),
-                                       VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                                       VMA_MEMORY_USAGE_CPU_TO_GPU,
-                                       VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
-                                   )
-                                   .value();
-        lightAllocation.second->map();
-        drawableScene->_lightsUniformBuffer.push_back(lightAllocation.second);
-    }
-
-    drawableScene->_indirectDrawController->setup(10000);
-
-    auto loadQueue = _vkEngine.get().queueManager->graphicsQueue;
-    auto loadCommandBuffer = _vkEngine.get().commandManager->createSingleTimeCommandBuffer();
-
-    loadCommandBuffer.begin();
-
-    drawableScene->_resourceManager->textureManager().loadAllTextures(loadCommandBuffer);
-
-    loadCommandBuffer.end();
-    loadCommandBuffer.submitAndWait(loadQueue);
-
-    drawableScene->_resourceManager->textureManager().resetAllTexturesStagingBuffers();
-
-    auto sunCamera = Camera();
-    sunCamera.setPosition(glm::vec3(1.0f, 5.0f, 3.0f));
-    auto swapchainExtent = _vkEngine.get().getWindowController().getWindow(0)->getSwapchain()->swapchainExtent;
-    sunCamera.setViewPortSize(vax::math::SizeUI(swapchainExtent));
-    sunCamera.setProjection(Camera::Projection::orthographic);
-    sunCamera.setViewSize(10.0f);
-    drawableScene->_sunLight = Light(sunCamera);
-    drawableScene->_sunLight.setLightUBOIndex(0);
-
-    auto cameraPos = glm::vec3(1.0f, 5.0f, -3.0f);
-    drawableScene->_mainCamera.setPosition(cameraPos);
 }

@@ -8,6 +8,81 @@ using namespace vax::vk;
 using namespace vax::engine;
 using namespace vax::rl;
 
+void DrawableScene::load(const vax::engine::SceneDescriptor& descriptor) {
+    _descriptor = descriptor;
+
+    _sceneUniformBuffers.reserve(vax::vk::MAX_FRAMES_IN_FLIGHT);
+    _roverCameraUniformBuffers.reserve(vax::vk::MAX_FRAMES_IN_FLIGHT);
+    _lightsUniformBuffer.reserve(vax::vk::MAX_FRAMES_IN_FLIGHT);
+
+    uint32_t lightCount = 1;
+    VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+
+    for (size_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
+        auto& bufferManager = _resourceManager->bufferManager();
+        auto passUboStride = _vkEngine.get().device->minUniformBufferOffsetAlignment<UniformBufferObject>();
+        auto allocation = bufferManager
+                              .allocateBuffer(
+                                  "frame_uniform_buffer",
+                                  passUboStride * (lightCount + 1),
+                                  VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                                  VMA_MEMORY_USAGE_CPU_TO_GPU,
+                                  VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
+                              )
+                              .value();
+        allocation.second->map();
+        _sceneUniformBuffers.push_back(allocation.second);
+        auto roverCameraAllocation = bufferManager
+                                         .allocateBuffer(
+                                             "rover_camera_uniform_buffer",
+                                             bufferSize,
+                                             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                                             VMA_MEMORY_USAGE_CPU_TO_GPU,
+                                             VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
+                                         )
+                                         .value();
+        roverCameraAllocation.second->map();
+        _roverCameraUniformBuffers.push_back(roverCameraAllocation.second);
+        auto lightAllocation = bufferManager
+                                   .allocateBuffer(
+                                       "light_uniform_buffer",
+                                       sizeof(LightUBO),
+                                       VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                                       VMA_MEMORY_USAGE_CPU_TO_GPU,
+                                       VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
+                                   )
+                                   .value();
+        lightAllocation.second->map();
+        _lightsUniformBuffer.push_back(lightAllocation.second);
+    }
+
+    _indirectDrawController->setup(10000);
+
+    auto loadQueue = _vkEngine.get().queueManager->graphicsQueue;
+    auto loadCommandBuffer = _vkEngine.get().commandManager->createSingleTimeCommandBuffer();
+
+    loadCommandBuffer.begin();
+
+    _resourceManager->textureManager().loadAllTextures(loadCommandBuffer);
+
+    loadCommandBuffer.end();
+    loadCommandBuffer.submitAndWait(loadQueue);
+
+    _resourceManager->textureManager().resetAllTexturesStagingBuffers();
+
+    auto sunCamera = Camera();
+    sunCamera.setPosition(glm::vec3(1.0f, 5.0f, 3.0f));
+    auto swapchainExtent = _vkEngine.get().getWindowController().getWindow(0)->getSwapchain()->swapchainExtent;
+    sunCamera.setViewPortSize(vax::math::SizeUI(swapchainExtent));
+    sunCamera.setProjection(Camera::Projection::orthographic);
+    sunCamera.setViewSize(10.0f);
+    _sunLight = Light(sunCamera);
+    _sunLight.setLightUBOIndex(0);
+
+    auto cameraPos = glm::vec3(1.0f, 5.0f, -3.0f);
+    _mainCamera.setPosition(cameraPos);
+}
+
 void DrawableScene::prepareForDraw(engine::RenderCallContext renderCallContext) {
     ZoneScopedN("DrawableScene::prepareForDraw");
     _renderCallContext = renderCallContext;
@@ -189,44 +264,44 @@ void vax::engine::DrawableScene::drawBackground(const DrawContext& drawContext) 
 }
 
 void vax::engine::DrawableScene::drawGizmo(const DrawContext& drawContext) {
-    // if (!_gizmo)
-    //     return;
-    // VkBuffer vertexBuffers[] = {_resourceManager.meshManager().globalVertexBuffer(0)};
-    // VkDeviceSize offsets[] = {0};
-    // vkCmdBindVertexBuffers(drawContext.commandBuffer.vkCommandBuffer, 0, 1, vertexBuffers, offsets);
-    // vkCmdBindIndexBuffer(
-    //     drawContext.commandBuffer.vkCommandBuffer,
-    //     _resourceManager.meshManager().globalIndexBuffer(0),
-    //     0,
-    //     VK_INDEX_TYPE_UINT32
-    // );
-    // auto drawRange = _drawRanges[1];
-    // auto perDrawDescriptorSetHandler = _vkEngine.get().descriptorSetManager->getDescriptorSetHandler(
-    //     CommonDescriptorSetName::PER_DRAW, drawContext.currentFrame
-    // );
-    // if (!perDrawDescriptorSetHandler.has_value()) {
-    //     _logger.error("Failed to get per draw descriptor set handler!");
-    //     return;
-    // }
-    // // TODO: fix this
-    // perDrawDescriptorSetHandler->bind(
-    //     drawContext.commandBuffer.vkCommandBuffer, drawContext.pipelineLayout, MainSetIndices::PER_DRAW_SET_INDEX
-    // );
-    // GlobalPushConstants pushConstants{.drawIndexOffset = drawRange.start};
-    // vkCmdPushConstants(
-    //     drawContext.commandBuffer.vkCommandBuffer,
-    //     drawContext.pipelineLayout,
-    //     VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-    //     0,
-    //     sizeof(pushConstants),
-    //     &pushConstants
-    // );
-    // _indirectDrawController->drawRange(drawContext.commandBuffer, drawContext.currentFrame, drawRange);
+    if (!_descriptor->shouldDrawGizmo)
+        return;
+    VkBuffer vertexBuffers[] = {_resourceManager->meshManager().globalVertexBuffer(0)};
+    VkDeviceSize offsets[] = {0};
+    vkCmdBindVertexBuffers(drawContext.commandBuffer.vkCommandBuffer, 0, 1, vertexBuffers, offsets);
+    vkCmdBindIndexBuffer(
+        drawContext.commandBuffer.vkCommandBuffer,
+        _resourceManager->meshManager().globalIndexBuffer(0),
+        0,
+        VK_INDEX_TYPE_UINT32
+    );
+    auto drawRange = _drawRanges[1];
+    auto perDrawDescriptorSetHandler = _vkEngine.get().descriptorSetManager->getDescriptorSetHandler(
+        CommonDescriptorSetName::PER_DRAW, drawContext.currentFrame
+    );
+    if (!perDrawDescriptorSetHandler.has_value()) {
+        _logger.error("Failed to get per draw descriptor set handler!");
+        return;
+    }
+    // TODO: fix this
+    perDrawDescriptorSetHandler->bind(
+        drawContext.commandBuffer.vkCommandBuffer, drawContext.pipelineLayout, MainSetIndices::PER_DRAW_SET_INDEX
+    );
+    GlobalPushConstants pushConstants{.drawIndexOffset = drawRange.start};
+    vkCmdPushConstants(
+        drawContext.commandBuffer.vkCommandBuffer,
+        drawContext.pipelineLayout,
+        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+        0,
+        sizeof(pushConstants),
+        &pushConstants
+    );
+    _indirectDrawController->drawRange(drawContext.commandBuffer, drawContext.currentFrame, drawRange);
 }
 
 void vax::engine::DrawableScene::onMouseMove(const vax::MouseMoveValue& value) {
     _mainCamera.rotateBy(value.delta);
-    // _gizmoCamera.rotateBy(value.delta);
+    _gizmoCamera->rotateBy(value.delta);
 }
 
 void vax::engine::DrawableScene::onMouseWheel(float delta) { _mainCamera.zoomBy(0.1f * delta); }
@@ -248,9 +323,11 @@ void DrawableScene::beginDrawing(CommandBuffer& commandBuffer, uint32_t frameInd
             _sceneComposer->compose(_drawableWorld->world(), *_indirectDrawController, frameIndex, instanceCursor);
     });
 
-    // auto gizmoDrawRange = _indirectDrawController->addDrawScope([&]() {
-    //     _gizmo->prepareDrawing(_indirectDrawController.get(), frameIndex);
-    // });
+    if (_descriptor->shouldDrawGizmo) {
+        _indirectDrawController->addDrawScope("gizmo", [&]() {
+            _sceneComposer->compose(*_gizmoWorld, *_indirectDrawController, frameIndex, instanceCursor);
+        });
+    }
 
     _indirectDrawController->addDrawScope("background", [&]() {
         instanceCursor =
