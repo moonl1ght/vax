@@ -12,6 +12,11 @@ namespace vax::engine {
 
 class RenderPassGraph {
   public:
+    struct GraphDescriptor {
+        bool withGizmo;
+        bool withRoverCamera;
+    };
+
     RenderPassGraph(
         std::shared_ptr<RenderPassNode> rootNode,
         std::unordered_map<std::string, std::shared_ptr<vax::vk::RenderPassDescriptor>> renderPassDescriptors,

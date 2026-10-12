@@ -20,7 +20,15 @@ class Renderer final : public BaseRenderer {
     };
 
     Renderer(vax::vk::Engine& vkEngine, vax::ui::UIEngine& uiEngine)
-        : BaseRenderer(vkEngine, uiEngine) {};
+        : BaseRenderer(vkEngine, uiEngine) {
+        _renderPassGraphManager = std::make_unique<RenderPassGraphManager>(
+            *_vkEngine.get().device,
+            *_vkEngine.get().pipelineManager,
+            *_vkEngine.get().descriptorSetManager,
+            _vkEngine.get().getWindowController(),
+            _uiEngine.get()
+        );
+    };
 
     ~Renderer() {};
 
@@ -35,15 +43,15 @@ class Renderer final : public BaseRenderer {
 
     void prepare(DrawableScene* scene);
 
-    void linkFrameProfiler(vax::FrameProfiler* frameProfiler) noexcept {
-        _frameProfiler = frameProfiler;
-    }
+    void linkFrameProfiler(vax::FrameProfiler* frameProfiler) noexcept { _frameProfiler = frameProfiler; }
 
     void unlinkFrameProfiler(vax::FrameProfiler* frameProfiler) noexcept {
         if (_frameProfiler == frameProfiler) {
             _frameProfiler = nullptr;
         }
     }
+
+    RenderPassGraphManager* renderPassGraphManager() { return _renderPassGraphManager.get(); }
 
   private:
     struct RenderPassInfo {
@@ -58,11 +66,7 @@ class Renderer final : public BaseRenderer {
 
     FrameProfiler* _frameProfiler = nullptr;
 
-    std::unique_ptr<vax::engine::RenderPassGraphManager> _roverDemoPassGraphManager;
-
-    std::unique_ptr<vax::engine::RenderPassGraph> _renderPassGraph;
-
-    std::unique_ptr<vax::engine::RenderPassGraph> _uiPassGraph;
+    std::unique_ptr<vax::engine::RenderPassGraphManager> _renderPassGraphManager;
 
     RendererMode _rendererMode = RendererMode::ROVER_DEMO_WITHOUT_ROVER_CAMERA;
 
@@ -86,7 +90,5 @@ class Renderer final : public BaseRenderer {
     void _writeFinalBlendDescriptorSets();
 
     void _writeRoverCameraDescriptorSets();
-
-    void _rebuildRenderPassGraph(bool withRoverCamera);
 };
 } // namespace vax::engine

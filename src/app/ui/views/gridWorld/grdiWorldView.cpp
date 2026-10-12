@@ -85,6 +85,13 @@ void GridWorldView::load(Engine& engine, InputController& inputController) {
     auto gridWorldSceneDescriptor = GridWorldSceneBuilder().buildScene(
         _gridWorld->getGrid(), _gridWorld->getDrawableWorldPosition(), _gridWorld->getAgent()
     );
+    _renderer.get().renderPassGraphManager()->setGraphMode(engine::RenderPassGraphManager::GraphMode::SCENE_GRAPH);
+    engine::RenderPassGraph::GraphDescriptor graphDescriptor = {
+        .withGizmo = false,
+        .withRoverCamera = false,
+    };
+    _renderer.get().renderPassGraphManager()->setGraphDescriptor(graphDescriptor);
+    _renderer.get().renderPassGraphManager()->buildGraph();
     _scene = sceneLoader.load(gridWorldSceneDescriptor);
     _scene->drawableScene().resize();
     _gridWorld->linkDrawableWorld(dynamic_cast<vax::rl::GWDrawableWorld*>(_scene->drawableScene().drawableWorld()));

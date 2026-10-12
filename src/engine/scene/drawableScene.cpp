@@ -266,37 +266,37 @@ void vax::engine::DrawableScene::drawBackground(const DrawContext& drawContext) 
 void vax::engine::DrawableScene::drawGizmo(const DrawContext& drawContext) {
     if (!_descriptor->shouldDrawGizmo)
         return;
-    VkBuffer vertexBuffers[] = {_resourceManager->meshManager().globalVertexBuffer(0)};
-    VkDeviceSize offsets[] = {0};
-    vkCmdBindVertexBuffers(drawContext.commandBuffer.vkCommandBuffer, 0, 1, vertexBuffers, offsets);
-    vkCmdBindIndexBuffer(
-        drawContext.commandBuffer.vkCommandBuffer,
-        _resourceManager->meshManager().globalIndexBuffer(0),
-        0,
-        VK_INDEX_TYPE_UINT32
-    );
-    auto drawRange = _drawRanges[1];
-    auto perDrawDescriptorSetHandler = _vkEngine.get().descriptorSetManager->getDescriptorSetHandler(
-        CommonDescriptorSetName::PER_DRAW, drawContext.currentFrame
-    );
-    if (!perDrawDescriptorSetHandler.has_value()) {
-        _logger.error("Failed to get per draw descriptor set handler!");
-        return;
-    }
-    // TODO: fix this
-    perDrawDescriptorSetHandler->bind(
-        drawContext.commandBuffer.vkCommandBuffer, drawContext.pipelineLayout, MainSetIndices::PER_DRAW_SET_INDEX
-    );
-    GlobalPushConstants pushConstants{.drawIndexOffset = drawRange.start};
-    vkCmdPushConstants(
-        drawContext.commandBuffer.vkCommandBuffer,
-        drawContext.pipelineLayout,
-        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-        0,
-        sizeof(pushConstants),
-        &pushConstants
-    );
-    _indirectDrawController->drawRange(drawContext.commandBuffer, drawContext.currentFrame, drawRange);
+    // VkBuffer vertexBuffers[] = {_resourceManager->meshManager().globalVertexBuffer(0)};
+    // VkDeviceSize offsets[] = {0};
+    // vkCmdBindVertexBuffers(drawContext.commandBuffer.vkCommandBuffer, 0, 1, vertexBuffers, offsets);
+    // vkCmdBindIndexBuffer(
+    //     drawContext.commandBuffer.vkCommandBuffer,
+    //     _resourceManager->meshManager().globalIndexBuffer(0),
+    //     0,
+    //     VK_INDEX_TYPE_UINT32
+    // );
+    // auto drawRange = _drawRanges[1];
+    // auto perDrawDescriptorSetHandler = _vkEngine.get().descriptorSetManager->getDescriptorSetHandler(
+    //     CommonDescriptorSetName::PER_DRAW, drawContext.currentFrame
+    // );
+    // if (!perDrawDescriptorSetHandler.has_value()) {
+    //     _logger.error("Failed to get per draw descriptor set handler!");
+    //     return;
+    // }
+    // // TODO: fix this
+    // perDrawDescriptorSetHandler->bind(
+    //     drawContext.commandBuffer.vkCommandBuffer, drawContext.pipelineLayout, MainSetIndices::PER_DRAW_SET_INDEX
+    // );
+    // GlobalPushConstants pushConstants{.drawIndexOffset = drawRange.start};
+    // vkCmdPushConstants(
+    //     drawContext.commandBuffer.vkCommandBuffer,
+    //     drawContext.pipelineLayout,
+    //     VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+    //     0,
+    //     sizeof(pushConstants),
+    //     &pushConstants
+    // );
+    // _indirectDrawController->drawRange(drawContext.commandBuffer, drawContext.currentFrame, drawRange);
 }
 
 void vax::engine::DrawableScene::onMouseMove(const vax::MouseMoveValue& value) {

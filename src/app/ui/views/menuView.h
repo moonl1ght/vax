@@ -18,6 +18,12 @@ class MenuView final : public DebugView {
 
     void update(const vax::engine::FrameTime& frameTime) override;
 
+    void viewIsAboutToShow() override {
+        _renderer.get().renderPassGraphManager()->setGraphMode(engine::RenderPassGraphManager::GraphMode::UI_GRAPH);
+        _renderer.get().renderPassGraphManager()->buildGraph();
+        DebugView::viewIsAboutToShow();
+    }
+
   private:
     void _showGridWorldDemo();
 

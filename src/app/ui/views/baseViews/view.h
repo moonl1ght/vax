@@ -18,6 +18,8 @@ class View {
 
     virtual void update(const vax::engine::FrameTime& frameTime) = 0;
 
+    virtual void viewIsAboutToShow() = 0;
+
     virtual void render(const vax::engine::FrameTime&) {}
 
     virtual vax::AppMode getAppMode() { return vax::AppMode::EventDriven; }

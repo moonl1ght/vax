@@ -5,7 +5,7 @@
 using namespace vax::engine;
 using namespace vax::vk;
 
-std::unique_ptr<RenderPassGraph> RenderPassGraphManager::buildRoverDemoGraph(bool withRoverCamera, bool withGizmo) {
+void RenderPassGraphManager::_buildSceneGraph(RenderPassGraph::GraphDescriptor& graphDescriptor) {
     auto swapchain = _windowController.get().getWindow(0)->getSwapchain();
 
     auto shadowPass = std::make_shared<RenderPass>(
@@ -100,7 +100,7 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphManager::buildRoverDemoGraph(boo
     gizmoSubpass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = {256, 256}});
     gizmoSubpass->setSwapchainExtent(swapchain->swapchainExtent);
 
-    if (withGizmo) {
+    if (graphDescriptor.withGizmo) {
         mainPass->addSubpass(std::move(gizmoSubpass));
     }
 
@@ -169,7 +169,7 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphManager::buildRoverDemoGraph(boo
         uiEngine.render(runPassInfo.commandBuffer.vkCommandBuffer);
     });
 
-    if (withRoverCamera) {
+    if (graphDescriptor.withRoverCamera) {
         auto roverCameraSwapchain = _windowController.get().getWindow(1)->getSwapchain();
         auto roverCameraMainPass = std::make_shared<RenderPass>(
             "rover_camera_main_pass",
@@ -240,7 +240,6 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphManager::buildRoverDemoGraph(boo
         jfaPass->next = finalBlendPass;
     }
 
-    auto renderPassGraph =
+    _renderPassGraph =
         std::make_unique<RenderPassGraph>(shadowPass, _renderPassDescriptors, _renderDestinations, _uiEngine.get());
-    return renderPassGraph;
 }

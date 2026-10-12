@@ -12,24 +12,14 @@ using namespace vax;
 using namespace vax::vk;
 
 void Renderer::setup() {
-    _roverDemoPassGraphManager = std::make_unique<RenderPassGraphManager>(
-        *_vkEngine.get().device,
-        *_vkEngine.get().pipelineManager,
-        *_vkEngine.get().descriptorSetManager,
-        _vkEngine.get().getWindowController(),
-        _uiEngine.get()
-    );
     auto swapchain = _getSwapchain(0);
-    _roverDemoPassGraphManager->setupRenderPassDescriptors(swapchain->swapchainImageFormat);
-    auto swapchainRenderPassDescriptor = _roverDemoPassGraphManager->getRenderPassDescriptor("swapchain");
+    _renderPassGraphManager->setupRenderPassDescriptors(swapchain->swapchainImageFormat);
+    auto swapchainRenderPassDescriptor = _renderPassGraphManager->getRenderPassDescriptor("swapchain");
     _uiEngine.get().setup(swapchainRenderPassDescriptor->getVkRenderPass());
 
-    _roverDemoPassGraphManager->setupRenderDestinations(
+    _renderPassGraphManager->setupRenderDestinations(
         *_vkEngine.get().commandManager, *_vkEngine.get().queueManager, *swapchain
     );
-    _rebuildRenderPassGraph(false);
-
-    _uiPassGraph = _roverDemoPassGraphManager->buildUiGraph();
 }
 
 void Renderer::prepare(DrawableScene* scene) {
@@ -44,7 +34,8 @@ void Renderer::prepare(DrawableScene* scene) {
             return;
         }
         scene->writeGlobalDescriptorSet(*globalDescriptorSetWriter);
-        auto shadowSunRenderDestination = _renderPassGraph->getRenderDestination("shadow_sun");
+        auto shadowSunRenderDestination =
+            _renderPassGraphManager->getRenderPassGraph().getRenderDestination("shadow_sun");
         globalDescriptorSetWriter->writeTexture(
             shadowSunRenderDestination->depthTexture(), GlobalDescriptorSetResourceIndex::GLOBAL_SHADOW_TEXTURE_INDEX
         );
@@ -78,7 +69,8 @@ void Renderer::prepare(DrawableScene* scene) {
 }
 
 void Renderer::_writeRoverCameraDescriptorSets() {
-    auto roverCameraRenderDestination = _renderPassGraph->getRenderDestination("rover_camera_main");
+    auto roverCameraRenderDestination =
+        _renderPassGraphManager->getRenderPassGraph().getRenderDestination("rover_camera_main");
     for (uint32_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
         auto roverCameraFBDescriptorSetWriter =
             _vkEngine.get().descriptorSetManager->getDescriptorSetWriter(CommonDescriptorSetName::ROVER_CAMERA_FB, i);
@@ -92,7 +84,7 @@ void Renderer::_writeRoverCameraDescriptorSets() {
 }
 
 void Renderer::_writeFinalBlendDescriptorSets() {
-    auto mainRenderDestination = _renderPassGraph->getRenderDestination("main");
+    auto mainRenderDestination = _renderPassGraphManager->getRenderPassGraph().getRenderDestination("main");
     for (uint32_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
         auto finalBlendDescriptorSetWriter =
             _vkEngine.get().descriptorSetManager->getDescriptorSetWriter(CommonDescriptorSetName::MAIN_FB, i);
@@ -104,33 +96,6 @@ void Renderer::_writeFinalBlendDescriptorSets() {
         finalBlendDescriptorSetWriter->writeTexture(mainRenderDestination->maskTextures()[i], 1, 0, false);
         finalBlendDescriptorSetWriter->writeTexture(mainRenderDestination->depthTexture(), 2, 0, false);
         finalBlendDescriptorSetWriter->update();
-    }
-}
-
-void Renderer::_rebuildRenderPassGraph(bool withRoverCamera) {
-    _renderPassGraph = _roverDemoPassGraphManager->buildRoverDemoGraph(withRoverCamera);
-    for (uint32_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
-        auto inputMaskDescriptorSetWriter0 = _vkEngine.get().descriptorSetManager->getDescriptorSetWriter(
-            CommonDescriptorSetName::MAIN_FB_INPUT_MASK_0, i
-        );
-        if (!inputMaskDescriptorSetWriter0.has_value()) {
-            _logger.error("Failed to get input mask descriptor set writer 0!");
-            return;
-        }
-        auto inputMaskDescriptorSetWriter1 = _vkEngine.get().descriptorSetManager->getDescriptorSetWriter(
-            CommonDescriptorSetName::MAIN_FB_INPUT_MASK_1, i
-        );
-        if (!inputMaskDescriptorSetWriter1.has_value()) {
-            _logger.error("Failed to get input mask descriptor set writer 1!");
-            return;
-        }
-
-        auto jfaNode = _renderPassGraph->findNode("jfa_pass");
-        auto jfaPass = std::dynamic_pointer_cast<JFAPass>(jfaNode);
-        inputMaskDescriptorSetWriter0->writeTexture(jfaPass->outputATextures()[i], 0, 0, false);
-        inputMaskDescriptorSetWriter0->update();
-        inputMaskDescriptorSetWriter1->writeTexture(jfaPass->outputBTextures()[i], 0, 0, false);
-        inputMaskDescriptorSetWriter1->update();
     }
 }
 
@@ -205,14 +170,19 @@ bool Renderer::render(DrawableScene* scene, const FrameTime& frameTime) {
 
     if (drawSecondaryWindow && _rendererMode == RendererMode::ROVER_DEMO_WITHOUT_ROVER_CAMERA) {
         _rendererMode = RendererMode::ROVER_DEMO_WITH_ROVER_CAMERA;
-        _roverDemoPassGraphManager->setupRenderDestinationsForRoverCamera(
+        _renderPassGraphManager->setupRenderDestinationsForRoverCamera(
             *_vkEngine.get().commandManager, *_vkEngine.get().queueManager, *_getSwapchain(1)
         );
-        _rebuildRenderPassGraph(true);
+        _renderPassGraphManager->setGraphMode(RenderPassGraphManager::GraphMode::SCENE_GRAPH);
+        _renderPassGraphManager->updateGraphDescriptor([&](RenderPassGraph::GraphDescriptor& graphDescriptor) {
+            graphDescriptor.withRoverCamera = true;
+        });
+        _renderPassGraphManager->buildGraph();
         _writeRoverCameraDescriptorSets();
     } else if (!drawSecondaryWindow && _rendererMode == RendererMode::ROVER_DEMO_WITH_ROVER_CAMERA) {
         _rendererMode = RendererMode::ROVER_DEMO_WITHOUT_ROVER_CAMERA;
-        _rebuildRenderPassGraph(false);
+        _renderPassGraphManager->setGraphMode(RenderPassGraphManager::GraphMode::UI_GRAPH);
+        _renderPassGraphManager->buildGraph();
     }
 
     auto updateResult = _updateCommandBuffer(commandBuffer, imageIndex, roverCameraImageIndex, scene);
@@ -322,7 +292,7 @@ void Renderer::_drawUi(CommandBuffer& commandBuffer) {
         .frameIndex = _currentFrame,
     };
 
-    _uiPassGraph->run(runPassInfo);
+    _renderPassGraphManager->getRenderPassGraph().run(runPassInfo);
 }
 
 bool Renderer::_drawScene(CommandBuffer& commandBuffer, DrawableScene* scene) {
@@ -343,7 +313,7 @@ bool Renderer::_drawScene(CommandBuffer& commandBuffer, DrawableScene* scene) {
     };
 
     scene->beginDrawing(commandBuffer, _currentFrame);
-    _renderPassGraph->run(runPassInfo);
+    _renderPassGraphManager->getRenderPassGraph().run(runPassInfo);
     scene->endDrawing(commandBuffer, _currentFrame);
     return true;
 }
@@ -361,19 +331,18 @@ bool Renderer::_bindGlobalDescriptorSet(CommandBuffer& commandBuffer, VkPipeline
 
 void Renderer::_resize() {
     auto swapchain = _getSwapchain(0);
-    _roverDemoPassGraphManager->setupRenderDestinations(
+    _renderPassGraphManager->setupRenderDestinations(
         *_vkEngine.get().commandManager, *_vkEngine.get().queueManager, *swapchain
     );
     if (_rendererMode == RendererMode::ROVER_DEMO_WITH_ROVER_CAMERA) {
-        _roverDemoPassGraphManager->setupRenderDestinationsForRoverCamera(
+        _renderPassGraphManager->setupRenderDestinationsForRoverCamera(
             *_vkEngine.get().commandManager, *_vkEngine.get().queueManager, *_getSwapchain(1)
         );
-        _rebuildRenderPassGraph(true);
+        _renderPassGraphManager->buildGraph();
         _writeRoverCameraDescriptorSets();
     } else {
-        _rebuildRenderPassGraph(false);
+        _renderPassGraphManager->buildGraph();
     }
 
-    _uiPassGraph = _roverDemoPassGraphManager->buildUiGraph();
     _wasResized = true;
 }

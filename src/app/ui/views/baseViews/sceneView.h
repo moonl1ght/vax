@@ -28,8 +28,14 @@ class SceneView : public DebugView {
         _frameProfiler->endFrameZone("frame");
     }
 
-    void update(const vax::engine::FrameTime& frameTime) override {
-        DebugView::update(frameTime);
+    void update(const vax::engine::FrameTime& frameTime) override { DebugView::update(frameTime); }
+
+    void viewIsAboutToShow() override {
+        _isScenePrepared = false;
+        _renderer.get().renderPassGraphManager()->setGraphMode(engine::RenderPassGraphManager::GraphMode::SCENE_GRAPH);
+        _renderer.get().renderPassGraphManager()->buildGraph();
+
+        DebugView::viewIsAboutToShow();
     }
 
   protected:

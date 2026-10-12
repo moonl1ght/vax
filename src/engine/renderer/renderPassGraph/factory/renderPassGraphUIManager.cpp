@@ -1,10 +1,10 @@
-#include "renderPassGraphManager.h"
 #include "renderPass.h"
+#include "renderPassGraphManager.h"
 
 using namespace vax::engine;
 using namespace vax::vk;
 
-std::unique_ptr<RenderPassGraph> RenderPassGraphManager::buildUiGraph() {
+void RenderPassGraphManager::_buildUIOnlyGraph() {
     auto swapchain = _windowController.get().getWindow(0)->getSwapchain();
 
     auto uiPass = std::make_shared<RenderPass>(
@@ -22,7 +22,6 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphManager::buildUiGraph() {
     uiPass->setOutsideDrawWork([&uiEngine = _uiEngine.get()](RenderPass::RunPassInfo& runPassInfo) {
         uiEngine.render(runPassInfo.commandBuffer.vkCommandBuffer);
     });
-    auto renderPassGraph =
+    _renderPassGraph =
         std::make_unique<RenderPassGraph>(uiPass, _renderPassDescriptors, _renderDestinations, _uiEngine.get());
-    return renderPassGraph;
 }

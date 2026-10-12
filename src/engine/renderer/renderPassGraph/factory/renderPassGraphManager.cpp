@@ -1,4 +1,5 @@
 #include "renderPassGraphManager.h"
+#include "jfaPass.h"
 #include "renderDestinationBuilder.h"
 #include "renderPassDescriptorBuilder.h"
 
@@ -108,4 +109,38 @@ void RenderPassGraphManager::setupRenderDestinationsForRoverCamera(
 
     _renderDestinations["rover_camera_main"] = roverCameraRenderDestinationShared;
     _renderDestinations["rover_camera_swapchain"] = roverCameraFBRenderDestinationShared;
+}
+
+void RenderPassGraphManager::buildGraph() {
+    if (_graphMode == GraphMode::SCENE_GRAPH) {
+        if (!_graphDescriptor.has_value()) {
+            _logger.error("Graph descriptor is not set!");
+            return;
+        }
+        _buildSceneGraph(_graphDescriptor.value());
+
+        for (uint32_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
+            auto inputMaskDescriptorSetWriter0 =
+                _descriptorSetManager.get().getDescriptorSetWriter(CommonDescriptorSetName::MAIN_FB_INPUT_MASK_0, i);
+            if (!inputMaskDescriptorSetWriter0.has_value()) {
+                _logger.error("Failed to get input mask descriptor set writer 0!");
+                return;
+            }
+            auto inputMaskDescriptorSetWriter1 =
+                _descriptorSetManager.get().getDescriptorSetWriter(CommonDescriptorSetName::MAIN_FB_INPUT_MASK_1, i);
+            if (!inputMaskDescriptorSetWriter1.has_value()) {
+                _logger.error("Failed to get input mask descriptor set writer 1!");
+                return;
+            }
+
+            auto jfaNode = _renderPassGraph->findNode("jfa_pass");
+            auto jfaPass = std::dynamic_pointer_cast<JFAPass>(jfaNode);
+            inputMaskDescriptorSetWriter0->writeTexture(jfaPass->outputATextures()[i], 0, 0, false);
+            inputMaskDescriptorSetWriter0->update();
+            inputMaskDescriptorSetWriter1->writeTexture(jfaPass->outputBTextures()[i], 0, 0, false);
+            inputMaskDescriptorSetWriter1->update();
+        }
+    } else {
+        _buildUIOnlyGraph();
+    }
 }

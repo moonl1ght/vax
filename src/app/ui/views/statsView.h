@@ -22,6 +22,9 @@ class StatsView final : public View {
         _frameProfiler = frameProfiler;
     }
 
+    void viewIsAboutToShow() override {
+    }
+
   private:
     SystemInfo _systemInfo;
     FrameProfiler* _frameProfiler;

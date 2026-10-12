@@ -42,6 +42,7 @@ void ViewManager::popView() {
     _topViewNode = newTopViewNode;
     _topViewNode->child = nullptr;
     _isPendingPop = false;
+    _topViewNode->view->viewIsAboutToShow();
 }
 
 void ViewManager::update(const vax::engine::FrameTime& frameTime) {
@@ -85,6 +86,7 @@ void ViewManager::_swapRootViewNode(std::unique_ptr<ViewNode> viewNode) {
     _rootNode = std::move(viewNode);
     _rootNode->view->linkViewManager(this);
     _topViewNode = _rootNode.get();
+    _topViewNode->view->viewIsAboutToShow();
 }
 
 void ViewManager::_pushPendingViewNode(std::unique_ptr<ViewNode> viewNode) {
@@ -92,4 +94,5 @@ void ViewManager::_pushPendingViewNode(std::unique_ptr<ViewNode> viewNode) {
     viewNode->view->linkViewManager(this);
     _topViewNode->child = std::move(viewNode);
     _topViewNode = _topViewNode->child.get();
+    _topViewNode->view->viewIsAboutToShow();
 }
