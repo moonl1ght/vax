@@ -26,7 +26,7 @@ class StatsView final : public View {
 
   private:
     SystemInfo _systemInfo;
-    FrameProfiler* _frameProfiler;
+    FrameProfiler* _frameProfiler = nullptr;
     vax::core::Debouncer _debouncer;
     SystemInfo::MemoryStats _memoryStats = SystemInfo::MemoryStats();
     SystemInfo::GPUStats _gpuStats = SystemInfo::GPUStats();

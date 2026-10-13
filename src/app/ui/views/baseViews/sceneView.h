@@ -13,6 +13,7 @@ class SceneView : public DebugView {
     void updateUI(const vax::engine::FrameTime& frameTime) override { DebugView::updateUI(frameTime); }
 
     void update(const vax::engine::FrameTime& frameTime) override {
+        _frameProfiler->beginFrameZone("frame");
         _frameProfiler->beginFrameZone("frame_update");
         bool renderResult = false;
         vax::engine::SceneUpdateContext sceneUpdateContext{.frameTime = frameTime};
@@ -34,10 +35,12 @@ class SceneView : public DebugView {
             _logger.error("Failed to render scene!");
         }
         _frameProfiler->endFrameZone("draw");
+        _frameProfiler->endFrameZone("frame");
         return renderResult;
     }
 
     void viewWillShow() override {
+        _renderer.get().linkFrameProfiler(_frameProfiler.get());
         _renderer.get().renderPassGraphMode.set(engine::RenderPassGraphMode::SCENE_GRAPH);
     }
 

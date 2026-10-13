@@ -11,7 +11,7 @@ void PhysicsDemoView::updateUI(const vax::engine::FrameTime& frameTime) {
         _viewManager->popView();
     }
     ImGui::End();
-    SceneView::update(frameTime);
+    SceneView::updateUI(frameTime);
 }
 
 void PhysicsDemoView::load(vax::vk::Engine& engine, vax::InputController& inputController) {

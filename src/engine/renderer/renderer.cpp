@@ -101,17 +101,19 @@ void Renderer::_writeFinalBlendDescriptorSets() {
 
 void Renderer::prepareForRender(DrawableScene* scene) {
     ZoneScopedN("Renderer::prepareForRender");
-    bool shouldRebuildGraph = renderPassGraphMode.is_dirty();
+    bool shouldRebuildGraph = renderPassGraphMode.is_dirty() || _wasResized;
     if (scene != nullptr) {
         scene->prepareForDraw(engine::RenderCallContext{.currentFrame = _currentFrame});
 
         if (_wasResized) {
-            shouldRebuildGraph = true;
             setup(scene);
-            _wasResized = false;
         }
 
         shouldRebuildGraph |= scene->shouldRebuildRenderPassGraph();
+    }
+
+    if (_wasResized) {
+        _wasResized = false;
     }
 
     if (shouldRebuildGraph) {
