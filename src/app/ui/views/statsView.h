@@ -16,13 +16,12 @@ class StatsView final : public View {
 
     ~StatsView() = default;
 
-    void update(const vax::engine::FrameTime& frameTime) override;
+    void update(const vax::engine::FrameTime& frameTime) override {};
+
+    void updateUI(const vax::engine::FrameTime& frameTime) override;
 
     void linkFrameProfiler(vax::FrameProfiler* frameProfiler) noexcept {
         _frameProfiler = frameProfiler;
-    }
-
-    void viewIsAboutToShow() override {
     }
 
   private:

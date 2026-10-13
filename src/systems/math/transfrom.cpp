@@ -38,10 +38,6 @@ glm::mat4 Transform::getModelMatrix() const {
     return translationMatrix * rotationMatrix * scaleMatrix;
 }
 
-void TransformHandle::_recalculateMatrices() {
-    _cachedTransformMatrix.updateFromTransform(_transform);
-}
-
 void TransformMatrixHandle::updateFromTransform(const Transform& transform) {
     _modelMatrix = transform.getModelMatrix();
     _updateNormalMatrix();

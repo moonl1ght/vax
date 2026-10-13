@@ -1,15 +1,11 @@
 #include "app.h"
+#include "menuView.h"
 #include "notificationCenter.h"
+#include "physicsEngine.h"
 #include "profiler.h"
 #include "renderdoc.h"
-#include "tensorOp.h"
 #include <SDL3/SDL_events.h>
-#include <cmath>
 #include <cuda_runtime.h>
-
-#include "cudaEnv.h"
-#include "menuView.h"
-#include "physicsEngine.h"
 
 using namespace vax;
 
@@ -17,18 +13,12 @@ bool App::run() {
     if (!_setup()) {
         return false;
     }
-    try {
-        _mainLoop();
-        _cleanup();
-    } catch (const std::exception& e) {
-        _logger.error("Failed to run app: {}", e.what());
-    }
+    _mainLoop();
+    _cleanup();
     return true;
 }
 
 bool App::_setup() {
-    // _testCuda();
-    _testPhysics();
     if (!SDL_Vulkan_LoadLibrary(NULL)) {
         _logger.error("Failed to load Vulkan library: {}", SDL_GetError());
         return false;
@@ -46,7 +36,7 @@ bool App::_setup() {
     _uiEngine = std::make_unique<ui::UIEngine>(*_engine, *_windowController->getWindow(0));
 
     _renderer = std::make_unique<engine::Renderer>(*_engine, *_uiEngine);
-    _renderer->setup();
+    _renderer->load();
 
     _viewBuilder =
         std::make_unique<ui::ViewBuilder>(*_uiEngine, *_windowController, _inputController, *_renderer, *_engine);
@@ -75,7 +65,8 @@ void App::_cleanup() {
 
 void App::_mainLoop() {
     if (_windowController->getWindow(0) == nullptr) {
-        throw std::runtime_error("Window not initialized");
+        _logger.error("Window not initialized");
+        return;
     }
     static bool running = true;
     int i = 0;
@@ -102,6 +93,7 @@ void App::_mainLoop() {
             }
             return true;
         };
+
         _appMode = _viewManager->getAppMode();
         if (_appMode == AppMode::Continous) {
             while (SDL_PollEvent(&event)) {
@@ -109,15 +101,16 @@ void App::_mainLoop() {
                     break;
                 }
             }
-            _loopContinuousUpdate();
+            _loopUpdate();
         } else if (SDL_WaitEvent(&event)) {
             do {
                 processEvent(event);
             } while (SDL_PollEvent(&event));
-            _loopByEventUpdate();
+            _loopUpdate();
         }
         FrameMark;
     }
+    return;
 }
 
 void App::_updateTimestamp() {
@@ -134,70 +127,13 @@ void App::_updateTimestamp() {
     previousTime = currentTime;
 }
 
-void App::_loopByEventUpdate() {
+void App::_loopUpdate() {
     ZoneScoped;
-
-    _viewManager->update(_frameTime);
 
     _updateTimestamp();
 
-    bool renderResult = false;
-    renderResult = _renderer->render(nullptr, _frameTime);
-
-    if (!renderResult) {
-        _logger.error("Failed to render scene!");
+    auto cycleResult = _viewManager->runCycle(_frameTime);
+    if (!cycleResult) {
+        _logger.error("Failed to run app cycle!");
     }
-}
-
-void App::_loopContinuousUpdate() {
-    ZoneScoped;
-
-    _viewManager->update(_frameTime);
-
-    _updateTimestamp();
-}
-
-void App::_testCuda() const {
-    vax::CudaEnv cudaEnv;
-    cudaEnv.printInfo();
-
-    _logger.info("===== TensorOpGpu::add =====");
-
-    const std::vector<float> expected = {0.0f, 2.0f, 4.0f, 3.0f, 5.0f, 7.0f};
-
-    auto verify = [this, &expected](const char* label, const math::Tensor& result) {
-        bool passed = true;
-        for (int i = 0; i < result.totalSize(); ++i) {
-            if (std::fabs(result.data()[i] - expected[i]) > 1e-5f) {
-                _logger.error(label, " mismatch at ", i, ": got ", result.data()[i], ", expected ", expected[i]);
-                passed = false;
-            }
-        }
-        _logger.info(label, ": ", passed ? "PASSED" : "FAILED");
-        math::TensorOp::print(result, true);
-    };
-
-    auto B = math::Tensor::createArrangeContiguous({3});
-    B.allocateGpuMemory();
-    if (!B.synchronizeHostToGpu()) {
-        _logger.error("Failed to upload B to the device");
-        return;
-    }
-
-    auto A = math::Tensor::createArrangeContiguous({2, 3});
-    A.allocateGpuMemory();
-    if (!A.synchronizeHostToGpu()) {
-        _logger.error("Failed to upload A to the device");
-        return;
-    }
-    if (!math::TensorOpGpu::add(A, B) || !A.synchronizeGpuToHost()) {
-        _logger.error("In-place add failed");
-        return;
-    }
-    verify("in-place add", A);
-}
-
-void App::_testPhysics() const {
-    vax::physics::PhysicsEngine physicsEngine;
-    physicsEngine.test();
 }

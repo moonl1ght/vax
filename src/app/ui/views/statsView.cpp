@@ -5,7 +5,7 @@
 
 using namespace vax::ui;
 
-void StatsView::update(const vax::engine::FrameTime& frameTime) {
+void StatsView::updateUI(const vax::engine::FrameTime& frameTime) {
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
 
     ImVec2 top_right = ImVec2(viewport->WorkPos.x + viewport->WorkSize.x - 10.0f, viewport->WorkPos.y + 10.0f);

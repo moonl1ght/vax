@@ -17,9 +17,7 @@ class PhysicsDemoView final : public SceneView {
     PhysicsDemoView(PhysicsDemoView&& other) noexcept = delete;
     PhysicsDemoView& operator=(PhysicsDemoView&& other) noexcept = delete;
 
-    void update(const vax::engine::FrameTime& frameTime) override;
-
-    void render(const vax::engine::FrameTime& frameTime) override;
+    void updateUI(const vax::engine::FrameTime& frameTime) override;
 
     vax::AppMode getAppMode() override { return vax::AppMode::Continous; }
 

@@ -13,6 +13,8 @@ vax::engine::SceneDescriptor GridWorldSceneBuilder::buildScene(
 ) const {
     SceneDescriptor sceneDescriptor;
     sceneDescriptor.name = "GridWorld";
+    sceneDescriptor.shouldDrawGizmo = true;
+    sceneDescriptor.sceneType = SceneDescriptor::SceneType::GridWorld;
 
     std::unordered_map<std::string, engine::EntityDescriptor> descriptors;
 

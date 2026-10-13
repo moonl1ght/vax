@@ -25,9 +25,7 @@ class GridWorldView final : public SceneView {
     GridWorldView(GridWorldView&& other) noexcept = delete;
     GridWorldView& operator=(GridWorldView&& other) noexcept = delete;
 
-    void update(const vax::engine::FrameTime& frameTime) override;
-
-    void render(const vax::engine::FrameTime& frameTime) override;
+    void updateUI(const vax::engine::FrameTime& frameTime) override;
 
     vax::AppMode getAppMode() override { return vax::AppMode::Continous; }
 

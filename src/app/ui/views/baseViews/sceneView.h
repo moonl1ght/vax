@@ -10,32 +10,35 @@ class SceneView : public DebugView {
     SceneView(vax::engine::Renderer& renderer)
         : DebugView(renderer) {}
 
-    virtual void drawScene(const vax::engine::FrameTime& frameTime) {
-        _frameProfiler->beginFrameZone("frame");
+    void updateUI(const vax::engine::FrameTime& frameTime) override { DebugView::updateUI(frameTime); }
+
+    void update(const vax::engine::FrameTime& frameTime) override {
+        _frameProfiler->beginFrameZone("frame_update");
         bool renderResult = false;
         vax::engine::SceneUpdateContext sceneUpdateContext{.frameTime = frameTime};
         if (!_isScenePrepared) {
-            _renderer.get().prepare(&_scene->drawableScene());
+            _renderer.get().setup(&_scene->drawableScene());
             _isScenePrepared = true;
         }
         _scene->drawableScene().update(sceneUpdateContext);
+        _frameProfiler->endFrameZone("frame_update");
+        DebugView::update(frameTime);
+    }
 
-        renderResult = _renderer.get().render(&_scene->drawableScene(), frameTime);
+    bool draw(const vax::engine::FrameTime& frameTime) override {
+        _frameProfiler->beginFrameZone("draw");
+        _renderer.get().prepareForRender(&_scene->drawableScene());
+        bool renderResult = _renderer.get().render(&_scene->drawableScene(), frameTime);
 
         if (!renderResult) {
             _logger.error("Failed to render scene!");
         }
-        _frameProfiler->endFrameZone("frame");
+        _frameProfiler->endFrameZone("draw");
+        return renderResult;
     }
 
-    void update(const vax::engine::FrameTime& frameTime) override { DebugView::update(frameTime); }
-
-    void viewIsAboutToShow() override {
-        _isScenePrepared = false;
-        _renderer.get().renderPassGraphManager()->setGraphMode(engine::RenderPassGraphManager::GraphMode::SCENE_GRAPH);
-        _renderer.get().renderPassGraphManager()->buildGraph();
-
-        DebugView::viewIsAboutToShow();
+    void viewWillShow() override {
+        _renderer.get().renderPassGraphMode.set(engine::RenderPassGraphMode::SCENE_GRAPH);
     }
 
   protected:

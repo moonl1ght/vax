@@ -111,13 +111,12 @@ void RenderPassGraphManager::setupRenderDestinationsForRoverCamera(
     _renderDestinations["rover_camera_swapchain"] = roverCameraFBRenderDestinationShared;
 }
 
-void RenderPassGraphManager::buildGraph() {
-    if (_graphMode == GraphMode::SCENE_GRAPH) {
-        if (!_graphDescriptor.has_value()) {
-            _logger.error("Graph descriptor is not set!");
-            return;
-        }
-        _buildSceneGraph(_graphDescriptor.value());
+void RenderPassGraphManager::buildGraph(
+    const RenderPassGraphMode& graphMode, const RenderPassGraphDescriptor* graphDescriptor
+) {
+    if (graphMode == RenderPassGraphMode::SCENE_GRAPH) {
+        _renderPassGraph =
+            _renderPassGraphBuilder->buildSceneGraph(*graphDescriptor, _renderPassDescriptors, _renderDestinations);
 
         for (uint32_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
             auto inputMaskDescriptorSetWriter0 =
@@ -141,6 +140,6 @@ void RenderPassGraphManager::buildGraph() {
             inputMaskDescriptorSetWriter1->update();
         }
     } else {
-        _buildUIOnlyGraph();
+        _renderPassGraph = _renderPassGraphBuilder->buildUIOnlyGraph(_renderPassDescriptors, _renderDestinations);
     }
 }

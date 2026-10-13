@@ -43,45 +43,4 @@ struct TransformMatrixHandle final {
 
     void _updateNormalMatrix();
 };
-
-struct TransformHandle final {
-    TransformHandle() { _recalculateMatrices(); };
-
-    void setPosition(const glm::vec3& position) {
-        _transform.position = position;
-        _recalculateMatrices();
-    }
-    void setRotation(const glm::vec3& rotation) {
-        _transform.rotation = rotation;
-        _recalculateMatrices();
-    }
-    void setScale(const glm::vec3& scale) {
-        _transform.scale = scale;
-        _recalculateMatrices();
-    }
-
-    void setTransform(const Transform& transform) {
-        _transform = transform;
-        _recalculateMatrices();
-    }
-
-    template <typename T> void updateTransform(const T& update) {
-        update(_transform);
-        _recalculateMatrices();
-    }
-
-    void setCachedTransformMatrix(const TransformMatrixHandle& cachedTransformMatrix) {
-        _cachedTransformMatrix = cachedTransformMatrix;
-    }
-
-    glm::mat4 getModelMatrix() const { return _cachedTransformMatrix.getModelMatrix(); }
-    glm::mat4 getNormalMatrix() const { return _cachedTransformMatrix.getNormalMatrix(); }
-    const Transform& getTransform() const { return _transform; }
-
-  private:
-    Transform _transform = Transform();
-    TransformMatrixHandle _cachedTransformMatrix = TransformMatrixHandle();
-
-    void _recalculateMatrices();
-};
 } // namespace vax::math

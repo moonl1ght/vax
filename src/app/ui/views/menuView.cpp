@@ -7,7 +7,7 @@
 using namespace vax::ui;
 using namespace vax;
 
-void MenuView::update(const vax::engine::FrameTime& frameTime) {
+void MenuView::updateUI(const vax::engine::FrameTime& frameTime) {
     ImGuiIO& io = ImGui::GetIO();
     ImGui::SetNextWindowPos(
         ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f)
@@ -27,7 +27,7 @@ void MenuView::update(const vax::engine::FrameTime& frameTime) {
         _showPhysicsEngineDemo();
     }
     ImGui::End();
-    DebugView::update(frameTime);
+    DebugView::updateUI(frameTime);
 }
 
 void MenuView::_showGridWorldDemo() {

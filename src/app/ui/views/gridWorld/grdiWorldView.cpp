@@ -18,7 +18,7 @@ GridWorldView::~GridWorldView() {
     }
 }
 
-void GridWorldView::update(const vax::engine::FrameTime& frameTime) {
+void GridWorldView::updateUI(const vax::engine::FrameTime& frameTime) {
     _mainThreadRunner.processThreadQueue();
     ImGui::SetNextWindowSize(ImVec2(380, 360), ImGuiCond_FirstUseEver);
     ImGui::Begin("Grid world demo");
@@ -66,13 +66,10 @@ void GridWorldView::update(const vax::engine::FrameTime& frameTime) {
     }
     ImGui::End();
 
-    SceneView::update(frameTime);
+    SceneView::updateUI(frameTime);
 }
 
-void GridWorldView::render(const vax::engine::FrameTime& frameTime) { SceneView::drawScene(frameTime); }
-
 void GridWorldView::load(Engine& engine, InputController& inputController) {
-    _renderer.get().linkFrameProfiler(_frameProfiler.get());
     _gridWorld = std::make_unique<GridWorld>(QLearningConfig{
         .learningRate = 0.1,
         .gamma = 0.9,
@@ -85,13 +82,6 @@ void GridWorldView::load(Engine& engine, InputController& inputController) {
     auto gridWorldSceneDescriptor = GridWorldSceneBuilder().buildScene(
         _gridWorld->getGrid(), _gridWorld->getDrawableWorldPosition(), _gridWorld->getAgent()
     );
-    _renderer.get().renderPassGraphManager()->setGraphMode(engine::RenderPassGraphManager::GraphMode::SCENE_GRAPH);
-    engine::RenderPassGraph::GraphDescriptor graphDescriptor = {
-        .withGizmo = false,
-        .withRoverCamera = false,
-    };
-    _renderer.get().renderPassGraphManager()->setGraphDescriptor(graphDescriptor);
-    _renderer.get().renderPassGraphManager()->buildGraph();
     _scene = sceneLoader.load(gridWorldSceneDescriptor);
     _scene->drawableScene().resize();
     _gridWorld->linkDrawableWorld(dynamic_cast<vax::rl::GWDrawableWorld*>(_scene->drawableScene().drawableWorld()));

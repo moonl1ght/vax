@@ -40,10 +40,7 @@ class App final {
     bool _setup();
     void _mainLoop();
     void _cleanup();
-    void _loopByEventUpdate();
-    void _loopContinuousUpdate();
+    void _loopUpdate();
     void _updateTimestamp();
-    void _testCuda() const;
-    void _testPhysics() const;
 };
 } // namespace vax

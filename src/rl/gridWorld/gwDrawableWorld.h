@@ -85,11 +85,10 @@ class GWDrawableWorld final : public vax::engine::DrawableWorld {
     template <typename F> void _updateAgentTransform(F&& update) {
         auto& world = _world.get();
         auto local = world.getComponentFor<vax::ecs::LocalTransformComponent>(_agent);
-        if (!local.has_value()) {
+        if (!local) {
             return;
         }
         update(local->transform);
-        world.addComponentFor<vax::ecs::LocalTransformComponent>(_agent, *local);
         world.addComponentFor<vax::ecs::TransformDirtyComponent>(_agent);
     }
 

@@ -16,11 +16,18 @@ class View {
 
     virtual ~View() = default;
 
+    virtual void updateUI(const vax::engine::FrameTime& frameTime) = 0;
+
     virtual void update(const vax::engine::FrameTime& frameTime) = 0;
 
-    virtual void viewIsAboutToShow() = 0;
+    virtual bool draw(const vax::engine::FrameTime& frameTime) {
+      _renderer.get().prepareForRender(nullptr);
+      return _renderer.get().render(nullptr, frameTime);
+    }
 
-    virtual void render(const vax::engine::FrameTime&) {}
+    virtual void viewWillShow() {
+      _renderer.get().renderPassGraphMode.set(engine::RenderPassGraphMode::UI_ONLY);
+    }
 
     virtual vax::AppMode getAppMode() { return vax::AppMode::EventDriven; }
 

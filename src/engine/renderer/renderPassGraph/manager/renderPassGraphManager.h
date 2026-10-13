@@ -8,6 +8,7 @@
 #include "queueManager.h"
 #include "renderDestination.h"
 #include "renderPassGraph.h"
+#include "renderPassGraphBuilder.h"
 #include "swapchain.h"
 #include "uiEngine.h"
 #include "windowController.h"
@@ -16,8 +17,6 @@
 namespace vax::engine {
 class RenderPassGraphManager final {
   public:
-    enum class GraphMode { SCENE_GRAPH, UI_GRAPH };
-
     RenderPassGraphManager(
         vax::vk::Device& device,
         vax::vk::PipelineManager& pipelineManager,
@@ -27,9 +26,11 @@ class RenderPassGraphManager final {
     )
         : _device(device)
         , _pipelineManager(pipelineManager)
-        , _descriptorSetManager(descriptorSetManager)
-        , _windowController(windowController)
-        , _uiEngine(uiEngine) {};
+        , _descriptorSetManager(descriptorSetManager) {
+        _renderPassGraphBuilder = std::make_unique<RenderPassGraphBuilder>(
+            _device, windowController, _pipelineManager, _descriptorSetManager, uiEngine
+        );
+    }
 
     ~RenderPassGraphManager() = default;
 
@@ -43,11 +44,18 @@ class RenderPassGraphManager final {
         vax::vk::CommandManager& commandManager, vax::vk::QueueManager& queueManager, vax::vk::Swapchain& swapchain
     );
 
-    void buildGraph();
+    void buildGraph(const RenderPassGraphMode& graphMode, const RenderPassGraphDescriptor* graphDescriptor);
 
-    std::shared_ptr<vax::vk::RenderPassDescriptor> getRenderPassDescriptor(std::string name) const {
+    vax::vk::RenderPassDescriptor* getRenderPassDescriptor(std::string name) const {
         if (_renderPassDescriptors.contains(name)) {
-            return _renderPassDescriptors.at(name);
+            return _renderPassDescriptors.at(name).get();
+        }
+        return nullptr;
+    }
+
+    vax::vk::RenderDestination* getRenderDestination(std::string name) const {
+        if (_renderDestinations.contains(name)) {
+            return _renderDestinations.at(name).get();
         }
         return nullptr;
     }
@@ -56,31 +64,18 @@ class RenderPassGraphManager final {
 
     RenderPassGraph& getRenderPassGraph() { return *_renderPassGraph; }
 
-    void setGraphMode(GraphMode graphMode) { _graphMode = graphMode; }
-
-    void setGraphDescriptor(RenderPassGraph::GraphDescriptor graphDescriptor) { _graphDescriptor = graphDescriptor; }
-
-    template <typename Updater> void updateGraphDescriptor(Updater&& updater) { updater(_graphDescriptor.value()); }
-
   private:
     vax::Logger _logger = vax::Logger("rednerPassGraphFactory");
 
-    GraphMode _graphMode = GraphMode::UI_GRAPH;
-    std::optional<RenderPassGraph::GraphDescriptor> _graphDescriptor = std::nullopt;
-
     std::reference_wrapper<vax::vk::Device> _device;
-    std::reference_wrapper<vax::WindowController> _windowController;
     std::reference_wrapper<vax::vk::PipelineManager> _pipelineManager;
     std::reference_wrapper<vax::vk::DescriptorSetManager> _descriptorSetManager;
-    std::reference_wrapper<vax::ui::UIEngine> _uiEngine;
 
     std::unordered_map<std::string, std::shared_ptr<vax::vk::RenderPassDescriptor>> _renderPassDescriptors;
     std::unordered_map<std::string, std::shared_ptr<vax::vk::RenderDestination>> _renderDestinations;
 
+    std::unique_ptr<RenderPassGraphBuilder> _renderPassGraphBuilder;
+
     std::unique_ptr<RenderPassGraph> _renderPassGraph;
-
-    void _buildUIOnlyGraph();
-
-    void _buildSceneGraph(RenderPassGraph::GraphDescriptor& graphDescriptor);
 };
 } // namespace vax::engine

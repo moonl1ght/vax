@@ -6,18 +6,17 @@
 #include "frameProfiler.h"
 #include "frameTime.h"
 #include "renderPassDescriptor.h"
-#include "renderPassGraph.h"
+#include "renderPassGraphDescriptor.h"
 #include "renderPassGraphManager.h"
+#include "state_tracker.h"
 #include "uiEngine.h"
 #include "vkEngine.h"
 
 namespace vax::engine {
 class Renderer final : public BaseRenderer {
   public:
-    enum class RendererMode {
-        ROVER_DEMO_WITH_ROVER_CAMERA,
-        ROVER_DEMO_WITHOUT_ROVER_CAMERA,
-    };
+    state_tracker<RenderPassGraphMode> renderPassGraphMode =
+        state_tracker<RenderPassGraphMode>(RenderPassGraphMode::UNKNOWN);
 
     Renderer(vax::vk::Engine& vkEngine, vax::ui::UIEngine& uiEngine)
         : BaseRenderer(vkEngine, uiEngine) {
@@ -37,11 +36,13 @@ class Renderer final : public BaseRenderer {
     Renderer(Renderer&& other) noexcept = delete;
     Renderer& operator=(Renderer&& other) noexcept = delete;
 
+    void prepareForRender(DrawableScene* scene);
+
     bool render(DrawableScene* scene, const FrameTime& frameTime);
 
-    void setup();
+    void load();
 
-    void prepare(DrawableScene* scene);
+    void setup(DrawableScene* scene);
 
     void linkFrameProfiler(vax::FrameProfiler* frameProfiler) noexcept { _frameProfiler = frameProfiler; }
 
@@ -68,8 +69,6 @@ class Renderer final : public BaseRenderer {
 
     std::unique_ptr<vax::engine::RenderPassGraphManager> _renderPassGraphManager;
 
-    RendererMode _rendererMode = RendererMode::ROVER_DEMO_WITHOUT_ROVER_CAMERA;
-
     bool _wasResized = false;
 
     bool _updateCommandBuffer(
@@ -89,6 +88,6 @@ class Renderer final : public BaseRenderer {
 
     void _writeFinalBlendDescriptorSets();
 
-    void _writeRoverCameraDescriptorSets();
+    void _writeSecondaryWindowDescriptorSets();
 };
 } // namespace vax::engine

@@ -3,6 +3,7 @@
 #include "camera.h"
 #include "descriptorSetWriter.h"
 #include "drawContext.h"
+#include "drawableWorld.h"
 #include "environmentMap.h"
 #include "frameTime.h"
 #include "indirectDrawController.h"
@@ -10,12 +11,13 @@
 #include "light.h"
 #include "luna.h"
 #include "renderContext.h"
+#include "renderPassGraphDescriptor.h"
 #include "resourceManager.h"
 #include "sceneComposer.h"
-#include "shaderUniforms.h"
-#include "vkEngine.h"
-#include "drawableWorld.h"
 #include "sceneDescriptor.h"
+#include "shaderUniforms.h"
+#include "state_tracker.h"
+#include "vkEngine.h"
 
 namespace vax::rl {
 struct GridWorldDrawableDescriptor;
@@ -98,10 +100,16 @@ class DrawableScene final : public vax::InputController::Observer {
 
     vax::engine::DrawableWorld* drawableWorld() const { return _drawableWorld.get(); }
 
-    bool shouldDrawSecondaryWindow() const { return _shouldDrawSecondaryWindow; }
+    bool shouldRebuildRenderPassGraph() const { return _renderPassGraphDescriptor.is_dirty(); }
 
     void setShouldDrawSecondaryWindow(bool shouldDrawSecondaryWindow) {
-        _shouldDrawSecondaryWindow = shouldDrawSecondaryWindow;
+        _renderPassGraphDescriptor.update([&](vax::engine::RenderPassGraphDescriptor& renderPassGraphDescriptor) {
+            renderPassGraphDescriptor.withSecondaryWindow = shouldDrawSecondaryWindow;
+        });
+    }
+
+    const vax::engine::RenderPassGraphDescriptor& renderPassGraphDescriptor() {
+        return _renderPassGraphDescriptor.get_and_clear_dirty();
     }
 
   private:
@@ -117,14 +125,14 @@ class DrawableScene final : public vax::InputController::Observer {
     std::unique_ptr<vax::ecs::World> _gizmoWorld;
     std::unique_ptr<vax::ecs::World> _backgroundWorld;
 
-    std::unique_ptr<vax::engine::Camera> _gizmoCamera;
-
     std::vector<vax::vk::AnyBuffer*> _sceneUniformBuffers;
     std::vector<vax::vk::AnyBuffer*> _roverCameraUniformBuffers;
     std::vector<vax::vk::AnyBuffer*> _lightsUniformBuffer;
 
     std::optional<vax::engine::SceneDescriptor> _descriptor;
 
+    ecs::Entity _gizmoEntity;
+    vax::engine::Camera _gizmoCamera;
     vax::engine::Camera _mainCamera;
     vax::engine::Light _sunLight;
     UniformBufferObject _ubo;
@@ -134,6 +142,7 @@ class DrawableScene final : public vax::InputController::Observer {
     vax::engine::RenderCallContext _renderCallContext;
     vax::engine::SceneUpdateContext _sceneUpdateContext;
 
-    bool _shouldDrawSecondaryWindow = false;
+    state_tracker<vax::engine::RenderPassGraphDescriptor> _renderPassGraphDescriptor =
+        state_tracker<vax::engine::RenderPassGraphDescriptor>({.withGizmo = false, .withSecondaryWindow = false});
 };
 } // namespace vax::engine

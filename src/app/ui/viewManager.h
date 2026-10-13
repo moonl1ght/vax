@@ -21,7 +21,7 @@ class ViewManager final {
     ViewManager(ViewManager&& other) noexcept = delete;
     ViewManager& operator=(ViewManager&& other) noexcept = delete;
 
-    void update(const vax::engine::FrameTime& frameTime);
+    bool runCycle(const vax::engine::FrameTime& frameTime);
 
     void setRootView(std::unique_ptr<View> view);
 

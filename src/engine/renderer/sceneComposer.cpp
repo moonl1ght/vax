@@ -18,7 +18,7 @@ void SceneComposer::updateTransforms(World& world) {
             HierarchyComponent& hierarchy,
             NameComponent& name) {
             DebugEntity debugEntity{entity, name.value};
-            std::optional<NameComponent> parentName = world.getComponentFor<NameComponent>(hierarchy.parent);
+            NameComponent* parentName = world.getComponentFor<NameComponent>(hierarchy.parent);
             DebugEntity parentEntity{hierarchy.parent, parentName ? parentName->value : ""};
             _transformEntries.push_back({
                 .depth = hierarchy.depth,

@@ -136,7 +136,7 @@ void GWDrawableWorld::moveAgentTo(
     }
     if (withAnimation) {
         auto local = _world.get().getComponentFor<ecs::LocalTransformComponent>(_agent);
-        auto startRotation = local.has_value() ? local->transform.getRotationInDegrees().y : 0.0f;
+        auto startRotation = local ? local->transform.getRotationInDegrees().y : 0.0f;
         if (!_animations.has_value()) {
             _animations = std::make_optional(vax::AnimationGroup(vax::AnimationGroup::Mode::SERIAL));
         } else if (_agentState.latestRotationEnd.has_value()) {

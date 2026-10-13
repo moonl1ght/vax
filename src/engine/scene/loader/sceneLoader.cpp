@@ -1,11 +1,11 @@
 #include "sceneLoader.h"
 #include "environmentMap.h"
+#include "gwDrawableWorld.h"
 #include "prefabSpawner.h"
 #include "resourceManager.h"
 #include "sceneDescriptor.h"
 #include <fstream>
 #include <nlohmann/json.hpp>
-#include "gwDrawableWorld.h"
 
 using namespace vax::engine;
 using namespace vax::ecs;
@@ -110,6 +110,11 @@ std::unique_ptr<DrawableScene> SceneLoader::_initDrawableScene(ecs::World& world
     }
 
     if (const Prefab* gizmoPrefab = assetsLibrary->findPrefab("gizmo")) {
+        for (const auto& node : gizmoPrefab->nodes) {
+            if (node.model.has_value()) {
+                assetsLibrary->drawableModel(*node.model).settings().precomputedMVP = true;
+            }
+        }
         Entity gizmo = PrefabSpawner::spawnPrefab(*gizmoWorld, *gizmoPrefab, vax::math::Transform());
         gizmoWorld->addComponentFor<GizmoComponent>(gizmo);
     }

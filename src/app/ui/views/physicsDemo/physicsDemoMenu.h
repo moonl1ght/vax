@@ -16,7 +16,7 @@ class PhysicsDemoMenuView final : public DebugView {
     PhysicsDemoMenuView(PhysicsDemoMenuView&& other) noexcept = delete;
     PhysicsDemoMenuView& operator=(PhysicsDemoMenuView&& other) noexcept = delete;
 
-    void update(const vax::engine::FrameTime& frameTime) override;
+    void updateUI(const vax::engine::FrameTime& frameTime) override;
 
   private:
 

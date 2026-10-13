@@ -53,20 +53,20 @@ class World final {
         return pool != nullptr && isEntityAlive(entity) && pool->contains(entity.index);
     }
 
-    template <typename ComponentType> std::optional<ComponentType> getComponentFor(Entity entity) {
+    template <typename ComponentType> ComponentType* getComponentFor(Entity entity) {
         if (!isEntityAlive(entity)) {
-            return std::nullopt;
+            return nullptr;
         }
         auto* pool = _findPool<ComponentType>();
-        return pool != nullptr ? std::optional<ComponentType>(pool->get(entity.index)) : std::nullopt;
+        return pool != nullptr ? &pool->get(entity.index) : nullptr;
     }
 
-    template <typename ComponentType> std::optional<const ComponentType> getComponentFor(Entity entity) const {
+    template <typename ComponentType> const ComponentType* getComponentFor(Entity entity) const {
         if (!isEntityAlive(entity)) {
-            return std::nullopt;
+            return nullptr;
         }
         const auto* pool = _findPool<ComponentType>();
-        return pool != nullptr ? std::optional<const ComponentType>(pool->get(entity.index)) : std::nullopt;
+        return pool != nullptr ? &pool->get(entity.index) : nullptr;
     }
 
     template <typename... ComponentTypes, typename Function> void each(Function&& function) {

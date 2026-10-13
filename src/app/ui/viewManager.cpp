@@ -42,23 +42,25 @@ void ViewManager::popView() {
     _topViewNode = newTopViewNode;
     _topViewNode->child = nullptr;
     _isPendingPop = false;
-    _topViewNode->view->viewIsAboutToShow();
+    _topViewNode->view->viewWillShow();
 }
 
-void ViewManager::update(const vax::engine::FrameTime& frameTime) {
+bool ViewManager::runCycle(const vax::engine::FrameTime& frameTime) {
     if (_topViewNode == nullptr) {
         _logger.error("No top view set!");
-        return;
+        return false;
     }
     _isUpdating = true;
 
     _uiEngine.get().updateUiStart();
 
-    _topViewNode->view->update(frameTime);
+    _topViewNode->view->updateUI(frameTime);
 
     _uiEngine.get().updateUiEnd();
 
-    _topViewNode->view->render(frameTime);
+    _topViewNode->view->update(frameTime);
+
+    auto drawResult = _topViewNode->view->draw(frameTime);
 
     _isUpdating = false;
 
@@ -69,6 +71,8 @@ void ViewManager::update(const vax::engine::FrameTime& frameTime) {
     } else if (_isPendingPop) {
         popView();
     }
+
+    return drawResult;
 }
 
 vax::AppMode ViewManager::getAppMode() const {
@@ -86,7 +90,7 @@ void ViewManager::_swapRootViewNode(std::unique_ptr<ViewNode> viewNode) {
     _rootNode = std::move(viewNode);
     _rootNode->view->linkViewManager(this);
     _topViewNode = _rootNode.get();
-    _topViewNode->view->viewIsAboutToShow();
+    _topViewNode->view->viewWillShow();
 }
 
 void ViewManager::_pushPendingViewNode(std::unique_ptr<ViewNode> viewNode) {
@@ -94,5 +98,5 @@ void ViewManager::_pushPendingViewNode(std::unique_ptr<ViewNode> viewNode) {
     viewNode->view->linkViewManager(this);
     _topViewNode->child = std::move(viewNode);
     _topViewNode = _topViewNode->child.get();
-    _topViewNode->view->viewIsAboutToShow();
+    _topViewNode->view->viewWillShow();
 }

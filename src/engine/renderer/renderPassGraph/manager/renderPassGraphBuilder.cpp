@@ -1,11 +1,41 @@
+#include "renderPassGraphBuilder.h"
 #include "jfaPass.h"
 #include "renderPass.h"
-#include "renderPassGraphManager.h"
+#include "commonDescriptorSets.h"
 
 using namespace vax::engine;
 using namespace vax::vk;
+using namespace vax;
 
-void RenderPassGraphManager::_buildSceneGraph(RenderPassGraph::GraphDescriptor& graphDescriptor) {
+std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildUIOnlyGraph(
+    const std::unordered_map<std::string, std::shared_ptr<vax::vk::RenderPassDescriptor>>& renderPassDescriptors,
+    const std::unordered_map<std::string, std::shared_ptr<vax::vk::RenderDestination>>& renderDestinations
+) {
+    auto swapchain = _windowController.get().getWindow(0)->getSwapchain();
+
+    auto uiPass = std::make_shared<RenderPass>(
+        "ui_pass",
+        _device.get(),
+        _pipelineManager.get(),
+        _descriptorSetManager.get(),
+        "UiPass",
+        renderDestinations.at("swapchain"),
+        renderPassDescriptors.at("swapchain")
+    );
+    uiPass->setRenderToSwapchain(true);
+    uiPass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = swapchain->swapchainExtent});
+    uiPass->setOutsideRenderPass(true);
+    uiPass->setOutsideDrawWork([&uiEngine = _uiEngine.get()](RenderPass::RunPassInfo& runPassInfo) {
+        uiEngine.render(runPassInfo.commandBuffer.vkCommandBuffer);
+    });
+    return std::make_unique<RenderPassGraph>(uiPass, _uiEngine.get());
+}
+
+std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
+    const RenderPassGraphDescriptor& graphDescriptor,
+    const std::unordered_map<std::string, std::shared_ptr<vax::vk::RenderPassDescriptor>>& renderPassDescriptors,
+    const std::unordered_map<std::string, std::shared_ptr<vax::vk::RenderDestination>>& renderDestinations
+) {
     auto swapchain = _windowController.get().getWindow(0)->getSwapchain();
 
     auto shadowPass = std::make_shared<RenderPass>(
@@ -14,8 +44,8 @@ void RenderPassGraphManager::_buildSceneGraph(RenderPassGraph::GraphDescriptor& 
         _pipelineManager.get(),
         _descriptorSetManager.get(),
         "ShadowPass",
-        _renderDestinations.at("shadow_sun"),
-        _renderPassDescriptors.at("shadow_sun")
+        renderDestinations.at("shadow_sun"),
+        renderPassDescriptors.at("shadow_sun")
     );
     shadowPass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = swapchain->swapchainExtent});
     shadowPass->setPipeline(vax::vk::PipelineName::SHADOW);
@@ -40,8 +70,8 @@ void RenderPassGraphManager::_buildSceneGraph(RenderPassGraph::GraphDescriptor& 
         _pipelineManager.get(),
         _descriptorSetManager.get(),
         "MainPass",
-        _renderDestinations.at("main"),
-        _renderPassDescriptors.at("main")
+        renderDestinations.at("main"),
+        renderPassDescriptors.at("main")
     );
     mainPass->addInputDescriptorSet({
         .setName = CommonDescriptorSetName::PER_FRAME,
@@ -105,7 +135,7 @@ void RenderPassGraphManager::_buildSceneGraph(RenderPassGraph::GraphDescriptor& 
     }
 
     auto jfaPass = std::make_shared<JFAPass>("jfa_pass", _device.get(), _descriptorSetManager.get());
-    jfaPass->setup(_renderDestinations.at("main"));
+    jfaPass->setup(renderDestinations.at("main"));
 
     jfaPass->setPostPassWork([](RenderPassNode* passNode, RenderPass::RunPassInfo& runPassInfo) {
         auto jfaPass = dynamic_cast<JFAPass*>(passNode);
@@ -129,8 +159,8 @@ void RenderPassGraphManager::_buildSceneGraph(RenderPassGraph::GraphDescriptor& 
         _pipelineManager.get(),
         _descriptorSetManager.get(),
         "FinalBlendPass",
-        _renderDestinations.at("swapchain"),
-        _renderPassDescriptors.at("swapchain")
+        renderDestinations.at("swapchain"),
+        renderPassDescriptors.at("swapchain")
     );
     finalBlendPass->addInputDescriptorSet({
         .setName = CommonDescriptorSetName::MAIN_FB,
@@ -169,7 +199,7 @@ void RenderPassGraphManager::_buildSceneGraph(RenderPassGraph::GraphDescriptor& 
         uiEngine.render(runPassInfo.commandBuffer.vkCommandBuffer);
     });
 
-    if (graphDescriptor.withRoverCamera) {
+    if (graphDescriptor.withSecondaryWindow) {
         auto roverCameraSwapchain = _windowController.get().getWindow(1)->getSwapchain();
         auto roverCameraMainPass = std::make_shared<RenderPass>(
             "rover_camera_main_pass",
@@ -177,8 +207,8 @@ void RenderPassGraphManager::_buildSceneGraph(RenderPassGraph::GraphDescriptor& 
             _pipelineManager.get(),
             _descriptorSetManager.get(),
             "RoverCameraMainPass",
-            _renderDestinations.at("rover_camera_main"),
-            _renderPassDescriptors.at("main")
+            renderDestinations.at("rover_camera_main"),
+            renderPassDescriptors.at("main")
         );
         roverCameraMainPass->addInputDescriptorSet({
             .setName = CommonDescriptorSetName::ROVER_CAMERA,
@@ -202,8 +232,8 @@ void RenderPassGraphManager::_buildSceneGraph(RenderPassGraph::GraphDescriptor& 
             _pipelineManager.get(),
             _descriptorSetManager.get(),
             "RoverCameraFBPass",
-            _renderDestinations.at("rover_camera_swapchain"),
-            _renderPassDescriptors.at("swapchain")
+            renderDestinations.at("rover_camera_swapchain"),
+            renderPassDescriptors.at("swapchain")
         );
         roverCameraFBPass->addInputDescriptorSet({
             .setName = CommonDescriptorSetName::ROVER_CAMERA_FB,
@@ -240,6 +270,5 @@ void RenderPassGraphManager::_buildSceneGraph(RenderPassGraph::GraphDescriptor& 
         jfaPass->next = finalBlendPass;
     }
 
-    _renderPassGraph =
-        std::make_unique<RenderPassGraph>(shadowPass, _renderPassDescriptors, _renderDestinations, _uiEngine.get());
+    return std::make_unique<RenderPassGraph>(shadowPass, _uiEngine.get());
 }

@@ -16,9 +16,9 @@ class DebugView : public View {
 
     ~DebugView() override { _renderer.get().unlinkFrameProfiler(_frameProfiler.get()); }
 
-    void update(const vax::engine::FrameTime& frameTime) override { _statsView->update(frameTime); }
+    void updateUI(const vax::engine::FrameTime& frameTime) override { _statsView->updateUI(frameTime); }
 
-    void viewIsAboutToShow() override { _statsView->viewIsAboutToShow(); }
+    void update(const vax::engine::FrameTime& frameTime) override { _statsView->update(frameTime); }
 
   protected:
     std::unique_ptr<StatsView> _statsView;
