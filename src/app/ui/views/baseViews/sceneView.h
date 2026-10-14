@@ -5,7 +5,8 @@
 #include "scene.h"
 
 namespace vax::ui {
-class SceneView : public DebugView {
+
+template <typename ControllerType> class SceneView : public DebugView {
   public:
     SceneView(vax::engine::Renderer& renderer)
         : DebugView(renderer) {}
@@ -18,18 +19,18 @@ class SceneView : public DebugView {
         bool renderResult = false;
         vax::engine::SceneUpdateContext sceneUpdateContext{.frameTime = frameTime};
         if (!_isScenePrepared) {
-            _renderer.get().setup(&_scene->drawableScene());
+            _renderer.get().setup(&_controller->getScene());
             _isScenePrepared = true;
         }
-        _scene->drawableScene().update(sceneUpdateContext);
+        _controller->update(sceneUpdateContext);
         _frameProfiler->endFrameZone("frame_update");
         DebugView::update(frameTime);
     }
 
     bool draw(const vax::engine::FrameTime& frameTime) override {
         _frameProfiler->beginFrameZone("draw");
-        _renderer.get().prepareForRender(&_scene->drawableScene());
-        bool renderResult = _renderer.get().render(&_scene->drawableScene(), frameTime);
+        _renderer.get().prepareForRender(&_controller->getScene());
+        bool renderResult = _renderer.get().render(&_controller->getScene(), frameTime);
 
         if (!renderResult) {
             _logger.error("Failed to render scene!");
@@ -47,9 +48,10 @@ class SceneView : public DebugView {
   protected:
     vax::Logger _logger = vax::Logger("SceneView");
 
-    std::unique_ptr<vax::engine::Scene> _scene;
+    std::unique_ptr<ControllerType> _controller;
 
   private:
     bool _isScenePrepared = false;
 };
+
 } // namespace vax::ui

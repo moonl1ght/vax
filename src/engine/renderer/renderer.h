@@ -2,7 +2,7 @@
 
 #include "baseRenderer.h"
 #include "commandBuffer.h"
-#include "drawableScene.h"
+#include "scene.h"
 #include "frameProfiler.h"
 #include "frameTime.h"
 #include "renderPassDescriptor.h"
@@ -36,13 +36,13 @@ class Renderer final : public BaseRenderer {
     Renderer(Renderer&& other) noexcept = delete;
     Renderer& operator=(Renderer&& other) noexcept = delete;
 
-    void prepareForRender(DrawableScene* scene);
+    void prepareForRender(Scene* scene);
 
-    bool render(DrawableScene* scene, const FrameTime& frameTime);
+    bool render(Scene* scene, const FrameTime& frameTime);
 
     void load();
 
-    void setup(DrawableScene* scene);
+    void setup(Scene* scene);
 
     void linkFrameProfiler(vax::FrameProfiler* frameProfiler) noexcept { _frameProfiler = frameProfiler; }
 
@@ -59,7 +59,7 @@ class Renderer final : public BaseRenderer {
         vax::vk::CommandBuffer* commandBuffer;
         vax::vk::RenderPassDescriptor* renderPassDescriptor;
         VkPipelineLayout pipelineLayout;
-        vax::engine::DrawableScene* scene;
+        vax::engine::Scene* scene;
         uint32_t imageIndex;
     };
 
@@ -74,11 +74,11 @@ class Renderer final : public BaseRenderer {
     bool _updateCommandBuffer(
         vax::vk::CommandBuffer& commandBuffer,
         uint32_t imageIndex,
-        uint32_t roverCameraImageIndex,
-        vax::engine::DrawableScene* scene
+        uint32_t agentCameraImageIndex,
+        vax::engine::Scene* scene
     );
 
-    bool _drawScene(vax::vk::CommandBuffer& commandBuffer, vax::engine::DrawableScene* scene);
+    bool _drawScene(vax::vk::CommandBuffer& commandBuffer, vax::engine::Scene* scene);
 
     void _drawUi(vax::vk::CommandBuffer& commandBuffer);
 

@@ -22,7 +22,7 @@ void Renderer::load() {
     );
 }
 
-void Renderer::setup(DrawableScene* scene) {
+void Renderer::setup(Scene* scene) {
     for (uint32_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
         if (scene != nullptr) {
             scene->prepareForDraw(engine::RenderCallContext{.currentFrame = i});
@@ -34,8 +34,7 @@ void Renderer::setup(DrawableScene* scene) {
             return;
         }
         scene->writeGlobalDescriptorSet(*globalDescriptorSetWriter);
-        auto shadowSunRenderDestination =
-            _renderPassGraphManager->getRenderDestination("shadow_sun");
+        auto shadowSunRenderDestination = _renderPassGraphManager->getRenderDestination("shadow_sun");
         globalDescriptorSetWriter->writeTexture(
             shadowSunRenderDestination->depthTexture(), GlobalDescriptorSetResourceIndex::GLOBAL_SHADOW_TEXTURE_INDEX
         );
@@ -46,14 +45,14 @@ void Renderer::setup(DrawableScene* scene) {
             _logger.error("Failed to get frame descriptor set writer!");
             return;
         }
-        auto roverCameraDescriptorSetWriter =
-            _vkEngine.get().descriptorSetManager->getDescriptorSetWriter(CommonDescriptorSetName::ROVER_CAMERA, i);
-        if (!roverCameraDescriptorSetWriter.has_value()) {
-            _logger.error("Failed to get rover camera descriptor set writer!");
+        auto agentCameraDescriptorSetWriter =
+            _vkEngine.get().descriptorSetManager->getDescriptorSetWriter(CommonDescriptorSetName::AGENT_CAMERA, i);
+        if (!agentCameraDescriptorSetWriter.has_value()) {
+            _logger.error("Failed to get agent camera descriptor set writer!");
             return;
         }
-        scene->writeFrameDescriptorSet(*frameDescriptorSetWriter, *roverCameraDescriptorSetWriter);
-        roverCameraDescriptorSetWriter->update();
+        scene->writeFrameDescriptorSet(*frameDescriptorSetWriter, *agentCameraDescriptorSetWriter);
+        agentCameraDescriptorSetWriter->update();
         frameDescriptorSetWriter->update();
 
         auto perDrawDescriptorSetWriter =
@@ -69,17 +68,16 @@ void Renderer::setup(DrawableScene* scene) {
 }
 
 void Renderer::_writeSecondaryWindowDescriptorSets() {
-    auto roverCameraRenderDestination =
-        _renderPassGraphManager->getRenderDestination("rover_camera_main");
+    auto agentCameraRenderDestination = _renderPassGraphManager->getRenderDestination("agent_camera_main");
     for (uint32_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
-        auto roverCameraFBDescriptorSetWriter =
-            _vkEngine.get().descriptorSetManager->getDescriptorSetWriter(CommonDescriptorSetName::ROVER_CAMERA_FB, i);
-        if (!roverCameraFBDescriptorSetWriter.has_value()) {
-            _logger.error("Failed to get rover camera FB descriptor set writer!");
+        auto agentCameraFBDescriptorSetWriter =
+            _vkEngine.get().descriptorSetManager->getDescriptorSetWriter(CommonDescriptorSetName::AGENT_CAMERA_FB, i);
+        if (!agentCameraFBDescriptorSetWriter.has_value()) {
+            _logger.error("Failed to get agent camera FB descriptor set writer!");
             return;
         }
-        roverCameraFBDescriptorSetWriter->writeTexture(roverCameraRenderDestination->textures()[i], 0, 0, true);
-        roverCameraFBDescriptorSetWriter->update();
+        agentCameraFBDescriptorSetWriter->writeTexture(agentCameraRenderDestination->textures()[i], 0, 0, true);
+        agentCameraFBDescriptorSetWriter->update();
     }
 }
 
@@ -99,7 +97,7 @@ void Renderer::_writeFinalBlendDescriptorSets() {
     }
 }
 
-void Renderer::prepareForRender(DrawableScene* scene) {
+void Renderer::prepareForRender(Scene* scene) {
     ZoneScopedN("Renderer::prepareForRender");
     bool shouldRebuildGraph = renderPassGraphMode.is_dirty() || _wasResized;
     if (scene != nullptr) {
@@ -124,7 +122,7 @@ void Renderer::prepareForRender(DrawableScene* scene) {
         case RenderPassGraphMode::SCENE_GRAPH:
             if (scene != nullptr) {
                 if (scene->renderPassGraphDescriptor().withSecondaryWindow) {
-                    _renderPassGraphManager->setupRenderDestinationsForRoverCamera(
+                    _renderPassGraphManager->setupRenderDestinationsForAgentCamera(
                         *_vkEngine.get().commandManager, *_vkEngine.get().queueManager, *_getSwapchain(1)
                     );
                     _writeSecondaryWindowDescriptorSets();
@@ -141,7 +139,7 @@ void Renderer::prepareForRender(DrawableScene* scene) {
     }
 }
 
-bool Renderer::render(DrawableScene* scene, const FrameTime& frameTime) {
+bool Renderer::render(Scene* scene, const FrameTime& frameTime) {
     ZoneScopedN("Renderer::render");
     _waitForFence();
 
@@ -158,24 +156,24 @@ bool Renderer::render(DrawableScene* scene, const FrameTime& frameTime) {
     if (scene != nullptr) {
         drawSecondaryWindow = scene->renderPassGraphDescriptor().withSecondaryWindow;
     }
-    uint32_t roverCameraImageIndex = UINT32_MAX;
+    uint32_t agentCameraImageIndex = UINT32_MAX;
     if (drawSecondaryWindow) {
-        VkResult roverCameraResult = vkAcquireNextImageKHR(
+        VkResult agentCameraResult = vkAcquireNextImageKHR(
             _vkEngine.get().device->vkDevice,
             _vkEngine.get().getWindowController().getWindow(1)->getSwapchain()->swapchain,
             UINT64_MAX,
             _vkEngine.get().syncObjectsManager->getImageAvailableSemaphores("secondary")[_currentFrame],
             VK_NULL_HANDLE,
-            &roverCameraImageIndex
+            &agentCameraImageIndex
         );
-        if (roverCameraResult != VK_SUCCESS && roverCameraResult != VK_SUBOPTIMAL_KHR) {
-            _logger.warning("Failed to acquire rover camera swap chain image, skipping secondary window this frame");
+        if (agentCameraResult != VK_SUCCESS && agentCameraResult != VK_SUBOPTIMAL_KHR) {
+            _logger.warning("Failed to acquire agent camera swap chain image, skipping secondary window this frame");
             drawSecondaryWindow = false;
-            roverCameraImageIndex = UINT32_MAX;
+            agentCameraImageIndex = UINT32_MAX;
         }
     }
 
-    _outputImageIndices = {imageIndex, roverCameraImageIndex};
+    _outputImageIndices = {imageIndex, agentCameraImageIndex};
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         _vkEngine.get().resize();
@@ -201,7 +199,7 @@ bool Renderer::render(DrawableScene* scene, const FrameTime& frameTime) {
     auto& commandBuffer = _vkEngine.get().commandManager->getCommandBuffer(_currentFrame);
     commandBuffer.reset();
 
-    auto updateResult = _updateCommandBuffer(commandBuffer, imageIndex, roverCameraImageIndex, scene);
+    auto updateResult = _updateCommandBuffer(commandBuffer, imageIndex, agentCameraImageIndex, scene);
     if (!updateResult) {
         _logger.error("Failed to update command buffer!");
         return false;
@@ -249,7 +247,7 @@ bool Renderer::render(DrawableScene* scene, const FrameTime& frameTime) {
     imageIndices.push_back(imageIndex);
     if (drawSecondaryWindow) {
         swapChains.push_back(_getSwapchain(1)->swapchain);
-        imageIndices.push_back(roverCameraImageIndex);
+        imageIndices.push_back(agentCameraImageIndex);
     }
     VkPresentInfoKHR presentInfo{
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
@@ -283,7 +281,7 @@ bool Renderer::render(DrawableScene* scene, const FrameTime& frameTime) {
 }
 
 bool Renderer::_updateCommandBuffer(
-    CommandBuffer& commandBuffer, uint32_t imageIndex, uint32_t roverCameraImageIndex, vax::engine::DrawableScene* scene
+    CommandBuffer& commandBuffer, uint32_t imageIndex, uint32_t agentCameraImageIndex, vax::engine::Scene* scene
 ) {
     ZoneScopedN("Renderer::updateCommandBuffer");
     if (!commandBuffer.begin())
@@ -311,7 +309,7 @@ void Renderer::_drawUi(CommandBuffer& commandBuffer) {
     _renderPassGraphManager->getRenderPassGraph().run(runPassInfo);
 }
 
-bool Renderer::_drawScene(CommandBuffer& commandBuffer, DrawableScene* scene) {
+bool Renderer::_drawScene(CommandBuffer& commandBuffer, Scene* scene) {
     ZoneScopedN("Renderer::_drawScene");
     auto pipelineLayout = _vkEngine.get().pipelineManager->getPipelineLayout(vax::vk::PipelineLayoutName::BASE);
     if (!pipelineLayout) {

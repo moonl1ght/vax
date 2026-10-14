@@ -50,11 +50,11 @@ class PipelineManager final {
     bool _createBackgroundPipelineLayout(PipelineLayoutName pipelineLayoutName);
     bool _createBasePipelineLayout(PipelineLayoutName pipelineLayoutName);
     bool _createFinalBlendPipelineLayout(PipelineLayoutName pipelineLayoutName);
-    bool _createRoverCameraFBPipelineLayout(PipelineLayoutName pipelineLayoutName);
+    bool _createAgentCameraFBPipelineLayout(PipelineLayoutName pipelineLayoutName);
 
     bool _createPBRPipeline(const RenderPassDescriptor& renderPassDescriptor);
-    bool _createRoverCameraPipeline(const RenderPassDescriptor& renderPassDescriptor);
-    bool _createRoverCameraFBPipeline(const RenderPassDescriptor& renderPassDescriptor);
+    bool _createAgentCameraPipeline(const RenderPassDescriptor& renderPassDescriptor);
+    bool _createAgentCameraFBPipeline(const RenderPassDescriptor& renderPassDescriptor);
     bool _createBackgroundPipeline(const RenderPassDescriptor& renderPassDescriptor);
     bool _createBasePipeline(const RenderPassDescriptor& renderPassDescriptor);
     bool _createFinalBlendPipeline(const RenderPassDescriptor& renderPassDescriptor);

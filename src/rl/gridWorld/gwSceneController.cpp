@@ -1,4 +1,4 @@
-#include "gwDrawableWorld.h"
+#include "gwSceneController.h"
 #include "colorPalette.h"
 #include "entityDescriptor.h"
 #include "shaderSharedUtils.h"
@@ -17,14 +17,15 @@ constexpr std::array<std::string_view, 4> WheelLinkNames = {
 };
 } // namespace
 
-bool GWDrawableWorld::load(const vax::engine::SceneDescriptor& descriptor) {
+bool GWSceneController::load(const vax::engine::SceneDescriptor& descriptor) {
     if (!_loadAgent()) {
         return false;
     }
 
     _envEntities.clear();
 
-    _world.get().eachCoreComponent<ecs::InstanceComponent>([&](ecs::Entity entity, ecs::InstanceComponent& instance) {
+    _world->eachCoreComponent<vax::ecs::InstanceComponent>([&](vax::ecs::Entity entity,
+                                                               vax::ecs::InstanceComponent& instance) {
         if (instance.typeIndex >= descriptor.entities.size()) {
             return;
         }
@@ -53,10 +54,11 @@ bool GWDrawableWorld::load(const vax::engine::SceneDescriptor& descriptor) {
     return true;
 }
 
-bool GWDrawableWorld::_loadAgent() {
-    auto& world = _world.get();
-    _agent = ecs::NullEntity;
-    world.eachCoreComponent<ecs::AgentComponent>([&](ecs::Entity entity, ecs::AgentComponent&) { _agent = entity; });
+bool GWSceneController::_loadAgent() {
+    _agent = vax::ecs::NullEntity;
+    _world->eachCoreComponent<vax::ecs::AgentComponent>([&](vax::ecs::Entity entity, vax::ecs::AgentComponent&) {
+        _agent = entity;
+    });
     if (_agent.isNull()) {
         _logger.error("Agent entity not spawned");
         return false;
@@ -65,7 +67,7 @@ bool GWDrawableWorld::_loadAgent() {
     std::vector<ecs::Entity> agentEntities;
     _forEachInSubtree(_agent, [&](ecs::Entity entity) { agentEntities.push_back(entity); });
     for (ecs::Entity entity : agentEntities) {
-        world.addCoreComponentFor<ecs::HighlightComponent>(entity, packRGBA(ColorPalette::Clear));
+        _world->addCoreComponentFor<vax::ecs::HighlightComponent>(entity, packRGBA(ColorPalette::Clear));
     }
 
     _wheels.clear();
@@ -75,7 +77,7 @@ bool GWDrawableWorld::_loadAgent() {
             _logger.warning("Wheel link not found: ", wheelName);
             continue;
         }
-        auto local = world.getCoreComponentFor<ecs::LocalTransformComponent>(wheel);
+        auto local = _world->getCoreComponentFor<vax::ecs::LocalTransformComponent>(wheel);
         _wheels.push_back({.entity = wheel, .jointOrigin = local ? local->transform : Transform()});
     }
 
@@ -84,37 +86,35 @@ bool GWDrawableWorld::_loadAgent() {
     return true;
 }
 
-ecs::Entity GWDrawableWorld::_findInSubtree(ecs::Entity root, std::string_view name) {
-    auto& world = _world.get();
+ecs::Entity GWSceneController::_findInSubtree(ecs::Entity root, std::string_view name) {
     ecs::Entity found = ecs::NullEntity;
     _forEachInSubtree(root, [&](ecs::Entity entity) {
-        if (!found.isNull() || !world.hasCoreComponent<ecs::NameComponent>(entity)) {
+        if (!found.isNull() || !_world->hasCoreComponent<vax::ecs::NameComponent>(entity)) {
             return;
         }
-        if (world.getCoreComponentFor<ecs::NameComponent>(entity)->value == name) {
+        if (_world->getCoreComponentFor<vax::ecs::NameComponent>(entity)->value == name) {
             found = entity;
         }
     });
     return found;
 }
 
-void GWDrawableWorld::_spinWheels(const engine::FrameTime& frameTime) {
-    auto& world = _world.get();
+void GWSceneController::_spinWheels(const engine::FrameTime& frameTime) {
     Transform spin;
     spin.updateRotationInDegrees({0.0f, frameTime.timestamp * -100.0f, 0.0f});
     for (const auto& wheel : _wheels) {
         ecs::LocalTransformComponent local{
             .transform = Transform(wheel.jointOrigin.getModelMatrix() * spin.getModelMatrix())
         };
-        world.addCoreComponentFor<ecs::LocalTransformComponent>(wheel.entity, local);
-        world.addCoreComponentFor<ecs::TransformDirtyComponent>(wheel.entity);
+        _world->addCoreComponentFor<vax::ecs::LocalTransformComponent>(wheel.entity, local);
+        _world->addCoreComponentFor<vax::ecs::TransformDirtyComponent>(wheel.entity);
     }
 }
 
-void GWDrawableWorld::update(const engine::FrameTime& frameTime) {
+void GWSceneController::onUpdate(const vax::engine::SceneUpdateContext& sceneUpdateContext) {
     if (_animations.has_value()) {
-        auto isCompleted = _animations->update(frameTime);
-        _spinWheels(frameTime);
+        auto isCompleted = _animations->update(sceneUpdateContext.frameTime);
+        _spinWheels(sceneUpdateContext.frameTime);
         if (isCompleted) {
             _animations = std::nullopt;
             if (_onAllAnimationsCompleted.has_value()) {
@@ -125,9 +125,9 @@ void GWDrawableWorld::update(const engine::FrameTime& frameTime) {
     }
 }
 
-bool GWDrawableWorld::isMovingAgent() const { return _animations.has_value(); }
+bool GWSceneController::isMovingAgent() const { return _animations.has_value(); }
 
-void GWDrawableWorld::moveAgentTo(
+void GWSceneController::moveAgentTo(
     Position2DFloat position, AgentOrientation orientation, bool withAnimation, float moveSpeed, float rotationSpeed
 ) {
     if (_agent.isNull()) {
@@ -135,7 +135,7 @@ void GWDrawableWorld::moveAgentTo(
         return;
     }
     if (withAnimation) {
-        auto local = _world.get().getCoreComponentFor<ecs::LocalTransformComponent>(_agent);
+        auto local = _world->getCoreComponentFor<vax::ecs::LocalTransformComponent>(_agent);
         auto startRotation = local ? local->transform.getRotationInDegrees().y : 0.0f;
         if (!_animations.has_value()) {
             _animations = std::make_optional(vax::AnimationGroup(vax::AnimationGroup::Mode::SERIAL));
@@ -154,7 +154,7 @@ void GWDrawableWorld::moveAgentTo(
             animation.addAnimationHandler([this](float value) {
                 auto xValue = -cos(value * M_PI / 180.0f);
                 auto zValue = sin(value * M_PI / 180.0f);
-                _roverCamera.setDirection({xValue, 0.0f, zValue});
+                _scene->agentCamera().setDirection({xValue, 0.0f, zValue});
                 _updateAgentTransform([value](Transform& transform) {
                     transform.updateRotationInDegrees({-90.0f, value, 0.0f});
                 });
@@ -175,9 +175,9 @@ void GWDrawableWorld::moveAgentTo(
         auto moveAnimation = vax::ValueAnimation(moveSpeed, startPosition, endPosition);
         moveAnimation.addAnimationHandler([=, this](float value) {
             if (isX) {
-                _roverCamera.setPosition({value, 0.5f, position.y});
+                _scene->agentCamera().setPosition({value, 0.5f, position.y});
             } else {
-                _roverCamera.setPosition({position.x, 0.5f, value});
+                _scene->agentCamera().setPosition({position.x, 0.5f, value});
             }
             _updateAgentTransform([=](Transform& transform) {
                 if (isX) {
@@ -209,8 +209,8 @@ void GWDrawableWorld::moveAgentTo(
             direction = {1.0f, 0.0f, 0.0f};
             break;
         }
-        _roverCamera.setDirection(direction);
-        _roverCamera.setPosition({position.x, 0.5f, position.y});
+        _scene->agentCamera().setDirection(direction);
+        _scene->agentCamera().setPosition({position.x, 0.5f, position.y});
         _updateAgentTransform([&](Transform& transform) {
             transform.position = {position.x, 0.0f, position.y};
             transform.updateRotationInDegrees({-90.0f, rotation, 0.0f});
@@ -220,25 +220,25 @@ void GWDrawableWorld::moveAgentTo(
     _agentState.position = position;
 }
 
-void GWDrawableWorld::resetInstancesHighlight(std::string instanceId) {
+void GWSceneController::resetInstancesHighlight(std::string instanceId) {
     auto it = _envEntities.find(instanceId);
     if (it == _envEntities.end()) {
         return;
     }
     for (ecs::Entity entity : it->second) {
-        _world.get().removeCoreComponentFor<ecs::HighlightComponent>(entity);
+        _world->removeCoreComponentFor<vax::ecs::HighlightComponent>(entity);
     }
 }
 
-void GWDrawableWorld::highlightInstance(std::string instanceId, uint32_t instanceIndex, vax::engine::Color color) {
+void GWSceneController::highlightInstance(std::string instanceId, uint32_t instanceIndex, vax::engine::Color color) {
     auto it = _envEntities.find(instanceId);
     if (it == _envEntities.end() || instanceIndex >= it->second.size() || it->second[instanceIndex].isNull()) {
         _logger.warning("No env instance ", instanceId, "[", instanceIndex, "]");
         return;
     }
-    _world.get().addCoreComponentFor<ecs::HighlightComponent>(it->second[instanceIndex], packRGBA(color));
+    _world->addCoreComponentFor<vax::ecs::HighlightComponent>(it->second[instanceIndex], packRGBA(color));
 }
 
-void GWDrawableWorld::setOnAllAnimationsCompleted(std::function<void()> onAllAnimationsCompleted) {
+void GWSceneController::setOnAllAnimationsCompleted(std::function<void()> onAllAnimationsCompleted) {
     _onAllAnimationsCompleted = onAllAnimationsCompleted;
 }

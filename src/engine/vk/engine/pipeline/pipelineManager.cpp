@@ -25,16 +25,16 @@ bool PipelineManager::setup(
         _logger.error("Failed to create final blend pipeline layout!");
         return false;
     }
-    if (!_createRoverCameraFBPipelineLayout(PipelineLayoutName::ROVER_CAMERA_FB)) {
-        _logger.error("Failed to create rover camera FB pipeline layout!");
+    if (!_createAgentCameraFBPipelineLayout(PipelineLayoutName::AGENT_CAMERA_FB)) {
+        _logger.error("Failed to create agent camera FB pipeline layout!");
         return false;
     }
     if (!_createPBRPipeline(renderPassDescriptor)) {
         _logger.error("Failed to create PBR pipeline!");
         return false;
     }
-    if (!_createRoverCameraPipeline(renderPassDescriptor)) {
-        _logger.error("Failed to create rover camera pipeline!");
+    if (!_createAgentCameraPipeline(renderPassDescriptor)) {
+        _logger.error("Failed to create agent camera pipeline!");
         return false;
     }
     if (!_createBasePipeline(renderPassDescriptor)) {
@@ -49,8 +49,8 @@ bool PipelineManager::setup(
         _logger.error("Failed to create final blend pipeline!");
         return false;
     }
-    if (!_createRoverCameraFBPipeline(postProcessRenderPassDescriptor)) {
-        _logger.error("Failed to create rover camera FB pipeline!");
+    if (!_createAgentCameraFBPipeline(postProcessRenderPassDescriptor)) {
+        _logger.error("Failed to create agent camera FB pipeline!");
         return false;
     }
     if (!_createShadowPipeline(shadowRenderPassDescriptor)) {
@@ -132,13 +132,13 @@ bool PipelineManager::_createFinalBlendPipeline(const RenderPassDescriptor& rend
     );
 }
 
-bool PipelineManager::_createRoverCameraFBPipeline(const RenderPassDescriptor& renderPassDescriptor) {
+bool PipelineManager::_createAgentCameraFBPipeline(const RenderPassDescriptor& renderPassDescriptor) {
     return _createPipeline(
         renderPassDescriptor,
         SRC_PATH("engine/shaders/out/background.vert.spv"),
         SRC_PATH("engine/shaders/out/finalblend.cam.frag.spv"),
-        PipelineName::ROVER_CAMERA_FB,
-        PipelineLayoutName::ROVER_CAMERA_FB,
+        PipelineName::AGENT_CAMERA_FB,
+        PipelineLayoutName::AGENT_CAMERA_FB,
         [](GraphicsPipelineBuilder& pipelineBuilder) {
             auto bindingDescription = Vertex::getBindingDescription();
             auto attributeDescriptions = Vertex::getAttributeDescriptions();
@@ -172,12 +172,12 @@ bool PipelineManager::_createPBRPipeline(const RenderPassDescriptor& renderPassD
     );
 }
 
-bool PipelineManager::_createRoverCameraPipeline(const RenderPassDescriptor& renderPassDescriptor) {
+bool PipelineManager::_createAgentCameraPipeline(const RenderPassDescriptor& renderPassDescriptor) {
     return _createPipeline(
         renderPassDescriptor,
         SRC_PATH("engine/shaders/out/base.vert.spv"),
         SRC_PATH("engine/shaders/out/pbr.frag.spv"),
-        PipelineName::ROVER_CAMERA,
+        PipelineName::AGENT_CAMERA,
         PipelineLayoutName::BASE,
         [](GraphicsPipelineBuilder& pipelineBuilder) {
             auto bindingDescription = Vertex::getBindingDescription();
@@ -245,20 +245,20 @@ bool vax::vk::PipelineManager::_createFinalBlendPipelineLayout(vax::vk::Pipeline
     return true;
 }
 
-bool vax::vk::PipelineManager::_createRoverCameraFBPipelineLayout(vax::vk::PipelineLayoutName pipelineLayoutName) {
+bool vax::vk::PipelineManager::_createAgentCameraFBPipelineLayout(vax::vk::PipelineLayoutName pipelineLayoutName) {
     auto pipelineBuilder = vax::vk::GraphicsPipelineBuilder(_device.get());
     auto name = vax::vk::Pipeline::pipelineLayoutNameToString(pipelineLayoutName);
     auto finalBlendCamSampledDescriptorSetLayout = _descriptorSetManager.get().getDescriptorSetLayout(
         DescriptorSetLayoutName::FINAL_BLEND_SIMPLE
     );
     if (!finalBlendCamSampledDescriptorSetLayout) {
-        _logger.error("Failed to get rover camera FB descriptor set layout!");
+        _logger.error("Failed to get agent camera FB descriptor set layout!");
         return false;
     }
     pipelineBuilder.addDescriptorSetLayout(finalBlendCamSampledDescriptorSetLayout->getVkDescriptorSetLayout());
     auto pipelineLayout = pipelineBuilder.buildPipelineLayout(name);
     if (!pipelineLayout) {
-        _logger.error("Failed to create rover camera FB pipeline layout!");
+        _logger.error("Failed to create agent camera FB pipeline layout!");
         return false;
     }
     _pipelineLayouts.emplace(name, pipelineLayout);

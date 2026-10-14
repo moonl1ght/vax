@@ -1,7 +1,7 @@
 #pragma once
 
 #include "gwAgent.h"
-#include "gwDrawableWorld.h"
+#include "gwSceneController.h"
 #include "gwenv.h"
 #include "inputController.h"
 #include "logger.h"
@@ -52,7 +52,7 @@ class GridWorld final : public vax::InputController::Observer,
 
     void onKeyEvent(const vax::KeyEvent& keyEvent);
 
-    void linkDrawableWorld(GWDrawableWorld* drawableWorld);
+    void linkSceneController(GWSceneController* sceneController);
 
     void agentMoved();
 
@@ -90,7 +90,7 @@ class GridWorld final : public vax::InputController::Observer,
     float _moveSpeed = 1.0f;
     float _rotationSpeed = 0.5f;
 
-    GWDrawableWorld* _drawableWorld;
+    GWSceneController* _sceneController;
     vax::rl::EvalMode _evalMode = vax::rl::EvalMode::EVALUATION;
 
     void _updateAgentPosition();

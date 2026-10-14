@@ -200,18 +200,18 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
     });
 
     if (graphDescriptor.withSecondaryWindow) {
-        auto roverCameraSwapchain = _windowController.get().getWindow(1)->getSwapchain();
-        auto roverCameraMainPass = std::make_shared<RenderPass>(
-            "rover_camera_main_pass",
+        auto agentCameraSwapchain = _windowController.get().getWindow(1)->getSwapchain();
+        auto agentCameraMainPass = std::make_shared<RenderPass>(
+            "agent_camera_main_pass",
             _device.get(),
             _pipelineManager.get(),
             _descriptorSetManager.get(),
-            "RoverCameraMainPass",
-            renderDestinations.at("rover_camera_main"),
+            "AgentCameraMainPass",
+            renderDestinations.at("agent_camera_main"),
             renderPassDescriptors.at("main")
         );
-        roverCameraMainPass->addInputDescriptorSet({
-            .setName = CommonDescriptorSetName::ROVER_CAMERA,
+        agentCameraMainPass->addInputDescriptorSet({
+            .setName = CommonDescriptorSetName::AGENT_CAMERA,
             .bindingInfo = {
             .setIndex = MainSetIndices::PER_FRAME_SET_INDEX,
             .bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -219,24 +219,24 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
             .dynamicOffsets = {0},
             },
         });
-        roverCameraMainPass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = roverCameraSwapchain->swapchainExtent});
-        roverCameraMainPass->setPipeline(vax::vk::PipelineName::ROVER_CAMERA);
-        roverCameraMainPass->setPipelineLayout(vax::vk::PipelineLayoutName::BASE);
-        roverCameraMainPass->setDrawWork([this](RenderPass::RunPassInfo& runPassInfo, DrawContext& drawContext) {
+        agentCameraMainPass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = agentCameraSwapchain->swapchainExtent});
+        agentCameraMainPass->setPipeline(vax::vk::PipelineName::AGENT_CAMERA);
+        agentCameraMainPass->setPipelineLayout(vax::vk::PipelineLayoutName::BASE);
+        agentCameraMainPass->setDrawWork([this](RenderPass::RunPassInfo& runPassInfo, DrawContext& drawContext) {
             runPassInfo.scene->draw(drawContext);
         });
 
-        auto roverCameraFBPass = std::make_shared<RenderPass>(
-            "rover_camera_fb_pass",
+        auto agentCameraFBPass = std::make_shared<RenderPass>(
+            "agent_camera_fb_pass",
             _device.get(),
             _pipelineManager.get(),
             _descriptorSetManager.get(),
-            "RoverCameraFBPass",
-            renderDestinations.at("rover_camera_swapchain"),
+            "AgentCameraFBPass",
+            renderDestinations.at("agent_camera_swapchain"),
             renderPassDescriptors.at("swapchain")
         );
-        roverCameraFBPass->addInputDescriptorSet({
-            .setName = CommonDescriptorSetName::ROVER_CAMERA_FB,
+        agentCameraFBPass->addInputDescriptorSet({
+            .setName = CommonDescriptorSetName::AGENT_CAMERA_FB,
             .bindingInfo = {
             .setIndex = 0,
             .bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -244,22 +244,22 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
             .dynamicOffsets = {0},
             },
         });
-        roverCameraFBPass->setOutputImageIndex(1);
-        roverCameraFBPass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = roverCameraSwapchain->swapchainExtent});
-        roverCameraFBPass->setPipeline(vax::vk::PipelineName::ROVER_CAMERA_FB);
-        roverCameraFBPass->setPipelineLayout(vax::vk::PipelineLayoutName::ROVER_CAMERA_FB);
-        roverCameraFBPass->setRenderToSwapchain(true);
-        roverCameraFBPass->setDrawWork([this](RenderPass::RunPassInfo& runPassInfo, DrawContext& drawContext) {
+        agentCameraFBPass->setOutputImageIndex(1);
+        agentCameraFBPass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = agentCameraSwapchain->swapchainExtent});
+        agentCameraFBPass->setPipeline(vax::vk::PipelineName::AGENT_CAMERA_FB);
+        agentCameraFBPass->setPipelineLayout(vax::vk::PipelineLayoutName::AGENT_CAMERA_FB);
+        agentCameraFBPass->setRenderToSwapchain(true);
+        agentCameraFBPass->setDrawWork([this](RenderPass::RunPassInfo& runPassInfo, DrawContext& drawContext) {
             runPassInfo.scene->drawBackground(drawContext);
         });
 
         shadowPass->next = mainPass;
 
-        mainPass->next = roverCameraMainPass;
+        mainPass->next = agentCameraMainPass;
 
-        roverCameraMainPass->next = roverCameraFBPass;
+        agentCameraMainPass->next = agentCameraFBPass;
 
-        roverCameraFBPass->next = jfaPass;
+        agentCameraFBPass->next = jfaPass;
 
         jfaPass->next = finalBlendPass;
     } else {

@@ -51,9 +51,9 @@ void GridWorldView::updateUI(const vax::engine::FrameTime& frameTime) {
             if (ImGui::Button("Train", ImVec2(-1, 55))) {
                 _startTraining();
             }
-            if (!_isRoverCameraShown) {
-                if (ImGui::Button("Show rover camera", ImVec2(-1, 55))) {
-                    _showRoverCamera();
+            if (!_isAgentCameraShown) {
+                if (ImGui::Button("Show agent camera", ImVec2(-1, 55))) {
+                    _showAgentCamera();
                 }
             }
             if (ImGui::Button("Back", ImVec2(-1, 55))) {
@@ -82,10 +82,16 @@ void GridWorldView::load(Engine& engine, InputController& inputController) {
     auto gridWorldSceneDescriptor = GridWorldSceneBuilder().buildScene(
         _gridWorld->getGrid(), _gridWorld->getDrawableWorldPosition(), _gridWorld->getAgent()
     );
-    _scene = sceneLoader.load(gridWorldSceneDescriptor);
-    _scene->drawableScene().resize();
-    _gridWorld->linkDrawableWorld(dynamic_cast<vax::rl::GWDrawableWorld*>(_scene->drawableScene().drawableWorld()));
-    inputController.addObserver(&_scene->drawableScene());
+    auto sceneWorldPair = sceneLoader.load(gridWorldSceneDescriptor);
+    _controller = std::make_unique<vax::rl::GWSceneController>(
+        std::move(sceneWorldPair.first), std::move(sceneWorldPair.second)
+    );
+
+    _controller->load(gridWorldSceneDescriptor);
+    _controller->getScene().resize();
+
+    _gridWorld->linkSceneController(_controller.get());
+    inputController.addObserver(&_controller->getScene());
     inputController.addObserver(_gridWorld.get());
 }
 
@@ -125,11 +131,11 @@ void GridWorldView::_startDemo() {
 
 void GridWorldView::_changeStartPosition() { _gridWorld->changeAgentStartPosition(); }
 
-void GridWorldView::_showRoverCamera() {
+void GridWorldView::_showAgentCamera() {
     if (_windowController.get().getWindow(1) != nullptr) {
         _windowController.get().getWindow(1)->show();
     } else {
-        _windowController.get().setupWindow(1, vax::math::SizeUI{640, 480}, "Rover camera");
+        _windowController.get().setupWindow(1, vax::math::SizeUI{640, 480}, "Agent camera");
         _windowController.get().getWindow(1)->load(true, false);
         _windowController.get().getWindow(1)->createSurface(_uiEngine.get().engine().instance);
         _windowController.get().getWindow(1)->createSwapchain(
@@ -137,9 +143,9 @@ void GridWorldView::_showRoverCamera() {
         );
     }
     _windowController.get().getWindow(1)->setWindowWillHideCallback([this]() {
-        _isRoverCameraShown = false;
-        _scene->drawableScene().setShouldDrawSecondaryWindow(false);
+        _isAgentCameraShown = false;
+        _controller->getScene().setShouldDrawSecondaryWindow(false);
     });
-    _scene->drawableScene().setShouldDrawSecondaryWindow(true);
-    _isRoverCameraShown = true;
+    _controller->getScene().setShouldDrawSecondaryWindow(true);
+    _isAgentCameraShown = true;
 }

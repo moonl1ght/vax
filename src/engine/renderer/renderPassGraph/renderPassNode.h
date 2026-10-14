@@ -3,7 +3,7 @@
 #include <string>
 
 #include "commandBuffer.h"
-#include "drawableScene.h"
+#include "scene.h"
 #include "commonDescriptorSets.h"
 
 namespace vax::engine {
@@ -24,7 +24,7 @@ class RenderPassNode {
 
     struct RunPassInfo final {
         vax::vk::CommandBuffer& commandBuffer;
-        vax::engine::DrawableScene* scene;
+        vax::engine::Scene* scene;
         std::vector<uint32_t> imageIndices;
         uint32_t frameIndex;
     };

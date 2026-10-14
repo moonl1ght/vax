@@ -8,7 +8,7 @@ enum class PipelineLayoutName : uint32_t {
     BACKGROUND = 0,
     BASE = 1,
     FINAL_BLEND = 2,
-    ROVER_CAMERA_FB = 3,
+    AGENT_CAMERA_FB = 3,
     UNKNOWN = 0xFFFFFFFF,
 };
 
@@ -17,8 +17,8 @@ enum class PipelineName : uint32_t {
     PBR = 1,
     BASE = 2,
     FINAL_BLEND = 3,
-    ROVER_CAMERA = 4,
-    ROVER_CAMERA_FB = 5,
+    AGENT_CAMERA = 4,
+    AGENT_CAMERA_FB = 5,
     SHADOW = 6,
     UNKNOWN = 0xFFFFFFFF,
 };
@@ -37,10 +37,10 @@ class Pipeline final {
             return "base_pipeline";
         case PipelineName::FINAL_BLEND:
             return "final_blend_pipeline";
-        case PipelineName::ROVER_CAMERA:
-            return "rover_camera_pipeline";
-        case PipelineName::ROVER_CAMERA_FB:
-            return "rover_camera_fb_pipeline";
+        case PipelineName:: AGENT_CAMERA:
+            return "agent_camera_pipeline";
+        case PipelineName::AGENT_CAMERA_FB:
+            return "agent_camera_fb_pipeline";
         case PipelineName::UNKNOWN:
             return "unknown_pipeline";
         default:
@@ -56,8 +56,8 @@ class Pipeline final {
             return "base_pipeline_layout";
         case PipelineLayoutName::FINAL_BLEND:
             return "final_blend_pipeline_layout";
-        case PipelineLayoutName::ROVER_CAMERA_FB:
-            return "rover_camera_fb_pipeline_layout";
+        case PipelineLayoutName::AGENT_CAMERA_FB:
+            return "agent_camera_fb_pipeline_layout";
         case PipelineLayoutName::UNKNOWN:
             return "unknown_pipeline_layout";
         default:

@@ -40,7 +40,7 @@ class RenderPassGraphManager final {
         vax::vk::CommandManager& commandManager, vax::vk::QueueManager& queueManager, vax::vk::Swapchain& swapchain
     );
 
-    void setupRenderDestinationsForRoverCamera(
+    void setupRenderDestinationsForAgentCamera(
         vax::vk::CommandManager& commandManager, vax::vk::QueueManager& queueManager, vax::vk::Swapchain& swapchain
     );
 

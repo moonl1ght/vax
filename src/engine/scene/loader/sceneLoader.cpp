@@ -1,6 +1,5 @@
 #include "sceneLoader.h"
 #include "environmentMap.h"
-#include "gwDrawableWorld.h"
 #include "prefabSpawner.h"
 #include "resourceManager.h"
 #include "sceneDescriptor.h"
@@ -10,19 +9,20 @@
 using namespace vax::engine;
 using namespace vax::ecs;
 
-std::unique_ptr<Scene> SceneLoader::load(const std::string& path) {
+std::optional<SceneLoader::SceneWorldPair> SceneLoader::load(const std::string& path) {
     auto sceneDescriptor = _loadSceneDescriptor(path);
     if (!sceneDescriptor.has_value()) {
-        return nullptr;
+        return std::nullopt;
     }
     return load(sceneDescriptor.value());
 }
 
-std::unique_ptr<Scene> SceneLoader::load(SceneDescriptor& descriptor) {
-    std::unique_ptr<ecs::World> world = std::make_unique<ecs::World>();
-    auto drawableScene = _initDrawableScene(*world, descriptor);
-    drawableScene->load(descriptor);
-    return std::make_unique<Scene>(std::move(world), std::move(drawableScene));
+SceneLoader::SceneWorldPair SceneLoader::load(SceneDescriptor& descriptor) {
+    std::shared_ptr<ecs::World> world = std::make_shared<ecs::World>();
+    auto scene = _initScene(*world, descriptor);
+    scene->load(descriptor);
+    scene->setWorld(world);
+    return std::make_pair(std::move(scene), std::move(world));
 }
 
 std::optional<SceneDescriptor> SceneLoader::_loadSceneDescriptor(const std::string& path) {
@@ -36,10 +36,9 @@ std::optional<SceneDescriptor> SceneLoader::_loadSceneDescriptor(const std::stri
     return descriptor;
 }
 
-std::unique_ptr<DrawableScene> SceneLoader::_initDrawableScene(ecs::World& world, const SceneDescriptor& descriptor) {
+std::unique_ptr<Scene> SceneLoader::_initScene(ecs::World& world, const SceneDescriptor& descriptor) {
     std::unique_ptr<ecs::World> gizmoWorld = std::make_unique<ecs::World>();
     std::unique_ptr<ecs::World> backgroundWorld = std::make_unique<ecs::World>();
-    auto drawableWorld = std::make_unique<vax::rl::GWDrawableWorld>(world);
     auto maxDrawableInstances = vax::vk::MAX_DRAWABLE_INSTANCES;
     auto resourceManager = std::make_unique<vax::vk::ResourceManager>(*_vkEngine.get().device);
     resourceManager->setup(maxDrawableInstances);
@@ -119,16 +118,13 @@ std::unique_ptr<DrawableScene> SceneLoader::_initDrawableScene(ecs::World& world
         gizmoWorld->addCoreComponentFor<GizmoComponent>(gizmo);
     }
 
-    drawableWorld->load(descriptor);
-
     auto sceneComposer =
         std::make_unique<SceneComposer>(std::move(assetsLibrary), resourceManager->ssboManager(), maxDrawableInstances);
 
-    return std::make_unique<DrawableScene>(
+    return std::make_unique<Scene>(
         _vkEngine.get(),
         std::move(gizmoWorld),
         std::move(backgroundWorld),
-        std::move(drawableWorld),
         std::move(resourceManager),
         std::move(environmentMap),
         std::move(sceneComposer)

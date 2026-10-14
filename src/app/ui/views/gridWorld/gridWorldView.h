@@ -10,9 +10,10 @@
 #include "uiEngine.h"
 #include "vkEngine.h"
 #include "windowController.h"
+#include "gwSceneController.h"
 
 namespace vax::ui {
-class GridWorldView final : public SceneView {
+class GridWorldView final : public SceneView<rl::GWSceneController> {
   public:
     GridWorldView(UIEngine& uiEngine, vax::WindowController& windowController, vax::engine::Renderer& renderer)
         : _uiEngine(uiEngine)
@@ -43,7 +44,7 @@ class GridWorldView final : public SceneView {
     bool _isDemoLoaded = false;
     bool _isDemoRunning = false;
     bool _isTrainingCompleted = false;
-    bool _isRoverCameraShown = false;
+    bool _isAgentCameraShown = false;
 
     void _startTraining();
 
@@ -55,6 +56,6 @@ class GridWorldView final : public SceneView {
 
     void _changeStartPosition();
 
-    void _showRoverCamera();
+    void _showAgentCamera();
 };
 } // namespace vax::ui

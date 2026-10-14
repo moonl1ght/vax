@@ -1,6 +1,5 @@
 #pragma once
 
-#include "drawableScene.h"
 #include "scene.h"
 #include "sceneDescriptor.h"
 #include "world.h"
@@ -9,6 +8,8 @@ namespace vax::engine {
 
 class SceneLoader {
   public:
+    typedef std::pair<std::unique_ptr<Scene>, std::shared_ptr<ecs::World>> SceneWorldPair;
+
     SceneLoader(vax::vk::Engine& vkEngine)
         : _vkEngine(vkEngine) {}
     ~SceneLoader() = default;
@@ -18,16 +19,16 @@ class SceneLoader {
     SceneLoader(SceneLoader&& other) noexcept = default;
     SceneLoader& operator=(SceneLoader&& other) noexcept = default;
 
-    std::unique_ptr<Scene> load(const std::string& path);
+    std::optional<SceneWorldPair> load(const std::string& path);
 
-    std::unique_ptr<Scene> load(SceneDescriptor& descriptor);
+    SceneWorldPair load(SceneDescriptor& descriptor);
 
   private:
     std::reference_wrapper<vax::vk::Engine> _vkEngine;
 
     std::string _name;
 
-    std::unique_ptr<DrawableScene> _initDrawableScene(ecs::World& world, const SceneDescriptor& descriptor);
+    std::unique_ptr<Scene> _initScene(ecs::World& world, const SceneDescriptor& descriptor);
 
     std::optional<SceneDescriptor> _loadSceneDescriptor(const std::string& path);
 };

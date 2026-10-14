@@ -78,7 +78,7 @@ void RenderPassGraphManager::setupRenderDestinations(
     _renderDestinations["shadow_sun"] = shadowSunRenderDestinationShared;
 }
 
-void RenderPassGraphManager::setupRenderDestinationsForRoverCamera(
+void RenderPassGraphManager::setupRenderDestinationsForAgentCamera(
     vax::vk::CommandManager& commandManager, vax::vk::QueueManager& queueManager, vax::vk::Swapchain& swapchain
 ) {
     auto& mainRenderPassDescriptor = _renderPassDescriptors.at("main");
@@ -86,29 +86,29 @@ void RenderPassGraphManager::setupRenderDestinationsForRoverCamera(
 
     auto renderDestinationBuilder = RenderDestinationBuilder(_device.get());
 
-    auto roverCameraRenderDestination = renderDestinationBuilder.buildMainOffscreen(
+    auto agentCameraRenderDestination = renderDestinationBuilder.buildMainOffscreen(
         commandManager, queueManager.graphicsQueue, swapchain.swapchainExtent, *mainRenderPassDescriptor
     );
-    if (!roverCameraRenderDestination.has_value()) {
+    if (!agentCameraRenderDestination.has_value()) {
         _logger.error("Failed to create main render destination!");
         return;
     }
 
-    auto roverCameraFBRenderDestination = renderDestinationBuilder.buildSwapchain(
+    auto agentCameraFBRenderDestination = renderDestinationBuilder.buildSwapchain(
         commandManager, queueManager.graphicsQueue, swapchain, *swapchainRenderPassDescriptor
     );
-    if (!roverCameraFBRenderDestination.has_value()) {
-        _logger.error("Failed to create rover camera swapchain render destination!");
+    if (!agentCameraFBRenderDestination.has_value()) {
+        _logger.error("Failed to create agent camera swapchain render destination!");
         return;
     }
 
-    auto roverCameraRenderDestinationShared =
-        std::make_shared<vax::vk::RenderDestination>(std::move(roverCameraRenderDestination.value()));
-    auto roverCameraFBRenderDestinationShared =
-        std::make_shared<vax::vk::RenderDestination>(std::move(roverCameraFBRenderDestination.value()));
+    auto agentCameraRenderDestinationShared =
+        std::make_shared<vax::vk::RenderDestination>(std::move(agentCameraRenderDestination.value()));
+    auto agentCameraFBRenderDestinationShared =
+        std::make_shared<vax::vk::RenderDestination>(std::move(agentCameraFBRenderDestination.value()));
 
-    _renderDestinations["rover_camera_main"] = roverCameraRenderDestinationShared;
-    _renderDestinations["rover_camera_swapchain"] = roverCameraFBRenderDestinationShared;
+    _renderDestinations["agent_camera_main"] = agentCameraRenderDestinationShared;
+    _renderDestinations["agent_camera_swapchain"] = agentCameraFBRenderDestinationShared;
 }
 
 void RenderPassGraphManager::buildGraph(

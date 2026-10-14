@@ -3,9 +3,10 @@
 #include "inputController.h"
 #include "sceneView.h"
 #include "vkEngine.h"
+#include "mainSceneController.h"
 
 namespace vax::ui {
-class PhysicsDemoView final : public SceneView {
+class PhysicsDemoView final : public SceneView<MainSceneController> {
   public:
     PhysicsDemoView(vax::engine::Renderer& renderer)
         : SceneView(renderer) {}

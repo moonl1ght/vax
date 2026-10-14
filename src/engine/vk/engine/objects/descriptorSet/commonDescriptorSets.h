@@ -9,13 +9,13 @@ namespace vax::vk {
 enum class CommonDescriptorSetName {
     GLOBAL,
     PER_FRAME,
-    ROVER_CAMERA,
+    AGENT_CAMERA,
     PER_DRAW,
 
     MAIN_FB,
     MAIN_FB_INPUT_MASK_0,
     MAIN_FB_INPUT_MASK_1,
-    ROVER_CAMERA_FB,
+    AGENT_CAMERA_FB,
 
     JFA_INIT,
     JFA_MAIN_0,
@@ -49,13 +49,13 @@ constexpr std::vector<DescriptorSetInfo> allDescriptorSets() {
     return {
         {CommonDescriptorSetName::GLOBAL, DescriptorSetLayoutName::GLOBAL, true},
         {CommonDescriptorSetName::PER_FRAME, DescriptorSetLayoutName::PER_FRAME, false},
-        {CommonDescriptorSetName::ROVER_CAMERA, DescriptorSetLayoutName::PER_FRAME, false},
+        {CommonDescriptorSetName::AGENT_CAMERA, DescriptorSetLayoutName::PER_FRAME, false},
         {CommonDescriptorSetName::PER_DRAW, DescriptorSetLayoutName::PER_DRAW, false},
 
         {CommonDescriptorSetName::MAIN_FB, DescriptorSetLayoutName::FINAL_BLEND, false},
         {CommonDescriptorSetName::MAIN_FB_INPUT_MASK_0, DescriptorSetLayoutName::SINGLE_STORAGE_IMAGE, false},
         {CommonDescriptorSetName::MAIN_FB_INPUT_MASK_1, DescriptorSetLayoutName::SINGLE_STORAGE_IMAGE, false},
-        {CommonDescriptorSetName::ROVER_CAMERA_FB, DescriptorSetLayoutName::FINAL_BLEND_SIMPLE, false},
+        {CommonDescriptorSetName::AGENT_CAMERA_FB, DescriptorSetLayoutName::FINAL_BLEND_SIMPLE, false},
 
         {CommonDescriptorSetName::JFA_INIT, DescriptorSetLayoutName::JFA, false},
         {CommonDescriptorSetName::JFA_MAIN_0, DescriptorSetLayoutName::JFA, false},
@@ -90,8 +90,8 @@ constexpr std::string_view getCommonDescriptorSetName(const CommonDescriptorSetN
         return "global";
     case CommonDescriptorSetName::PER_FRAME:
         return "per_frame";
-    case CommonDescriptorSetName::ROVER_CAMERA:
-        return "rover_camera";
+    case CommonDescriptorSetName::AGENT_CAMERA:
+        return "agent_camera";
     case CommonDescriptorSetName::PER_DRAW:
         return "per_draw";
     case CommonDescriptorSetName::MAIN_FB:
@@ -100,8 +100,8 @@ constexpr std::string_view getCommonDescriptorSetName(const CommonDescriptorSetN
         return "main_fb_input_mask_0";
     case CommonDescriptorSetName::MAIN_FB_INPUT_MASK_1:
         return "main_fb_input_mask_1";
-    case CommonDescriptorSetName::ROVER_CAMERA_FB:
-        return "rover_camera_fb";
+    case CommonDescriptorSetName::AGENT_CAMERA_FB:
+        return "agent_camera_fb";
     case CommonDescriptorSetName::JFA_INIT:
         return "jfa_init";
     case CommonDescriptorSetName::JFA_MAIN_0:
