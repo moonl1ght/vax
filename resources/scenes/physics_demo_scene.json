@@ -20,7 +20,7 @@
                         "transform": {
                             "position": [
                                 0,
-                                0,
+                                -0.1,
                                 0
                             ],
                             "rotation": [
@@ -29,9 +29,9 @@
                                 0
                             ],
                             "scale": [
-                                10,
-                                10,
-                                10
+                                1,
+                                1,
+                                1
                             ]
                         }
                     }
@@ -40,13 +40,100 @@
                     "primitiveType": "cube",
                     "cubeDescriptor": {
                         "width": 10,
-                        "height": 10,
+                        "height": 0.2,
                         "depth": 10
                     },
                     "color": [
                         1,
+                        1,
+                        1,
+                        1
+                    ]
+                }
+            }
+        },
+        {
+            "id": "ball",
+            "type": "environment",
+            "prefabDescriptor": {
+                "prefabType": "preset",
+                "id": "sphere",
+                "instanceInfos": [
+                    {
+                        "isSelected": false,
+                        "transform": {
+                            "position": [
+                                -1.5,
+                                1,
+                                0
+                            ],
+                            "rotation": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "scale": [
+                                1,
+                                1,
+                                1
+                            ]
+                        }
+                    }
+                ],
+                "primitiveDescriptor": {
+                    "primitiveType": "sphere",
+                    "sphereDescriptor": {
+                        "radius": 1,
+                        "segments": 32,
+                        "rings": 16
+                    },
+                    "color": [
                         0,
+                        0.5,
+                        1,
+                        1
+                    ]
+                }
+            }
+        },
+        {
+            "id": "ico_ball",
+            "type": "environment",
+            "prefabDescriptor": {
+                "prefabType": "preset",
+                "id": "icosphere",
+                "instanceInfos": [
+                    {
+                        "isSelected": false,
+                        "transform": {
+                            "position": [
+                                1.5,
+                                1,
+                                0
+                            ],
+                            "rotation": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "scale": [
+                                1,
+                                1,
+                                1
+                            ]
+                        }
+                    }
+                ],
+                "primitiveDescriptor": {
+                    "primitiveType": "icosphere",
+                    "icosphereDescriptor": {
+                        "radius": 1,
+                        "subdivisions": 1
+                    },
+                    "color": [
                         0,
+                        1,
+                        0.5,
                         1
                     ]
                 }

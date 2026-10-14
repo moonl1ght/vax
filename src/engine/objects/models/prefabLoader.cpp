@@ -110,7 +110,19 @@ PrefabLoader::_loadPrimitivePrefab(const PrefabDescriptor& descriptor) {
     case PrefabDescriptor::PrimitiveType::SPHERE: {
         auto sphere = std::get<PrefabDescriptor::SpherePrimitiveDescriptor>(primitiveDescriptor->getShapeDescriptor());
         models.push_back(
-            std::move(_primitivesBuilder->createSphere(sphere.radius, primitiveDescriptor->color).value())
+            std::move(_primitivesBuilder
+                          ->createSphere(sphere.radius, sphere.segments, sphere.rings, primitiveDescriptor->color)
+                          .value())
+        );
+        break;
+    }
+    case PrefabDescriptor::PrimitiveType::ICOSPHERE: {
+        auto icosphere =
+            std::get<PrefabDescriptor::IcospherePrimitiveDescriptor>(primitiveDescriptor->getShapeDescriptor());
+        models.push_back(
+            std::move(_primitivesBuilder
+                          ->createIcosphere(icosphere.radius, icosphere.subdivisions, primitiveDescriptor->color)
+                          .value())
         );
         break;
     }

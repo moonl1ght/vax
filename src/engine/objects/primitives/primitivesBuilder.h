@@ -22,7 +22,16 @@ class PrimitivesBuilder {
 
     std::optional<vax::engine::DrawableModel> createPlane(float width, float height, vax::engine::Color color);
 
-    std::optional<vax::engine::DrawableModel> createSphere(float radius, vax::engine::Color color);
+    std::optional<vax::engine::DrawableModel>
+    createSphere(float radius, uint32_t segments, uint32_t rings, vax::engine::Color color);
+
+    std::optional<vax::engine::DrawableModel>
+    createIcosphere(float radius, uint32_t subdivisions, vax::engine::Color color);
+
+  private:
+    std::optional<vax::engine::DrawableModel> _createModel(
+        const std::vector<vax::vk::Vertex>& vertices, const std::vector<uint32_t>& indices, vax::engine::Color color
+    );
 
   private:
     std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;

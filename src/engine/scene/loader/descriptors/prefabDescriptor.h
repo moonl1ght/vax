@@ -20,7 +20,7 @@ struct PrefabDescriptor {
 
     enum class AssetExtension { GLB, URDF, UNKNOWN };
 
-    enum class PrimitiveType { CUBE, PLANE, SPHERE };
+    enum class PrimitiveType { CUBE, PLANE, SPHERE, ICOSPHERE };
 
     struct CubePrimitiveDescriptor {
         float width = 1.0f;
@@ -35,15 +35,27 @@ struct PrefabDescriptor {
 
     struct SpherePrimitiveDescriptor {
         float radius = 1.0f;
+        uint32_t segments = 32;
+        uint32_t rings = 16;
     };
 
-    using ShapeDescriptor = std::variant<CubePrimitiveDescriptor, PlanePrimitiveDescriptor, SpherePrimitiveDescriptor>;
+    struct IcospherePrimitiveDescriptor {
+        float radius = 1.0f;
+        uint32_t subdivisions = 2;
+    };
+
+    using ShapeDescriptor = std::variant<
+        CubePrimitiveDescriptor,
+        PlanePrimitiveDescriptor,
+        SpherePrimitiveDescriptor,
+        IcospherePrimitiveDescriptor>;
 
     struct PrimitiveDescriptor {
         PrimitiveType primitiveType;
         std::optional<CubePrimitiveDescriptor> cubeDescriptor;
         std::optional<PlanePrimitiveDescriptor> planeDescriptor;
         std::optional<SpherePrimitiveDescriptor> sphereDescriptor;
+        std::optional<IcospherePrimitiveDescriptor> icosphereDescriptor;
         Color color = ColorPalette::White;
 
         ShapeDescriptor getShapeDescriptor() const {
@@ -54,6 +66,8 @@ struct PrefabDescriptor {
                 return planeDescriptor.value_or(PlanePrimitiveDescriptor{});
             case PrimitiveType::SPHERE:
                 return sphereDescriptor.value_or(SpherePrimitiveDescriptor{});
+            case PrimitiveType::ICOSPHERE:
+                return icosphereDescriptor.value_or(IcospherePrimitiveDescriptor{});
             }
             return CubePrimitiveDescriptor{};
         }
@@ -101,6 +115,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
     {PrefabDescriptor::PrimitiveType::CUBE, "cube"},
     {PrefabDescriptor::PrimitiveType::PLANE, "plane"},
     {PrefabDescriptor::PrimitiveType::SPHERE, "sphere"},
+    {PrefabDescriptor::PrimitiveType::ICOSPHERE, "icosphere"},
     }
 )
 
@@ -108,7 +123,9 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PrefabDescriptor::CubePrimitiveD
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PrefabDescriptor::PlanePrimitiveDescriptor, width, height)
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PrefabDescriptor::SpherePrimitiveDescriptor, radius)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PrefabDescriptor::SpherePrimitiveDescriptor, radius, segments, rings)
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PrefabDescriptor::IcospherePrimitiveDescriptor, radius, subdivisions)
 
 inline void to_json(nlohmann::json& json, const PrefabDescriptor::PrimitiveDescriptor& descriptor) {
     json = {
@@ -116,6 +133,7 @@ inline void to_json(nlohmann::json& json, const PrefabDescriptor::PrimitiveDescr
         {"cubeDescriptor", descriptor.cubeDescriptor},
         {"planeDescriptor", descriptor.planeDescriptor},
         {"sphereDescriptor", descriptor.sphereDescriptor},
+        {"icosphereDescriptor", descriptor.icosphereDescriptor},
         {"color", descriptor.color},
     };
 }
@@ -128,6 +146,8 @@ inline void from_json(const nlohmann::json& json, PrefabDescriptor::PrimitiveDes
         json.value("planeDescriptor", std::optional<PrefabDescriptor::PlanePrimitiveDescriptor>{});
     descriptor.sphereDescriptor =
         json.value("sphereDescriptor", std::optional<PrefabDescriptor::SpherePrimitiveDescriptor>{});
+    descriptor.icosphereDescriptor =
+        json.value("icosphereDescriptor", std::optional<PrefabDescriptor::IcospherePrimitiveDescriptor>{});
     descriptor.color = json.value("color", defaults.color);
 
     if (json.contains("primitiveType")) {
@@ -135,7 +155,7 @@ inline void from_json(const nlohmann::json& json, PrefabDescriptor::PrimitiveDes
         return;
     }
     int filledCount = descriptor.cubeDescriptor.has_value() + descriptor.planeDescriptor.has_value() +
-                      descriptor.sphereDescriptor.has_value();
+                      descriptor.sphereDescriptor.has_value() + descriptor.icosphereDescriptor.has_value();
     if (filledCount != 1) {
         throw nlohmann::json::other_error::create(
             501, "primitiveType is required unless exactly one shape descriptor is filled", &json
@@ -145,8 +165,10 @@ inline void from_json(const nlohmann::json& json, PrefabDescriptor::PrimitiveDes
         descriptor.primitiveType = PrefabDescriptor::PrimitiveType::CUBE;
     } else if (descriptor.planeDescriptor) {
         descriptor.primitiveType = PrefabDescriptor::PrimitiveType::PLANE;
-    } else {
+    } else if (descriptor.sphereDescriptor) {
         descriptor.primitiveType = PrefabDescriptor::PrimitiveType::SPHERE;
+    } else {
+        descriptor.primitiveType = PrefabDescriptor::PrimitiveType::ICOSPHERE;
     }
 }
 
