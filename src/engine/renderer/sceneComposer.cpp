@@ -11,14 +11,14 @@ using namespace vax::ecs;
 void SceneComposer::updateTransforms(World& world) {
     ZoneScopedN("SceneComposer::updateTransforms");
     _transformEntries.clear();
-    world.each<LocalTransformComponent, WorldTransformComponent, HierarchyComponent, NameComponent>(
+    world.eachCoreComponent<LocalTransformComponent, WorldTransformComponent, HierarchyComponent, NameComponent>(
         [&](Entity entity,
             LocalTransformComponent& local,
             WorldTransformComponent& worldTransform,
             HierarchyComponent& hierarchy,
             NameComponent& name) {
             DebugEntity debugEntity{entity, name.value};
-            NameComponent* parentName = world.getComponentFor<NameComponent>(hierarchy.parent);
+            NameComponent* parentName = world.getCoreComponentFor<NameComponent>(hierarchy.parent);
             DebugEntity parentEntity{hierarchy.parent, parentName ? parentName->value : ""};
             _transformEntries.push_back({
                 .depth = hierarchy.depth,
@@ -50,7 +50,7 @@ void SceneComposer::updateTransforms(World& world) {
             parentEntryIndex = _entryIndexByEntity[entry.parent.entity.index];
         }
         bool isParentUpdated = parentEntryIndex >= 0 && _isEntryUpdated[parentEntryIndex];
-        if (!isParentUpdated && !world.hasComponent<TransformDirtyComponent>(entry.entity.entity)) {
+        if (!isParentUpdated && !world.hasCoreComponent<TransformDirtyComponent>(entry.entity.entity)) {
             continue;
         }
         glm::mat4 parentMatrix =
@@ -62,11 +62,11 @@ void SceneComposer::updateTransforms(World& world) {
     }
 
     _dirtyEntities.clear();
-    world.each<TransformDirtyComponent>([&](Entity entity, TransformDirtyComponent&) {
+    world.eachCoreComponent<TransformDirtyComponent>([&](Entity entity, TransformDirtyComponent&) {
         _dirtyEntities.push_back(entity);
     });
     for (Entity entity : _dirtyEntities) {
-        world.removeComponentFor<TransformDirtyComponent>(entity);
+        world.removeCoreComponentFor<TransformDirtyComponent>(entity);
     }
 }
 
@@ -77,7 +77,7 @@ uint32_t SceneComposer::compose(
     const size_t modelCount = _assetsLibrary->drawableModelCount();
 
     _modelInstanceCounts.assign(modelCount, 0);
-    world.each<WorldTransformComponent, DrawableModelComponent>(
+    world.eachCoreComponent<WorldTransformComponent, DrawableModelComponent>(
         [&](Entity, WorldTransformComponent&, DrawableModelComponent& drawableModel) {
             if (drawableModel.model < modelCount) {
                 ++_modelInstanceCounts[drawableModel.model];
@@ -98,7 +98,7 @@ uint32_t SceneComposer::compose(
     );
     _modelInstanceCursors = _modelInstanceOffsets;
 
-    world.each<WorldTransformComponent, DrawableModelComponent>(
+    world.eachCoreComponent<WorldTransformComponent, DrawableModelComponent>(
         [&](Entity entity, WorldTransformComponent& worldTransform, DrawableModelComponent& drawableModel) {
             if (drawableModel.model >= modelCount) {
                 return;
@@ -111,8 +111,8 @@ uint32_t SceneComposer::compose(
                 .instanceId = entity.index,
                 .padding = 0,
             };
-            if (world.hasComponent<HighlightComponent>(entity)) {
-                instanceData.packedColor = world.getComponentFor<HighlightComponent>(entity)->packedColor;
+            if (world.hasCoreComponent<HighlightComponent>(entity)) {
+                instanceData.packedColor = world.getCoreComponentFor<HighlightComponent>(entity)->packedColor;
                 instanceData.flags = InstanceFlags::IsInstanceSelected;
             }
             _ssboManager.get().updateInstance(frameIndex, _modelInstanceCursors[drawableModel.model]++, instanceData);

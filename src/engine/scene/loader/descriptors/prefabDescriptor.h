@@ -7,10 +7,10 @@
 #include <nlohmann/json.hpp>
 #include <optional>
 #include <string>
+#include <variant>
 #include <vector>
 
 namespace vax::math {
-// rotation is in radians, same as in Transform
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Transform, position, rotation, scale)
 } // namespace vax::math
 
@@ -20,12 +20,43 @@ struct PrefabDescriptor {
 
     enum class AssetExtension { GLB, URDF, UNKNOWN };
 
-    enum class PrimitiveType { CUBE, PLANE };
+    enum class PrimitiveType { CUBE, PLANE, SPHERE };
+
+    struct CubePrimitiveDescriptor {
+        float width = 1.0f;
+        float height = 1.0f;
+        float depth = 1.0f;
+    };
+
+    struct PlanePrimitiveDescriptor {
+        float width = 1.0f;
+        float height = 1.0f;
+    };
+
+    struct SpherePrimitiveDescriptor {
+        float radius = 1.0f;
+    };
+
+    using ShapeDescriptor = std::variant<CubePrimitiveDescriptor, PlanePrimitiveDescriptor, SpherePrimitiveDescriptor>;
 
     struct PrimitiveDescriptor {
         PrimitiveType primitiveType;
-        float size = 1.0f;
+        std::optional<CubePrimitiveDescriptor> cubeDescriptor;
+        std::optional<PlanePrimitiveDescriptor> planeDescriptor;
+        std::optional<SpherePrimitiveDescriptor> sphereDescriptor;
         Color color = ColorPalette::White;
+
+        ShapeDescriptor getShapeDescriptor() const {
+            switch (primitiveType) {
+            case PrimitiveType::CUBE:
+                return cubeDescriptor.value_or(CubePrimitiveDescriptor{});
+            case PrimitiveType::PLANE:
+                return planeDescriptor.value_or(PlanePrimitiveDescriptor{});
+            case PrimitiveType::SPHERE:
+                return sphereDescriptor.value_or(SpherePrimitiveDescriptor{});
+            }
+            return CubePrimitiveDescriptor{};
+        }
     };
 
     struct AssetDescriptor {
@@ -69,18 +100,54 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
     {
     {PrefabDescriptor::PrimitiveType::CUBE, "cube"},
     {PrefabDescriptor::PrimitiveType::PLANE, "plane"},
+    {PrefabDescriptor::PrimitiveType::SPHERE, "sphere"},
     }
 )
 
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PrefabDescriptor::CubePrimitiveDescriptor, width, height, depth)
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PrefabDescriptor::PlanePrimitiveDescriptor, width, height)
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PrefabDescriptor::SpherePrimitiveDescriptor, radius)
+
 inline void to_json(nlohmann::json& json, const PrefabDescriptor::PrimitiveDescriptor& descriptor) {
-    json = {{"primitiveType", descriptor.primitiveType}, {"size", descriptor.size}, {"color", descriptor.color}};
+    json = {
+        {"primitiveType", descriptor.primitiveType},
+        {"cubeDescriptor", descriptor.cubeDescriptor},
+        {"planeDescriptor", descriptor.planeDescriptor},
+        {"sphereDescriptor", descriptor.sphereDescriptor},
+        {"color", descriptor.color},
+    };
 }
 
 inline void from_json(const nlohmann::json& json, PrefabDescriptor::PrimitiveDescriptor& descriptor) {
     PrefabDescriptor::PrimitiveDescriptor defaults;
-    json.at("primitiveType").get_to(descriptor.primitiveType);
-    descriptor.size = json.value("size", defaults.size);
+    descriptor.cubeDescriptor =
+        json.value("cubeDescriptor", std::optional<PrefabDescriptor::CubePrimitiveDescriptor>{});
+    descriptor.planeDescriptor =
+        json.value("planeDescriptor", std::optional<PrefabDescriptor::PlanePrimitiveDescriptor>{});
+    descriptor.sphereDescriptor =
+        json.value("sphereDescriptor", std::optional<PrefabDescriptor::SpherePrimitiveDescriptor>{});
     descriptor.color = json.value("color", defaults.color);
+
+    if (json.contains("primitiveType")) {
+        json.at("primitiveType").get_to(descriptor.primitiveType);
+        return;
+    }
+    int filledCount = descriptor.cubeDescriptor.has_value() + descriptor.planeDescriptor.has_value() +
+                      descriptor.sphereDescriptor.has_value();
+    if (filledCount != 1) {
+        throw nlohmann::json::other_error::create(
+            501, "primitiveType is required unless exactly one shape descriptor is filled", &json
+        );
+    }
+    if (descriptor.cubeDescriptor) {
+        descriptor.primitiveType = PrefabDescriptor::PrimitiveType::CUBE;
+    } else if (descriptor.planeDescriptor) {
+        descriptor.primitiveType = PrefabDescriptor::PrimitiveType::PLANE;
+    } else {
+        descriptor.primitiveType = PrefabDescriptor::PrimitiveType::SPHERE;
+    }
 }
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PrefabDescriptor::AssetDescriptor, path)

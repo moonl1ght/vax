@@ -13,7 +13,7 @@
             "type": "environment",
             "prefabDescriptor": {
                 "prefabType": "preset",
-                "id": "plane",
+                "id": "cube",
                 "instanceInfos": [
                     {
                         "isSelected": false,
@@ -37,8 +37,12 @@
                     }
                 ],
                 "primitiveDescriptor": {
-                    "primitiveType": "plane",
-                    "size": 10,
+                    "primitiveType": "cube",
+                    "cubeDescriptor": {
+                        "width": 10,
+                        "height": 10,
+                        "depth": 10
+                    },
                     "color": [
                         1,
                         0,

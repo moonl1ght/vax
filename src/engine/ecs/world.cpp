@@ -18,11 +18,7 @@ void World::destroyEntity(Entity entity) {
         _logger.warning("destroy called on dead entity, index=", entity.index, " generation=", entity.generation);
         return;
     }
-    for (auto& pool : _pools) {
-        if (pool) {
-            pool->remove(entity.index);
-        }
-    }
+    forEachCoreComponentPool([&](auto& pool) { pool.remove(entity.index); });
     ++_generations[entity.index];
     _freeIndices.push_back(entity.index);
 }

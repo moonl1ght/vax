@@ -24,7 +24,7 @@ bool GWDrawableWorld::load(const vax::engine::SceneDescriptor& descriptor) {
 
     _envEntities.clear();
 
-    _world.get().each<ecs::InstanceComponent>([&](ecs::Entity entity, ecs::InstanceComponent& instance) {
+    _world.get().eachCoreComponent<ecs::InstanceComponent>([&](ecs::Entity entity, ecs::InstanceComponent& instance) {
         if (instance.typeIndex >= descriptor.entities.size()) {
             return;
         }
@@ -56,7 +56,7 @@ bool GWDrawableWorld::load(const vax::engine::SceneDescriptor& descriptor) {
 bool GWDrawableWorld::_loadAgent() {
     auto& world = _world.get();
     _agent = ecs::NullEntity;
-    world.each<ecs::AgentComponent>([&](ecs::Entity entity, ecs::AgentComponent&) { _agent = entity; });
+    world.eachCoreComponent<ecs::AgentComponent>([&](ecs::Entity entity, ecs::AgentComponent&) { _agent = entity; });
     if (_agent.isNull()) {
         _logger.error("Agent entity not spawned");
         return false;
@@ -65,7 +65,7 @@ bool GWDrawableWorld::_loadAgent() {
     std::vector<ecs::Entity> agentEntities;
     _forEachInSubtree(_agent, [&](ecs::Entity entity) { agentEntities.push_back(entity); });
     for (ecs::Entity entity : agentEntities) {
-        world.addComponentFor<ecs::HighlightComponent>(entity, packRGBA(ColorPalette::Clear));
+        world.addCoreComponentFor<ecs::HighlightComponent>(entity, packRGBA(ColorPalette::Clear));
     }
 
     _wheels.clear();
@@ -75,7 +75,7 @@ bool GWDrawableWorld::_loadAgent() {
             _logger.warning("Wheel link not found: ", wheelName);
             continue;
         }
-        auto local = world.getComponentFor<ecs::LocalTransformComponent>(wheel);
+        auto local = world.getCoreComponentFor<ecs::LocalTransformComponent>(wheel);
         _wheels.push_back({.entity = wheel, .jointOrigin = local ? local->transform : Transform()});
     }
 
@@ -88,10 +88,10 @@ ecs::Entity GWDrawableWorld::_findInSubtree(ecs::Entity root, std::string_view n
     auto& world = _world.get();
     ecs::Entity found = ecs::NullEntity;
     _forEachInSubtree(root, [&](ecs::Entity entity) {
-        if (!found.isNull() || !world.hasComponent<ecs::NameComponent>(entity)) {
+        if (!found.isNull() || !world.hasCoreComponent<ecs::NameComponent>(entity)) {
             return;
         }
-        if (world.getComponentFor<ecs::NameComponent>(entity)->value == name) {
+        if (world.getCoreComponentFor<ecs::NameComponent>(entity)->value == name) {
             found = entity;
         }
     });
@@ -106,8 +106,8 @@ void GWDrawableWorld::_spinWheels(const engine::FrameTime& frameTime) {
         ecs::LocalTransformComponent local{
             .transform = Transform(wheel.jointOrigin.getModelMatrix() * spin.getModelMatrix())
         };
-        world.addComponentFor<ecs::LocalTransformComponent>(wheel.entity, local);
-        world.addComponentFor<ecs::TransformDirtyComponent>(wheel.entity);
+        world.addCoreComponentFor<ecs::LocalTransformComponent>(wheel.entity, local);
+        world.addCoreComponentFor<ecs::TransformDirtyComponent>(wheel.entity);
     }
 }
 
@@ -135,7 +135,7 @@ void GWDrawableWorld::moveAgentTo(
         return;
     }
     if (withAnimation) {
-        auto local = _world.get().getComponentFor<ecs::LocalTransformComponent>(_agent);
+        auto local = _world.get().getCoreComponentFor<ecs::LocalTransformComponent>(_agent);
         auto startRotation = local ? local->transform.getRotationInDegrees().y : 0.0f;
         if (!_animations.has_value()) {
             _animations = std::make_optional(vax::AnimationGroup(vax::AnimationGroup::Mode::SERIAL));
@@ -226,7 +226,7 @@ void GWDrawableWorld::resetInstancesHighlight(std::string instanceId) {
         return;
     }
     for (ecs::Entity entity : it->second) {
-        _world.get().removeComponentFor<ecs::HighlightComponent>(entity);
+        _world.get().removeCoreComponentFor<ecs::HighlightComponent>(entity);
     }
 }
 
@@ -236,7 +236,7 @@ void GWDrawableWorld::highlightInstance(std::string instanceId, uint32_t instanc
         _logger.warning("No env instance ", instanceId, "[", instanceIndex, "]");
         return;
     }
-    _world.get().addComponentFor<ecs::HighlightComponent>(it->second[instanceIndex], packRGBA(color));
+    _world.get().addCoreComponentFor<ecs::HighlightComponent>(it->second[instanceIndex], packRGBA(color));
 }
 
 void GWDrawableWorld::setOnAllAnimationsCompleted(std::function<void()> onAllAnimationsCompleted) {

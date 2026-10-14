@@ -78,19 +78,9 @@ template <typename T> class ComponentPool final : public IComponentPool {
 
     size_t size() const override { return _components.size(); }
 
-    T& get(uint32_t index) {
-        assert(contains(index));
-        return _components[_sparseIndices[index]];
-    }
+    T* get(uint32_t index) { return contains(index) ? &_components[_sparseIndices[index]] : nullptr; }
 
-    const T& get(uint32_t index) const {
-        assert(contains(index));
-        return _components[_sparseIndices[index]];
-    }
-
-    T* tryGet(uint32_t index) { return contains(index) ? &_components[_sparseIndices[index]] : nullptr; }
-
-    const T* tryGet(uint32_t index) const { return contains(index) ? &_components[_sparseIndices[index]] : nullptr; }
+    const T* get(uint32_t index) const { return contains(index) ? &_components[_sparseIndices[index]] : nullptr; }
 
     std::span<const uint32_t> entities() const override { return _denseIndices; }
 
@@ -117,4 +107,19 @@ typedef ComponentPool<InstanceComponent> InstancePool;
 typedef ComponentPool<AgentComponent> AgentPool;
 typedef ComponentPool<BackgroundComponent> BackgroundPool;
 typedef ComponentPool<GizmoComponent> GizmoPool;
+
+typedef std::tuple<
+    LocalTransformPool,
+    WorldTransformPool,
+    TransformDirtyPool,
+    HierarchyPool,
+    DrawableModelPool,
+    NamePool,
+    HighlightPool,
+    InstancePool,
+    AgentPool,
+    BackgroundPool,
+    GizmoPool>
+    CoreComponentPools;
+
 } // namespace vax::ecs

@@ -4,42 +4,45 @@ using namespace vax::engine;
 using namespace vax::vk;
 using namespace vax;
 
-std::optional<DrawableModel> PrimitivesBuilder::createCube(float size, vax::engine::Color color) {
+std::optional<DrawableModel>
+PrimitivesBuilder::createCube(float width, float height, float depth, vax::engine::Color color) {
     auto mesh = _resourceManager.get().meshManager().createEmptyMesh();
     if (!mesh)
         return std::nullopt;
-    float s = size / 2.0f;
+    float x = width / 2.0f;
+    float y = height / 2.0f;
+    float z = depth / 2.0f;
     (*mesh).second->setVertices(
         {// Front face (Z+)
-         {{-s, -s, s}, 0, {0, 0, 1, 0}, {0, 0, 0}, 0, {0, 0}, {0, 0}},
-         {{s, -s, s}, 0, {0, 0, 1, 0}, {0, 0, 0}, 0, {1, 0}, {0, 0}},
-         {{s, s, s}, 0, {0, 0, 1, 0}, {0, 0, 0}, 0,{1, 1}, {0, 0}},
-         {{-s, s, s}, 0, {0, 0, 1, 0}, {0, 0, 0}, 0,{0, 1}, {0, 0}},
+         {{-x, -y, z}, 0, {0, 0, 1, 0}, {0, 0, 0}, 0, {0, 0}, {0, 0}},
+         {{x, -y, z}, 0, {0, 0, 1, 0}, {0, 0, 0}, 0, {1, 0}, {0, 0}},
+         {{x, y, z}, 0, {0, 0, 1, 0}, {0, 0, 0}, 0,{1, 1}, {0, 0}},
+         {{-x, y, z}, 0, {0, 0, 1, 0}, {0, 0, 0}, 0,{0, 1}, {0, 0}},
          // Back face (Z-)
-         {{-s, -s, -s}, 0, {0, 0, -1, 0}, {0, 0, 0}, 0,{1, 0}, {0, 0}},
-         {{-s, s, -s}, 0, {0, 0, -1, 0}, {0, 0, 0}, 0,{1, 1}, {0, 0}},
-         {{s, s, -s}, 0, {0, 0, -1, 0}, {0, 0, 0}, 0,{0, 1}, {0, 0}},
-         {{s, -s, -s}, 0, {0, 0, -1, 0}, {0, 0, 0}, 0,{0, 0}, {0, 0}},
+         {{-x, -y, -z}, 0, {0, 0, -1, 0}, {0, 0, 0}, 0,{1, 0}, {0, 0}},
+         {{-x, y, -z}, 0, {0, 0, -1, 0}, {0, 0, 0}, 0,{1, 1}, {0, 0}},
+         {{x, y, -z}, 0, {0, 0, -1, 0}, {0, 0, 0}, 0,{0, 1}, {0, 0}},
+         {{x, -y, -z}, 0, {0, 0, -1, 0}, {0, 0, 0}, 0,{0, 0}, {0, 0}},
          // Top face (Y+)
-         {{-s, s, -s}, 0, {0, 1, 0, 0}, {0, 0, 0}, 0,{0, 1}, {0, 0}},
-         {{-s, s, s}, 0, {0, 1, 0, 0}, {0, 0, 0}, 0,{0, 0}, {0, 0}},
-         {{s, s, s}, 0, {0, 1, 0, 0}, {0, 0, 0}, 0,{1, 0}, {0, 0}},
-         {{s, s, -s}, 0, {0, 1, 0, 0}, {0, 0, 0}, 0,{1, 1}, {0, 0}},
+         {{-x, y, -z}, 0, {0, 1, 0, 0}, {0, 0, 0}, 0,{0, 1}, {0, 0}},
+         {{-x, y, z}, 0, {0, 1, 0, 0}, {0, 0, 0}, 0,{0, 0}, {0, 0}},
+         {{x, y, z}, 0, {0, 1, 0, 0}, {0, 0, 0}, 0,{1, 0}, {0, 0}},
+         {{x, y, -z}, 0, {0, 1, 0, 0}, {0, 0, 0}, 0,{1, 1}, {0, 0}},
          // Bottom face (Y-)
-         {{-s, -s, -s}, 0, {0, -1, 0, 0}, {0, 0, 0}, 0,{0, 0}, {0, 0}},
-         {{s, -s, -s}, 0, {0, -1, 0, 0}, {0, 0, 0}, 0,{1, 0}, {0, 0}},
-         {{s, -s, s}, 0, {0, -1, 0, 0}, {0, 0, 0}, 0,{1, 1}, {0, 0}},
-         {{-s, -s, s}, 0, {0, -1, 0, 0}, {0, 0, 0}, 0,{0, 1}, {0, 0}},
+         {{-x, -y, -z}, 0, {0, -1, 0, 0}, {0, 0, 0}, 0,{0, 0}, {0, 0}},
+         {{x, -y, -z}, 0, {0, -1, 0, 0}, {0, 0, 0}, 0,{1, 0}, {0, 0}},
+         {{x, -y, z}, 0, {0, -1, 0, 0}, {0, 0, 0}, 0,{1, 1}, {0, 0}},
+         {{-x, -y, z}, 0, {0, -1, 0, 0}, {0, 0, 0}, 0,{0, 1}, {0, 0}},
          // Right face (X+)
-         {{s, -s, -s}, 0, {1, 0, 0, 0}, {0, 0, 0}, 0,{1, 0}, {0, 0}},
-         {{s, s, -s}, 0, {1, 0, 0, 0}, {0, 0, 0}, 0,{1, 1}, {0, 0}},
-         {{s, s, s}, 0, {1, 0, 0, 0}, {0, 0, 0}, 0,{0, 1}, {0, 0}},
-         {{s, -s, s}, 0, {1, 0, 0, 0}, {0, 0, 0}, 0,{0, 0}, {0, 0}},
+         {{x, -y, -z}, 0, {1, 0, 0, 0}, {0, 0, 0}, 0,{1, 0}, {0, 0}},
+         {{x, y, -z}, 0, {1, 0, 0, 0}, {0, 0, 0}, 0,{1, 1}, {0, 0}},
+         {{x, y, z}, 0, {1, 0, 0, 0}, {0, 0, 0}, 0,{0, 1}, {0, 0}},
+         {{x, -y, z}, 0, {1, 0, 0, 0}, {0, 0, 0}, 0,{0, 0}, {0, 0}},
          // Left face (X-)
-         {{-s, -s, -s}, 0, {-1, 0, 0, 0}, {0, 0, 0}, 0,{0, 0}, {0, 0}},
-         {{-s, -s, s}, 0, {-1, 0, 0, 0}, {0, 0, 0}, 0,{1, 0}, {0, 0}},
-         {{-s, s, s}, 0, {-1, 0, 0, 0}, {0, 0, 0}, 0,{1, 1}, {0, 0}},
-         {{-s, s, -s}, 0, {-1, 0, 0, 0}, {0, 0, 0}, 0,{0, 1}, {0, 0}}
+         {{-x, -y, -z}, 0, {-1, 0, 0, 0}, {0, 0, 0}, 0,{0, 0}, {0, 0}},
+         {{-x, -y, z}, 0, {-1, 0, 0, 0}, {0, 0, 0}, 0,{1, 0}, {0, 0}},
+         {{-x, y, z}, 0, {-1, 0, 0, 0}, {0, 0, 0}, 0,{1, 1}, {0, 0}},
+         {{-x, y, -z}, 0, {-1, 0, 0, 0}, {0, 0, 0}, 0,{0, 1}, {0, 0}}
         }
     );
     for (int i = 0; i < 6; ++i) {
@@ -75,10 +78,12 @@ std::optional<DrawableModel> PrimitivesBuilder::createCube(float size, vax::engi
     return std::optional<DrawableModel>(std::in_place, std::move(drawableModel));
 }
 
-std::optional<DrawableModel> PrimitivesBuilder::createPlane() {
+std::optional<DrawableModel> PrimitivesBuilder::createPlane(float width, float height, vax::engine::Color color) {
     auto mesh = _resourceManager.get().meshManager().createEmptyMesh();
     if (!mesh)
         return std::nullopt;
+    float x = width / 2.0f;
+    float y = height / 2.0f;
     mesh.value().second->setVertices({
         {{-1.0f, -1.0f, 1.0f}, 0, {0.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, 0, {0.0f, 0.0f}, {0.0f, 0.0f}},
         {{-1.0f, 1.0f, 1.0f}, 0, {0.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, 0, {0.0f, 1.0f}, {0.0f, 0.0f}},
@@ -111,4 +116,14 @@ std::optional<DrawableModel> PrimitivesBuilder::createPlane() {
         }
     );
     return std::optional<DrawableModel>(std::in_place, std::move(drawableModel));
+}
+
+std::optional<DrawableModel> PrimitivesBuilder::createSphere(float radius, vax::engine::Color color) {
+    auto mesh = _resourceManager.get().meshManager().createEmptyMesh();
+    if (!mesh)
+        return std::nullopt;
+    float x = radius / 2.0f;
+    float y = radius / 2.0f;
+    float z = radius / 2.0f;
+    return std::nullopt;
 }

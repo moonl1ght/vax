@@ -37,15 +37,15 @@ PrefabSpawner::spawnPrefab(vax::ecs::World& world, const Prefab& prefab, const v
     for (size_t i = 0; i < count; ++i) {
         const auto& node = prefab.nodes[i];
         Entity entity = entities[i];
-        world.addComponentFor<NameComponent>(entity, node.name);
-        world.addComponentFor<LocalTransformComponent>(
+        world.addCoreComponentFor<NameComponent>(entity, node.name);
+        world.addCoreComponentFor<LocalTransformComponent>(
             entity, node.parentIndex < 0 ? rootTransform : node.localTransform
         );
-        world.addComponentFor<WorldTransformComponent>(entity);
-        world.addComponentFor<TransformDirtyComponent>(entity);
-        world.addComponentFor<HierarchyComponent>(entity, hierarchies[i]);
+        world.addCoreComponentFor<WorldTransformComponent>(entity);
+        world.addCoreComponentFor<TransformDirtyComponent>(entity);
+        world.addCoreComponentFor<HierarchyComponent>(entity, hierarchies[i]);
         if (node.model.has_value()) {
-            world.addComponentFor<DrawableModelComponent>(entity, *node.model);
+            world.addCoreComponentFor<DrawableModelComponent>(entity, *node.model);
         }
     }
     return entities[0];

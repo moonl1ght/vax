@@ -84,7 +84,7 @@ std::unique_ptr<DrawableScene> SceneLoader::_initDrawableScene(ecs::World& world
         if (const Prefab* agentPrefab = assetsLibrary->findPrefab(agentEntity.prefabDescriptor->id)) {
             auto agentTransform = agentEntity.prefabDescriptor->getTransformForInstance(0);
             Entity agent = PrefabSpawner::spawnPrefab(world, *agentPrefab, agentTransform);
-            world.addComponentFor<AgentComponent>(agent);
+            world.addCoreComponentFor<AgentComponent>(agent);
         }
     }
 
@@ -99,14 +99,14 @@ std::unique_ptr<DrawableScene> SceneLoader::_initDrawableScene(ecs::World& world
         for (uint32_t instanceIndex = 0; instanceIndex < prefabDescriptor->instanceInfos.size(); ++instanceIndex) {
             Entity block =
                 PrefabSpawner::spawnPrefab(world, *prefab, prefabDescriptor->getTransformForInstance(instanceIndex));
-            world.addComponentFor<InstanceComponent>(block, envEntityTypeIndex, instanceIndex);
+            world.addCoreComponentFor<InstanceComponent>(block, envEntityTypeIndex, instanceIndex);
         }
         ++envEntityTypeIndex;
     }
 
     if (const Prefab* backgroundPrefab = assetsLibrary->findPrefab("background")) {
         Entity background = PrefabSpawner::spawnPrefab(*backgroundWorld, *backgroundPrefab, vax::math::Transform());
-        backgroundWorld->addComponentFor<BackgroundComponent>(background);
+        backgroundWorld->addCoreComponentFor<BackgroundComponent>(background);
     }
 
     if (const Prefab* gizmoPrefab = assetsLibrary->findPrefab("gizmo")) {
@@ -116,7 +116,7 @@ std::unique_ptr<DrawableScene> SceneLoader::_initDrawableScene(ecs::World& world
             }
         }
         Entity gizmo = PrefabSpawner::spawnPrefab(*gizmoWorld, *gizmoPrefab, vax::math::Transform());
-        gizmoWorld->addComponentFor<GizmoComponent>(gizmo);
+        gizmoWorld->addCoreComponentFor<GizmoComponent>(gizmo);
     }
 
     drawableWorld->load(descriptor);

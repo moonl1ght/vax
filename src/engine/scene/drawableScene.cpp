@@ -92,7 +92,9 @@ void DrawableScene::load(const vax::engine::SceneDescriptor& descriptor) {
     _gizmoCamera.setPosition(cameraPos);
     _gizmoCamera.setViewSize(1.5f);
 
-    _gizmoWorld->each<ecs::GizmoComponent>([&](ecs::Entity entity, ecs::GizmoComponent&) { _gizmoEntity = entity; });
+    _gizmoWorld->eachCoreComponent<ecs::GizmoComponent>([&](ecs::Entity entity, ecs::GizmoComponent&) {
+        _gizmoEntity = entity;
+    });
 }
 
 void DrawableScene::prepareForDraw(engine::RenderCallContext renderCallContext) {
@@ -147,7 +149,7 @@ void DrawableScene::update(engine::SceneUpdateContext sceneUpdateContext) {
     auto projectionMatrix = _gizmoCamera.projectionMatrix();
     auto viewProjectionMatrix = projectionMatrix * viewMatrix;
 
-    auto gizmoTransform = _gizmoWorld->getComponentFor<ecs::WorldTransformComponent>(_gizmoEntity);
+    auto gizmoTransform = _gizmoWorld->getCoreComponentFor<ecs::WorldTransformComponent>(_gizmoEntity);
     if (gizmoTransform) {
         auto mvpMatrix = math::TransformMatrixHandle(viewProjectionMatrix);
         gizmoTransform->modelMatrix = mvpMatrix.getModelMatrix();

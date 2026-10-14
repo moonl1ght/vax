@@ -8,6 +8,9 @@
 #include <string>
 
 namespace vax::ecs {
+
+static constexpr uint32_t MAX_CORE_COMPONENTS = 128;
+
 struct LocalTransformComponent final {
     vax::math::Transform transform;
 };

@@ -91,14 +91,29 @@ PrefabLoader::_loadPrimitivePrefab(const PrefabDescriptor& descriptor) {
     }
     std::vector<DrawableModel> models;
     switch (primitiveDescriptor->primitiveType) {
-    case PrefabDescriptor::PrimitiveType::CUBE:
+    case PrefabDescriptor::PrimitiveType::CUBE: {
+        auto cube = std::get<PrefabDescriptor::CubePrimitiveDescriptor>(primitiveDescriptor->getShapeDescriptor());
         models.push_back(
-            std::move(_primitivesBuilder->createCube(primitiveDescriptor->size, primitiveDescriptor->color).value())
+            std::move(
+                _primitivesBuilder->createCube(cube.width, cube.height, cube.depth, primitiveDescriptor->color).value()
+            )
         );
         break;
-    case PrefabDescriptor::PrimitiveType::PLANE:
-        models.push_back(std::move(_primitivesBuilder->createPlane().value()));
+    }
+    case PrefabDescriptor::PrimitiveType::PLANE: {
+        auto plane = std::get<PrefabDescriptor::PlanePrimitiveDescriptor>(primitiveDescriptor->getShapeDescriptor());
+        models.push_back(
+            std::move(_primitivesBuilder->createPlane(plane.width, plane.height, primitiveDescriptor->color).value())
+        );
         break;
+    }
+    case PrefabDescriptor::PrimitiveType::SPHERE: {
+        auto sphere = std::get<PrefabDescriptor::SpherePrimitiveDescriptor>(primitiveDescriptor->getShapeDescriptor());
+        models.push_back(
+            std::move(_primitivesBuilder->createSphere(sphere.radius, primitiveDescriptor->color).value())
+        );
+        break;
+    }
     default:
         _logger.error(
             "Unsupported primitive type: " + std::to_string(static_cast<int>(primitiveDescriptor->primitiveType))

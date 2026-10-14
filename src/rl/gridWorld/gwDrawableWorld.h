@@ -84,12 +84,12 @@ class GWDrawableWorld final : public vax::engine::DrawableWorld {
 
     template <typename F> void _updateAgentTransform(F&& update) {
         auto& world = _world.get();
-        auto local = world.getComponentFor<vax::ecs::LocalTransformComponent>(_agent);
+        auto local = world.getCoreComponentFor<vax::ecs::LocalTransformComponent>(_agent);
         if (!local) {
             return;
         }
         update(local->transform);
-        world.addComponentFor<vax::ecs::TransformDirtyComponent>(_agent);
+        world.addCoreComponentFor<vax::ecs::TransformDirtyComponent>(_agent);
     }
 
     template <typename F> void _forEachInSubtree(vax::ecs::Entity root, F&& visit) {
@@ -102,13 +102,13 @@ class GWDrawableWorld final : public vax::engine::DrawableWorld {
                 continue;
             }
             visit(entity);
-            if (!world.hasComponent<vax::ecs::HierarchyComponent>(entity)) {
+            if (!world.hasCoreComponent<vax::ecs::HierarchyComponent>(entity)) {
                 continue;
             }
-            vax::ecs::Entity child = world.getComponentFor<vax::ecs::HierarchyComponent>(entity)->firstChild;
-            while (!child.isNull() && world.hasComponent<vax::ecs::HierarchyComponent>(child)) {
+            vax::ecs::Entity child = world.getCoreComponentFor<vax::ecs::HierarchyComponent>(entity)->firstChild;
+            while (!child.isNull() && world.hasCoreComponent<vax::ecs::HierarchyComponent>(child)) {
                 stack.push_back(child);
-                child = world.getComponentFor<vax::ecs::HierarchyComponent>(child)->nextSibling;
+                child = world.getCoreComponentFor<vax::ecs::HierarchyComponent>(child)->nextSibling;
             }
         }
     }

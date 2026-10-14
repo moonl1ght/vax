@@ -17,9 +17,12 @@ class PrimitivesBuilder {
     PrimitivesBuilder& operator=(const PrimitivesBuilder& other) = delete;
     PrimitivesBuilder& operator=(PrimitivesBuilder&& other) noexcept = delete;
 
-    std::optional<vax::engine::DrawableModel> createCube(float size, vax::engine::Color color);
+    std::optional<vax::engine::DrawableModel>
+    createCube(float width, float height, float depth, vax::engine::Color color);
 
-    std::optional<vax::engine::DrawableModel> createPlane();
+    std::optional<vax::engine::DrawableModel> createPlane(float width, float height, vax::engine::Color color);
+
+    std::optional<vax::engine::DrawableModel> createSphere(float radius, vax::engine::Color color);
 
   private:
     std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;
