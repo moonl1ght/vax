@@ -30,6 +30,8 @@ class UIEngine final {
     void cleanup();
     void processEvents(SDL_Event& event);
 
+    bool isSecondaryViewportEvent(const SDL_Event& event) const;
+
     vax::vk::Engine& engine() { return _vkEngine.get(); }
 
     const vax::vk::Engine& engine() const { return _vkEngine.get(); }

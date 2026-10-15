@@ -6,14 +6,22 @@
 using namespace vax::ui;
 
 void StatsView::updateUI(const vax::engine::FrameTime& frameTime) {
+    if (!_isShown) {
+        return;
+    }
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
 
     ImVec2 top_right = ImVec2(viewport->WorkPos.x + viewport->WorkSize.x - 10.0f, viewport->WorkPos.y + 10.0f);
 
     ImGui::SetNextWindowPos(top_right, ImGuiCond_FirstUseEver, ImVec2(1.0f, 0.0f));
-    ImGui::SetNextWindowCollapsed(true, ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(480, 250), ImGuiCond_FirstUseEver);
-    ImGui::Begin("Stats");
+    ImGuiWindowClass windowClass;
+    windowClass.ViewportFlagsOverrideSet = ImGuiViewportFlags_NoAutoMerge;
+    ImGui::SetNextWindowClass(&windowClass);
+    if (!ImGui::Begin("Stats", &_isShown, ImGuiWindowFlags_NoDocking)) {
+        ImGui::End();
+        return;
+    }
 
     _updateStats();
     _showSystemInfo();
@@ -51,10 +59,7 @@ void StatsView::_showFrameInfo() const {
         auto workloadDuration = float_milliseconds(_frameWorkloadInfo.duration).count();
         if (duration > 0.0f) {
             ImGui::Text(
-                "Used FT: %.2fms / %.2fms (%.2f%%)",
-                workloadDuration,
-                duration,
-                (workloadDuration * 100.0f) / duration
+                "Used FT: %.2fms / %.2fms (%.2f%%)", workloadDuration, duration, (workloadDuration * 100.0f) / duration
             );
         } else {
             ImGui::Text("Used FT: %.2fms / %.2fms", workloadDuration, duration);

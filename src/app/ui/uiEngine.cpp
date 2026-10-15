@@ -10,6 +10,7 @@ using namespace vax;
 
 void UIEngine::setup(VkRenderPass renderPass) {
     ImGui::CreateContext();
+    ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
     VkDescriptorPoolSize pool_size = {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1};
     VkDescriptorPoolCreateInfo pool_info = {
@@ -66,6 +67,18 @@ void UIEngine::updateUiStart() {
 void UIEngine::updateUiEnd() {
     ImGui::Render();
     _imguiDrawData = ImGui::GetDrawData();
+    ImGui::UpdatePlatformWindows();
+    ImGui::RenderPlatformWindowsDefault();
+}
+
+bool UIEngine::isSecondaryViewportEvent(const SDL_Event& event) const {
+    SDL_Window* window = SDL_GetWindowFromEvent(&event);
+    if (window == nullptr) {
+        return false;
+    }
+    void* platformHandle = reinterpret_cast<void*>(static_cast<intptr_t>(SDL_GetWindowID(window)));
+    ImGuiViewport* viewport = ImGui::FindViewportByPlatformHandle(platformHandle);
+    return viewport != nullptr && viewport != ImGui::GetMainViewport();
 }
 
 void UIEngine::render(VkCommandBuffer commandBuffer) {

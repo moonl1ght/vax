@@ -86,6 +86,8 @@ class Renderer final : public BaseRenderer {
 
     void _resize();
 
+    void _resizeSecondary();
+
     void _writeFinalBlendDescriptorSets();
 
     void _writeSecondaryWindowDescriptorSets();

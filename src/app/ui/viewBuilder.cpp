@@ -1,10 +1,10 @@
 #include "viewBuilder.h"
-#include "menuView.h"
+#include "startingView.h"
 #include "physicsDemoMenu.h"
 
 using namespace vax::ui;
 
-std::unique_ptr<MenuView> ViewBuilder::buildMenuView() { return std::make_unique<MenuView>(_renderer.get()); }
+std::unique_ptr<StartingView> ViewBuilder::buildStartingView() { return std::make_unique<StartingView>(_renderer.get()); }
 
 std::unique_ptr<GridWorldView> ViewBuilder::buildGridWorldView() {
     auto gridWorldView = std::make_unique<GridWorldView>(_uiEngine.get(), _windowController.get(), _renderer.get());

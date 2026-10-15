@@ -166,7 +166,11 @@ bool Renderer::render(Scene* scene, const FrameTime& frameTime) {
             VK_NULL_HANDLE,
             &agentCameraImageIndex
         );
-        if (agentCameraResult != VK_SUCCESS && agentCameraResult != VK_SUBOPTIMAL_KHR) {
+        if (agentCameraResult == VK_ERROR_OUT_OF_DATE_KHR) {
+            _resizeSecondary();
+            drawSecondaryWindow = false;
+            agentCameraImageIndex = UINT32_MAX;
+        } else if (agentCameraResult != VK_SUCCESS && agentCameraResult != VK_SUBOPTIMAL_KHR) {
             _logger.warning("Failed to acquire agent camera swap chain image, skipping secondary window this frame");
             drawSecondaryWindow = false;
             agentCameraImageIndex = UINT32_MAX;
@@ -249,17 +253,32 @@ bool Renderer::render(Scene* scene, const FrameTime& frameTime) {
         swapChains.push_back(_getSwapchain(1)->swapchain);
         imageIndices.push_back(agentCameraImageIndex);
     }
+    std::vector<VkResult> presentResults(swapChains.size(), VK_SUCCESS);
     VkPresentInfoKHR presentInfo{
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
         .waitSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size()),
         .pWaitSemaphores = signalSemaphores.data(),
         .swapchainCount = static_cast<uint32_t>(swapChains.size()),
         .pSwapchains = swapChains.data(),
-        .pImageIndices = imageIndices.data()
+        .pImageIndices = imageIndices.data(),
+        .pResults = presentResults.data(),
     };
 
     result = vkQueuePresentKHR(_vkEngine.get().queueManager->presentQueue, &presentInfo);
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || _vkEngine.get().framebufferResized) {
+    auto isStale = [](VkResult presentResult) {
+        return presentResult == VK_ERROR_OUT_OF_DATE_KHR || presentResult == VK_SUBOPTIMAL_KHR;
+    };
+    bool isMainStale = isStale(presentResults[0]) || _vkEngine.get().framebufferResized;
+    bool isSecondaryStale = drawSecondaryWindow && isStale(presentResults[1]);
+    bool hasPresentError = false;
+    for (VkResult presentResult : presentResults) {
+        hasPresentError |= presentResult != VK_SUCCESS && !isStale(presentResult);
+    }
+
+    if (isSecondaryStale) {
+        _resizeSecondary();
+    }
+    if (isMainStale) {
         _vkEngine.get().framebufferResized = false;
         _vkEngine.get().resize();
         _resize();
@@ -267,7 +286,8 @@ bool Renderer::render(Scene* scene, const FrameTime& frameTime) {
             scene->resize();
         }
         return false;
-    } else if (result != VK_SUCCESS) {
+    }
+    if (hasPresentError) {
         _logger.error("failed to present swap chain image!");
         return false;
     }
@@ -348,6 +368,11 @@ void Renderer::_resize() {
     _renderPassGraphManager->setupRenderDestinations(
         *_vkEngine.get().commandManager, *_vkEngine.get().queueManager, *swapchain
     );
+    _wasResized = true;
+}
 
+void Renderer::_resizeSecondary() {
+    vkDeviceWaitIdle(_vkEngine.get().device->vkDevice);
+    _getSwapchain(1)->recreate();
     _wasResized = true;
 }

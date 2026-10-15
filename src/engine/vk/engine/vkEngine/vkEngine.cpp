@@ -120,7 +120,7 @@ void vax::vk::Engine::resize() {
     }
     vkDeviceWaitIdle(device->vkDevice);
 
-    _windowController.get().getWindow(0)->getSwapchain()->recreate(VK_PRESENT_MODE_FIFO_KHR);
+    _windowController.get().getWindow(0)->getSwapchain()->recreate();
 }
 
 bool vax::vk::Engine::setupDebugMessenger() {

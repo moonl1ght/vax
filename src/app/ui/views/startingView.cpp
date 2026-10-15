@@ -1,4 +1,4 @@
-#include "menuView.h"
+#include "startingView.h"
 #undef Status
 #include "imgui.h"
 #include "physicsDemoMenu.h"
@@ -7,15 +7,11 @@
 using namespace vax::ui;
 using namespace vax;
 
-void MenuView::updateUI(const vax::engine::FrameTime& frameTime) {
-    ImGuiIO& io = ImGui::GetIO();
-    ImGui::SetNextWindowPos(
-        ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f)
-    );
-    ImGui::SetNextWindowSize(ImVec2(480, 220), ImGuiCond_Always);
-    ImGui::Begin(
+void StartingView::updateUI(const vax::engine::FrameTime& frameTime) {
+    ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetWorkCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowSize(ImVec2(480, 0), ImGuiCond_Always);
+    _beginInMainWindow(
         "VAX",
-        nullptr,
         ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar
     );
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10.0f);
@@ -30,14 +26,14 @@ void MenuView::updateUI(const vax::engine::FrameTime& frameTime) {
     DebugView::updateUI(frameTime);
 }
 
-void MenuView::_showGridWorldDemo() {
+void StartingView::_showGridWorldDemo() {
     auto viewBuilder = _viewManager->viewBuilder();
     if (_viewManager) {
         _viewManager->pushView(viewBuilder.buildGridWorldView());
     }
 }
 
-void MenuView::_showPhysicsEngineDemo() {
+void StartingView::_showPhysicsEngineDemo() {
     auto viewBuilder = _viewManager->viewBuilder();
     if (_viewManager) {
         _viewManager->pushView(viewBuilder.buildPhysicsDemoMenuView());

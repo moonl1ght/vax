@@ -26,6 +26,7 @@ void WindowController::destroyWindow(uint32_t index) {
         return;
     }
     _windows[index]->destroyWindow();
+    _windows[index] = nullptr;
 }
 
 void WindowController::destroyAllWindows() {

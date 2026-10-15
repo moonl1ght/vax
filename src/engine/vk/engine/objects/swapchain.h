@@ -14,6 +14,8 @@ class Swapchain final {
     VkFormat swapchainImageFormat = VK_FORMAT_UNDEFINED;
     VkExtent2D swapchainExtent = {0, 0};
 
+    VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
+
     explicit Swapchain(const vax::vk::Device& device, VkSurfaceKHR surface, vax::math::SizeUI size)
         : _surface(surface)
         , _size(size)
@@ -26,19 +28,25 @@ class Swapchain final {
 
     bool setup(VkPresentModeKHR presentMode);
     void cleanup();
-    bool recreate(VkPresentModeKHR presentMode);
+    bool recreate() { return _recreate(_requestedPresentMode); }
 
   private:
     vax::Logger _logger = vax::Logger("Swapchain");
     vax::math::SizeUI _size;
+    VkPresentModeKHR _requestedPresentMode = VK_PRESENT_MODE_FIFO_KHR;
 
     std::reference_wrapper<const vax::vk::Device> _device;
     VkSurfaceKHR _surface = VK_NULL_HANDLE;
 
-    bool _createSwapchain(VkPresentModeKHR presentMode);
+    bool _createSwapchain(VkPresentModeKHR requestedPresentMode);
     bool _createImageViews();
+
+    bool _recreate(VkPresentModeKHR presentMode);
 
     VkSurfaceFormatKHR _chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
     VkExtent2D _chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+    VkPresentModeKHR _choosePresentMode(
+        VkPresentModeKHR requestedPresentMode, const std::vector<VkPresentModeKHR>& availablePresentModes
+    );
 };
 } // namespace vax::vk

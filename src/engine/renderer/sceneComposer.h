@@ -5,7 +5,7 @@
 #include "logger.h"
 #include "ssboManager.h"
 #include "world.h"
-#include "сomponents.h"
+#include "components.h"
 #include <cstdint>
 #include <vector>
 

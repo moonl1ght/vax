@@ -20,11 +20,14 @@ class StatsView final : public View {
 
     void updateUI(const vax::engine::FrameTime& frameTime) override;
 
-    void linkFrameProfiler(vax::FrameProfiler* frameProfiler) noexcept {
-        _frameProfiler = frameProfiler;
-    }
+    void linkFrameProfiler(vax::FrameProfiler* frameProfiler) noexcept { _frameProfiler = frameProfiler; }
+
+    bool isShown() const noexcept { return _isShown; }
+
+    void setShown(bool isShown) noexcept { _isShown = isShown; }
 
   private:
+    bool _isShown = false;
     SystemInfo _systemInfo;
     FrameProfiler* _frameProfiler = nullptr;
     vax::core::Debouncer _debouncer;

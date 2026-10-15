@@ -1,6 +1,6 @@
+#include "gridWorldView.h"
 #include "fileSystem.h"
 #include "gridWorldSceneBuilder.h"
-#include "gridWorldView.h"
 #include "imgui.h"
 #include "qlConfig.h"
 #include "sceneLoader.h"
@@ -12,61 +12,60 @@ using namespace vax::vk;
 using namespace vax;
 
 GridWorldView::~GridWorldView() {
-    if (_windowController.get().getWindow(1) != nullptr) {
-        _windowController.get().getWindow(1)->cleanupSwapchain();
-        _windowController.get().getWindow(1)->destroySurface();
+    if (auto* agentCameraWindow = _windowController.get().getWindow(1)) {
+        agentCameraWindow->setWindowWillHideCallback(nullptr);
+        agentCameraWindow->hide();
+        agentCameraWindow->cleanupSwapchain();
+        agentCameraWindow->destroySurface();
+        _windowController.get().destroyWindow(1);
     }
 }
 
 void GridWorldView::updateUI(const vax::engine::FrameTime& frameTime) {
     _mainThreadRunner.processThreadQueue();
-    ImGui::SetNextWindowSize(ImVec2(380, 360), ImGuiCond_FirstUseEver);
-    ImGui::Begin("Grid world demo");
-    if (_isDemoLoaded) {
-        if (_isDemoRunning) {
-            ImGui::Text("Demo running");
-        } else {
-            ImGui::Text("Demo loaded");
-            if (ImGui::Button("Start demo", ImVec2(-1, 55))) {
-                _startDemo();
-            }
-            if (ImGui::Button("Change start position", ImVec2(-1, 55))) {
-                _changeStartPosition();
-            }
-            if (ImGui::Button("Back", ImVec2(-1, 55))) {
-                _toggleDemo();
-            }
-        }
-    } else {
-        if (_isTrainingRunning) {
-            ImGui::Text("Training running");
-            ImGui::Text("%s", _trainingStatus.c_str());
-        } else {
-            if (ImGui::Button("Load demo", ImVec2(-1, 55))) {
-                _toggleDemo();
-            }
-            if (ImGui::Button("Reinit grid", ImVec2(-1, 55))) {
-                _reinitGrid();
-            }
-            if (ImGui::Button("Train", ImVec2(-1, 55))) {
-                _startTraining();
-            }
-            if (!_isAgentCameraShown) {
-                if (ImGui::Button("Show agent camera", ImVec2(-1, 55))) {
-                    _showAgentCamera();
-                }
-            }
-            if (ImGui::Button("Back", ImVec2(-1, 55))) {
-                _viewManager->popView();
-            }
-            if (_isTrainingCompleted) {
-                ImGui::Text("Training completed");
-            }
-        }
-    }
-    ImGui::End();
+    _showStatus();
 
     SceneView::updateUI(frameTime);
+}
+
+void GridWorldView::_showMenuBarItems() {
+    if (_isDemoLoaded) {
+        ImGui::BeginDisabled(_isDemoRunning);
+        if (ImGui::MenuItem("Start demo")) {
+            _startDemo();
+        }
+        ImGui::Separator();
+        if (ImGui::MenuItem("Change start position")) {
+            _changeStartPosition();
+        }
+        ImGui::EndDisabled();
+        return;
+    }
+    ImGui::BeginDisabled(_isTrainingRunning);
+    if (ImGui::MenuItem("Load demo")) {
+        _toggleDemo();
+    }
+    ImGui::Separator();
+    if (ImGui::MenuItem("Reinit grid")) {
+        _reinitGrid();
+    }
+    ImGui::Separator();
+    if (ImGui::MenuItem("Train")) {
+        _startTraining();
+    }
+    ImGui::Separator();
+    if (ImGui::MenuItem("Agent camera", nullptr, _isAgentCameraShown, !_isAgentCameraShown)) {
+        _showAgentCamera();
+    }
+    ImGui::EndDisabled();
+}
+
+void GridWorldView::_onClose() {
+    if (_isDemoLoaded) {
+        _toggleDemo();
+    } else {
+        DebugView::_onClose();
+    }
 }
 
 void GridWorldView::load(Engine& engine, InputController& inputController) {
@@ -83,9 +82,8 @@ void GridWorldView::load(Engine& engine, InputController& inputController) {
         _gridWorld->getGrid(), _gridWorld->getDrawableWorldPosition(), _gridWorld->getAgent()
     );
     auto sceneWorldPair = sceneLoader.load(gridWorldSceneDescriptor);
-    _controller = std::make_unique<vax::rl::GWSceneController>(
-        std::move(sceneWorldPair.first), std::move(sceneWorldPair.second)
-    );
+    _controller =
+        std::make_unique<vax::rl::GWSceneController>(std::move(sceneWorldPair.first), std::move(sceneWorldPair.second));
 
     _controller->load(gridWorldSceneDescriptor);
     _controller->getScene().resize();
@@ -120,6 +118,30 @@ void GridWorldView::_toggleDemo() {
         _gridWorld->load(latestFolder.value());
         _isDemoLoaded = true;
     }
+}
+
+void GridWorldView::_showStatus() {
+    const char* status = nullptr;
+    if (_isDemoLoaded) {
+        status = _isDemoRunning ? "Demo running" : "Demo loaded";
+    } else if (_isTrainingRunning) {
+        status = _trainingStatus.c_str();
+    } else if (_isTrainingCompleted) {
+        status = "Training completed";
+    }
+    if (status == nullptr) {
+        return;
+    }
+    const ImGuiViewport* mainViewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(ImVec2(mainViewport->WorkPos.x + 10.0f, mainViewport->WorkPos.y + 10.0f));
+    ImGui::SetNextWindowBgAlpha(0.35f);
+    constexpr ImGuiWindowFlags overlayFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
+                                              ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
+                                              ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoInputs;
+    if (_beginInMainWindow("Status", overlayFlags)) {
+        ImGui::TextUnformatted(status);
+    }
+    ImGui::End();
 }
 
 void GridWorldView::_reinitGrid() { _gridWorld->reinitWorld(); }

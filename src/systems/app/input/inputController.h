@@ -44,10 +44,11 @@ class InputController final {
             static_cast<TObserver*>(inst)->onKeyEvent(keyEvent);
         };
 
+        ObserverSlot slot{static_cast<void*>(obj), mouseMoveWrapper, mouseWheelWrapper, keyEventWrapper};
         if (_observerCount < _observers.size()) {
-            _observers[_observerCount] = {static_cast<void*>(obj), mouseMoveWrapper, mouseWheelWrapper};
+            _observers[_observerCount] = slot;
         } else {
-            _observers.push_back({static_cast<void*>(obj), mouseMoveWrapper, mouseWheelWrapper, keyEventWrapper});
+            _observers.push_back(slot);
         }
 
         ++_observerCount;

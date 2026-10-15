@@ -10,7 +10,7 @@
 
 namespace vax::ui {
 
-class MenuView;
+class StartingView;
 class PhysicsDemoMenuView;
 
 class ViewBuilder {
@@ -30,7 +30,7 @@ class ViewBuilder {
 
     ~ViewBuilder() = default;
 
-    std::unique_ptr<MenuView> buildMenuView();
+    std::unique_ptr<StartingView> buildStartingView();
 
     std::unique_ptr<GridWorldView> buildGridWorldView();
 

@@ -2,7 +2,7 @@
 #include "camera.h"
 #include "profiler.h"
 #include "swapchain.h"
-#include "сomponents.h"
+#include "components.h"
 
 using namespace vax;
 using namespace vax::vk;

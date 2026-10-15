@@ -57,7 +57,7 @@ void GWTrainingManager::_train(ThreadRunner& threadRunner, std::function<Trainin
         _isTraining = false;
     }
     _saveTrainingData();
-    threadRunner.runOnThread([callback]() { callback(TrainingStatus{"Training completed!", true}); });
+    threadRunner.runOnThread([callback]() { callback(TrainingStatus{"Training completed", true}); });
 }
 
 void GWTrainingManager::_saveTrainingData() {

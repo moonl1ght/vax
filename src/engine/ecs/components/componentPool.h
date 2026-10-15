@@ -7,7 +7,7 @@
 #include <utility>
 #include <vector>
 
-#include "сomponents.h"
+#include "components.h"
 
 namespace vax::ecs {
 

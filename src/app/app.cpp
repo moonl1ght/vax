@@ -1,5 +1,5 @@
 #include "app.h"
-#include "menuView.h"
+#include "startingView.h"
 #include "notificationCenter.h"
 #include "physicsEngine.h"
 #include "profiler.h"
@@ -19,6 +19,7 @@ bool App::run() {
 }
 
 bool App::_setup() {
+    SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11,wayland,windows,cocoa");
     if (!SDL_Vulkan_LoadLibrary(NULL)) {
         _logger.error("Failed to load Vulkan library: {}", SDL_GetError());
         return false;
@@ -41,7 +42,7 @@ bool App::_setup() {
     _viewBuilder =
         std::make_unique<ui::ViewBuilder>(*_uiEngine, *_windowController, _inputController, *_renderer, *_engine);
     _viewManager = std::make_unique<ui::ViewManager>(*_uiEngine, *_viewBuilder);
-    _viewManager->setRootView(_viewBuilder->buildMenuView());
+    _viewManager->setRootView(_viewBuilder->buildStartingView());
 
     return true;
 }
@@ -75,7 +76,12 @@ void App::_mainLoop() {
     while (running) {
         SDL_Event event;
         auto processEvent = [&](SDL_Event& event) {
-            _inputController.handleEvent(event);
+            bool isSecondaryMouseInput = (event.type == SDL_EVENT_MOUSE_MOTION || event.type == SDL_EVENT_MOUSE_WHEEL ||
+                                          event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) &&
+                                         _uiEngine->isSecondaryViewportEvent(event);
+            if (!isSecondaryMouseInput) {
+                _inputController.handleEvent(event);
+            }
             _uiEngine->processEvents(event);
             if (event.type == SDL_EVENT_QUIT) {
                 running = false;

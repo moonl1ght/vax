@@ -2,7 +2,7 @@
 assimp/5.4.3
 nlohmann_json/3.11.3
 glm/1.0.1
-imgui/1.92.0
+imgui/1.92.0-docking
 taskflow/4.0.0
 tracy/0.13.1
 sdl/3.4.0

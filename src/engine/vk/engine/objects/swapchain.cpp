@@ -20,7 +20,7 @@ void Swapchain::cleanup() {
     vkDestroySwapchainKHR(_device.get().vkDevice, swapchain, nullptr);
 }
 
-bool Swapchain::recreate(VkPresentModeKHR presentMode) {
+bool Swapchain::_recreate(VkPresentModeKHR presentMode) {
     cleanup();
 
     if (!setup(presentMode))
@@ -54,9 +54,32 @@ VkExtent2D Swapchain::_chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabili
     }
 }
 
-bool Swapchain::_createSwapchain(VkPresentModeKHR presentMode) {
-    SwapChainSupportDetails swapChainSupport =
-        querySwapChainSupport(_device.get().vkPhysicalDevice, _surface);
+VkPresentModeKHR Swapchain::_choosePresentMode(
+    VkPresentModeKHR requestedPresentMode, const std::vector<VkPresentModeKHR>& availablePresentModes
+) {
+    auto isAvailable = [&](VkPresentModeKHR mode) {
+        return std::ranges::find(availablePresentModes, mode) != availablePresentModes.end();
+    };
+    if (isAvailable(requestedPresentMode)) {
+        return requestedPresentMode;
+    }
+    if (requestedPresentMode == VK_PRESENT_MODE_MAILBOX_KHR || requestedPresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
+        for (VkPresentModeKHR mode : {VK_PRESENT_MODE_MAILBOX_KHR, VK_PRESENT_MODE_IMMEDIATE_KHR}) {
+            if (isAvailable(mode)) {
+                _logger.warning("Requested present mode ", requestedPresentMode, " is not supported, using ", mode);
+                return mode;
+            }
+        }
+    }
+    _logger.warning("Requested present mode ", requestedPresentMode, " is not supported, falling back to FIFO");
+    return VK_PRESENT_MODE_FIFO_KHR;
+}
+
+bool Swapchain::_createSwapchain(VkPresentModeKHR requestedPresentMode) {
+    SwapChainSupportDetails swapChainSupport = querySwapChainSupport(_device.get().vkPhysicalDevice, _surface);
+
+    _requestedPresentMode = requestedPresentMode;
+    presentMode = _choosePresentMode(requestedPresentMode, swapChainSupport.presentModes);
 
     VkSurfaceFormatKHR surfaceFormat = _chooseSwapSurfaceFormat(swapChainSupport.formats);
     VkExtent2D extent = _chooseSwapExtent(swapChainSupport.capabilities);
@@ -66,7 +89,7 @@ bool Swapchain::_createSwapchain(VkPresentModeKHR presentMode) {
         imageCount = swapChainSupport.capabilities.maxImageCount;
     }
 
-    VkSwapchainCreateInfoKHR createInfo {
+    VkSwapchainCreateInfoKHR createInfo{
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
         .surface = _surface,
         .minImageCount = imageCount,

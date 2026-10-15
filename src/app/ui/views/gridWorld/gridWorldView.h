@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gridWorld.h"
+#include "gwSceneController.h"
 #include "gwTrainingManager.h"
 #include "inputController.h"
 #include "logger.h"
@@ -10,7 +11,6 @@
 #include "uiEngine.h"
 #include "vkEngine.h"
 #include "windowController.h"
-#include "gwSceneController.h"
 
 namespace vax::ui {
 class GridWorldView final : public SceneView<rl::GWSceneController> {
@@ -32,6 +32,13 @@ class GridWorldView final : public SceneView<rl::GWSceneController> {
 
     void load(vax::vk::Engine& engine, vax::InputController& inputController);
 
+  protected:
+    void _showMenuBarItems() override;
+
+    bool _isCloseEnabled() const override { return !_isTrainingRunning && !_isDemoRunning; }
+
+    void _onClose() override;
+
   private:
     vax::Logger _logger = vax::Logger("GridWorldView");
     std::reference_wrapper<UIEngine> _uiEngine;
@@ -45,6 +52,8 @@ class GridWorldView final : public SceneView<rl::GWSceneController> {
     bool _isDemoRunning = false;
     bool _isTrainingCompleted = false;
     bool _isAgentCameraShown = false;
+
+    void _showStatus();
 
     void _startTraining();
 
