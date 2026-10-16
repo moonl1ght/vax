@@ -96,7 +96,7 @@ template <typename T> class ComponentPool final : public IComponentPool {
     std::vector<T> _components;
 };
 
-typedef ComponentPool<LocalTransformComponent> LocalTransformPool;
+typedef ComponentPool<TransformComponent> TransformPool;
 typedef ComponentPool<WorldTransformComponent> WorldTransformPool;
 typedef ComponentPool<TransformDirtyComponent> TransformDirtyPool;
 typedef ComponentPool<HierarchyComponent> HierarchyPool;
@@ -107,9 +107,13 @@ typedef ComponentPool<InstanceComponent> InstancePool;
 typedef ComponentPool<AgentComponent> AgentPool;
 typedef ComponentPool<BackgroundComponent> BackgroundPool;
 typedef ComponentPool<GizmoComponent> GizmoPool;
+typedef ComponentPool<ParticleComponent> ParticlePool;
+typedef ComponentPool<RigidBodyComponent> RigidBodyPool;
+typedef ComponentPool<SphereColliderComponent> SphereColliderPool;
+typedef ComponentPool<PlaneColliderComponent> PlaneColliderPool;
 
 typedef std::tuple<
-    LocalTransformPool,
+    TransformPool,
     WorldTransformPool,
     TransformDirtyPool,
     HierarchyPool,
@@ -119,7 +123,11 @@ typedef std::tuple<
     InstancePool,
     AgentPool,
     BackgroundPool,
-    GizmoPool>
+    GizmoPool,
+    ParticlePool,
+    RigidBodyPool,
+    SphereColliderPool,
+    PlaneColliderPool>
     CoreComponentPools;
 
 } // namespace vax::ecs

@@ -1,9 +1,9 @@
 #include "app.h"
-#include "startingView.h"
 #include "notificationCenter.h"
 #include "physicsEngine.h"
 #include "profiler.h"
 #include "renderdoc.h"
+#include "startingView.h"
 #include <SDL3/SDL_events.h>
 #include <cuda_runtime.h>
 
@@ -121,15 +121,14 @@ void App::_mainLoop() {
 
 void App::_updateTimestamp() {
     static auto startTime = std::chrono::high_resolution_clock::now();
-    static uint32_t frameCount = 0;
     static auto previousTime = std::chrono::high_resolution_clock::now();
     auto currentTime = std::chrono::high_resolution_clock::now();
-    _frameTime.timestamp = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+    _frameTime.timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(currentTime - startTime);
+    _frameTime.deltaTimePrecise = std::chrono::duration_cast<std::chrono::nanoseconds>(currentTime - previousTime);
     _frameTime.deltaTime =
         std::chrono::duration<float, std::chrono::seconds::period>(currentTime - previousTime).count();
     _frameTime.fps = 1.0f / _frameTime.deltaTime;
-    ++frameCount;
-    _frameTime.frameCount = frameCount;
+    ++_frameTime.frameCount;
     previousTime = currentTime;
 }
 

@@ -77,8 +77,8 @@ bool GWSceneController::_loadAgent() {
             _logger.warning("Wheel link not found: ", wheelName);
             continue;
         }
-        auto local = _world->getCoreComponentFor<vax::ecs::LocalTransformComponent>(wheel);
-        _wheels.push_back({.entity = wheel, .jointOrigin = local ? local->transform : Transform()});
+        auto transform = _world->getCoreComponentFor<vax::ecs::TransformComponent>(wheel);
+        _wheels.push_back({.entity = wheel, .jointOrigin = transform ? transform->transform : Transform()});
     }
 
     _agentState = AgentState();
@@ -101,12 +101,13 @@ ecs::Entity GWSceneController::_findInSubtree(ecs::Entity root, std::string_view
 
 void GWSceneController::_spinWheels(const engine::FrameTime& frameTime) {
     Transform spin;
-    spin.updateRotationInDegrees({0.0f, frameTime.timestamp * -100.0f, 0.0f});
+    auto timestamp = std::chrono::duration<float, std::chrono::seconds::period>(frameTime.timestamp).count();
+    spin.updateRotationInDegrees({0.0f, timestamp * -100.0f, 0.0f});
     for (const auto& wheel : _wheels) {
-        ecs::LocalTransformComponent local{
+        ecs::TransformComponent transform{
             .transform = Transform(wheel.jointOrigin.getModelMatrix() * spin.getModelMatrix())
         };
-        _world->addCoreComponentFor<vax::ecs::LocalTransformComponent>(wheel.entity, local);
+        _world->addCoreComponentFor<vax::ecs::TransformComponent>(wheel.entity, transform);
         _world->addCoreComponentFor<vax::ecs::TransformDirtyComponent>(wheel.entity);
     }
 }
@@ -135,8 +136,8 @@ void GWSceneController::moveAgentTo(
         return;
     }
     if (withAnimation) {
-        auto local = _world->getCoreComponentFor<vax::ecs::LocalTransformComponent>(_agent);
-        auto startRotation = local ? local->transform.getRotationInDegrees().y : 0.0f;
+        auto transform = _world->getCoreComponentFor<vax::ecs::TransformComponent>(_agent);
+        auto startRotation = transform ? transform->transform.getRotationInDegrees().y : 0.0f;
         if (!_animations.has_value()) {
             _animations = std::make_optional(vax::AnimationGroup(vax::AnimationGroup::Mode::SERIAL));
         } else if (_agentState.latestRotationEnd.has_value()) {

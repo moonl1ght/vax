@@ -11,9 +11,9 @@ using namespace vax::ecs;
 void SceneComposer::updateTransforms(World& world) {
     ZoneScopedN("SceneComposer::updateTransforms");
     _transformEntries.clear();
-    world.eachCoreComponent<LocalTransformComponent, WorldTransformComponent, HierarchyComponent, NameComponent>(
+    world.eachCoreComponent<TransformComponent, WorldTransformComponent, HierarchyComponent, NameComponent>(
         [&](Entity entity,
-            LocalTransformComponent& local,
+            TransformComponent& transform,
             WorldTransformComponent& worldTransform,
             HierarchyComponent& hierarchy,
             NameComponent& name) {
@@ -24,7 +24,7 @@ void SceneComposer::updateTransforms(World& world) {
                 .depth = hierarchy.depth,
                 .entity = debugEntity,
                 .parent = parentEntity,  
-                .local = &local,
+                .transform = &transform,
                 .world = &worldTransform,
             });
         }
@@ -55,7 +55,7 @@ void SceneComposer::updateTransforms(World& world) {
         }
         glm::mat4 parentMatrix =
             parentEntryIndex >= 0 ? _transformEntries[parentEntryIndex].world->modelMatrix : glm::mat4(1.0f);
-        vax::math::TransformMatrixHandle matrixHandle(parentMatrix * entry.local->transform.getModelMatrix());
+        vax::math::TransformMatrixHandle matrixHandle(parentMatrix * entry.transform->transform.getModelMatrix());
         entry.world->modelMatrix = matrixHandle.getModelMatrix();
         entry.world->normalMatrix = matrixHandle.getNormalMatrix();
         _isEntryUpdated[i] = 1;

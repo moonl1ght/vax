@@ -1,5 +1,6 @@
 #pragma once
 
+#include "physicsEngine.h"
 #include "scene.h"
 #include "world.h"
 
@@ -8,7 +9,8 @@ template <typename DerivedController> class SceneController {
   public:
     SceneController(std::unique_ptr<Scene> scene, std::shared_ptr<vax::ecs::World> world)
         : _scene(std::move(scene))
-        , _world(std::move(world)) {}
+        , _world(std::move(world))
+        , _physicsEngine(std::make_unique<vax::physics::PhysicsEngine>(_world)) {}
 
     virtual ~SceneController() = default;
 
@@ -20,6 +22,9 @@ template <typename DerivedController> class SceneController {
     Scene& getScene() { return *_scene; }
 
     void update(vax::engine::SceneUpdateContext sceneUpdateContext) {
+        if (_isPhysicsEnabled) {
+            _physicsEngine->step(sceneUpdateContext.frameTime);
+        }
         _scene->update(sceneUpdateContext);
         static_cast<DerivedController*>(this)->onUpdate(sceneUpdateContext);
     }
@@ -27,5 +32,8 @@ template <typename DerivedController> class SceneController {
   protected:
     std::unique_ptr<Scene> _scene;
     std::shared_ptr<vax::ecs::World> _world;
+    std::unique_ptr<vax::physics::PhysicsEngine> _physicsEngine;
+
+    bool _isPhysicsEnabled = true;
 };
 } // namespace vax::engine

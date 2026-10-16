@@ -7,11 +7,13 @@
 #include <limits>
 #include <string>
 
+#include "physicsComponents.h"
+
 namespace vax::ecs {
 
 static constexpr uint32_t MAX_CORE_COMPONENTS = 128;
 
-struct LocalTransformComponent final {
+struct TransformComponent final {
     vax::math::Transform transform;
 };
 

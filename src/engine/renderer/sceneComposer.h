@@ -47,7 +47,7 @@ class SceneComposer final {
         uint32_t depth;
         DebugEntity entity;
         DebugEntity parent;
-        vax::ecs::LocalTransformComponent* local;
+        vax::ecs::TransformComponent* transform;
         vax::ecs::WorldTransformComponent* world;
     };
 

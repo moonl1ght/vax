@@ -21,6 +21,7 @@ class GWSceneController final : public vax::engine::SceneController<GWSceneContr
             vax::math::SizeUI(640, 480), vax::engine::Camera::Projection::perspective, glm::vec3(0.0f, 0.0f, 0.0f)
         );
         _scene->agentCamera().setAim(vax::engine::Camera::Aim::free);
+        _isPhysicsEnabled = false;
     }
 
     ~GWSceneController() = default;
@@ -80,11 +81,11 @@ class GWSceneController final : public vax::engine::SceneController<GWSceneContr
     vax::ecs::Entity _findInSubtree(vax::ecs::Entity root, std::string_view name);
 
     template <typename F> void _updateAgentTransform(F&& update) {
-        auto local = _world->getCoreComponentFor<vax::ecs::LocalTransformComponent>(_agent);
-        if (!local) {
+        auto transform = _world->getCoreComponentFor<vax::ecs::TransformComponent>(_agent);
+        if (!transform) {
             return;
         }
-        update(local->transform);
+        update(transform->transform);
         _world->addCoreComponentFor<vax::ecs::TransformDirtyComponent>(_agent);
     }
 

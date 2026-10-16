@@ -38,7 +38,7 @@ PrefabSpawner::spawnPrefab(vax::ecs::World& world, const Prefab& prefab, const v
         const auto& node = prefab.nodes[i];
         Entity entity = entities[i];
         world.addCoreComponentFor<NameComponent>(entity, node.name);
-        world.addCoreComponentFor<LocalTransformComponent>(
+        world.addCoreComponentFor<TransformComponent>(
             entity, node.parentIndex < 0 ? rootTransform : node.localTransform
         );
         world.addCoreComponentFor<WorldTransformComponent>(entity);
