@@ -17,17 +17,19 @@ class PhysicsEngine {
     constexpr static auto FIXED_STEP = std::chrono::duration_cast<std::chrono::nanoseconds>(Tick60Hz(1));
     constexpr static auto MAX_ACCUMULATED_TIME = std::chrono::milliseconds(200);
 
-    PhysicsEngine(std::shared_ptr<vax::ecs::World> world)
-        : _world(std::move(world)) {}
+    PhysicsEngine(std::shared_ptr<vax::ecs::World> world) noexcept
+        : _world(std::move(world)) {
 
-    ~PhysicsEngine() = default;
+        }
+
+    ~PhysicsEngine() noexcept = default;
 
     PhysicsEngine(const PhysicsEngine& other) = delete;
     PhysicsEngine& operator=(const PhysicsEngine& other) = delete;
     PhysicsEngine(PhysicsEngine&& other) noexcept = delete;
     PhysicsEngine& operator=(PhysicsEngine&& other) noexcept = delete;
 
-    void step(const engine::FrameTime& frameTime);
+    void step(const engine::FrameTime& frameTime) noexcept;
 
   private:
     static constexpr int substeps = 8;
@@ -43,6 +45,12 @@ class PhysicsEngine {
     CollisionDetector collisionDetector;
     WorldUpdater worldUpdater;
     XPBDSolver xpbdSolver;
+
+    std::vector<vax::ecs::Entity> _entities;
+    std::vector<vax::physics::RigidBody> _rigidBodies;
+    std::vector<vax::physics::ShapeCollider> _shapeColliders;
+
+    std::vector<vax::physics::ContactConstraint> _contactConstraints;
 };
 
 } // namespace vax::physics

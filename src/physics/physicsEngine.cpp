@@ -5,7 +5,7 @@
 
 using namespace vax::physics;
 
-void PhysicsEngine::step(const engine::FrameTime& frameTime) {
+void PhysicsEngine::step(const engine::FrameTime& frameTime) noexcept {
 
     auto frameDeltaTime = frameTime.deltaTimePrecise;
 
