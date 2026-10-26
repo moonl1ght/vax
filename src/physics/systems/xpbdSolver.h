@@ -2,7 +2,7 @@
 
 namespace vax::physics {
 
-class XPBDSolver {
+class XPBDSolver final {
   public:
     XPBDSolver() = default;
     ~XPBDSolver() = default;

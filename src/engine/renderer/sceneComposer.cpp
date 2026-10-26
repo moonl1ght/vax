@@ -11,7 +11,7 @@ using namespace vax::ecs;
 void SceneComposer::updateTransforms(World& world) {
     ZoneScopedN("SceneComposer::updateTransforms");
     _transformEntries.clear();
-    world.eachCoreComponent<TransformComponent, WorldTransformComponent, HierarchyComponent, NameComponent>(
+    world.eachCoreComponentEntity<TransformComponent, WorldTransformComponent, HierarchyComponent, NameComponent>(
         [&](Entity entity,
             TransformComponent& transform,
             WorldTransformComponent& worldTransform,
@@ -62,7 +62,7 @@ void SceneComposer::updateTransforms(World& world) {
     }
 
     _dirtyEntities.clear();
-    world.eachCoreComponent<TransformDirtyComponent>([&](Entity entity, TransformDirtyComponent&) {
+    world.eachCoreComponentEntity<TransformDirtyComponent>([&](Entity entity, TransformDirtyComponent&) {
         _dirtyEntities.push_back(entity);
     });
     for (Entity entity : _dirtyEntities) {
@@ -77,7 +77,7 @@ uint32_t SceneComposer::compose(
     const size_t modelCount = _assetsLibrary->drawableModelCount();
 
     _modelInstanceCounts.assign(modelCount, 0);
-    world.eachCoreComponent<WorldTransformComponent, DrawableModelComponent>(
+    world.eachCoreComponentEntity<WorldTransformComponent, DrawableModelComponent>(
         [&](Entity, WorldTransformComponent&, DrawableModelComponent& drawableModel) {
             if (drawableModel.model < modelCount) {
                 ++_modelInstanceCounts[drawableModel.model];
@@ -98,7 +98,7 @@ uint32_t SceneComposer::compose(
     );
     _modelInstanceCursors = _modelInstanceOffsets;
 
-    world.eachCoreComponent<WorldTransformComponent, DrawableModelComponent>(
+    world.eachCoreComponentEntity<WorldTransformComponent, DrawableModelComponent>(
         [&](Entity entity, WorldTransformComponent& worldTransform, DrawableModelComponent& drawableModel) {
             if (drawableModel.model >= modelCount) {
                 return;

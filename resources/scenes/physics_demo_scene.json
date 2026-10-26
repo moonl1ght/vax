@@ -49,6 +49,19 @@
                         1,
                         1
                     ]
+                },
+                "physicsDescriptor": {
+                    "colliderType": "plane",
+                    "invMass": 0,
+                    "restitution": 0.5,
+                    "friction": 0.5,
+                    "isStatic": true,
+                    "planeColliderDescriptor": {
+                        "normalX": 0,
+                        "normalY": 1,
+                        "normalZ": 0,
+                        "distance": 0.1
+                    }
                 }
             }
         },
@@ -63,8 +76,8 @@
                         "isSelected": false,
                         "transform": {
                             "position": [
-                                -1.5,
-                                1,
+                                0,
+                                3,
                                 0
                             ],
                             "rotation": [
@@ -93,49 +106,16 @@
                         1,
                         1
                     ]
-                }
-            }
-        },
-        {
-            "id": "ico_ball",
-            "type": "environment",
-            "prefabDescriptor": {
-                "prefabType": "preset",
-                "id": "icosphere",
-                "instanceInfos": [
-                    {
-                        "isSelected": false,
-                        "transform": {
-                            "position": [
-                                1.5,
-                                1,
-                                0
-                            ],
-                            "rotation": [
-                                0,
-                                0,
-                                0
-                            ],
-                            "scale": [
-                                1,
-                                1,
-                                1
-                            ]
-                        }
+                },
+                "physicsDescriptor": {
+                    "colliderType": "sphere",
+                    "invMass": 1,
+                    "restitution": 0.5,
+                    "friction": 0.5,
+                    "isStatic": false,
+                    "sphereColliderDescriptor": {
+                        "radius": 1
                     }
-                ],
-                "primitiveDescriptor": {
-                    "primitiveType": "icosphere",
-                    "icosphereDescriptor": {
-                        "radius": 1,
-                        "subdivisions": 1
-                    },
-                    "color": [
-                        0,
-                        1,
-                        0.5,
-                        1
-                    ]
                 }
             }
         }

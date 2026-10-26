@@ -76,12 +76,12 @@ class World final {
         );
     }
 
-    template <typename... ComponentTypes, typename Function> void eachCoreComponent(Function&& function) {
-        eachCoreComponent(Include<ComponentTypes...>{}, Exclude<>{}, std::forward<Function>(function));
+    template <typename... ComponentTypes, typename Function> void eachCoreComponentEntity(Function&& function) {
+        eachCoreComponentEntity(Include<ComponentTypes...>{}, Exclude<>{}, std::forward<Function>(function));
     }
 
     template <typename... ComponentTypes, typename... ExcludedTypes, typename Function>
-    void eachCoreComponent(Include<ComponentTypes...>, Exclude<ExcludedTypes...>, Function&& function) {
+    void eachCoreComponentEntity(Include<ComponentTypes...>, Exclude<ExcludedTypes...>, Function&& function) {
         static_assert(sizeof...(ComponentTypes) > 0, "eachCoreComponent requires at least one component type");
         auto pools = std::make_tuple(&_findCoreComponentPool<ComponentTypes>()...);
         auto excludedPools = std::make_tuple(&_findCoreComponentPool<ExcludedTypes>()...);

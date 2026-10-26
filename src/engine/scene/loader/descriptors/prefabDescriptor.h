@@ -3,6 +3,7 @@
 #include "colorPalette.h"
 #include "jsonGlm.h"
 #include "jsonOptional.h"
+#include "physicsComponents.h"
 #include "transform.h"
 #include <nlohmann/json.hpp>
 #include <optional>
@@ -87,11 +88,57 @@ struct PrefabDescriptor {
         Color selectionColor = ColorPalette::Clear;
     };
 
+    struct PhysicsDescriptor {
+        enum class ColliderType { SPHERE, PLANE, NONE };
+
+        struct SphereColliderDescriptor {
+            float radius = 1.0f;
+
+            ecs::SphereColliderComponent getSphereColliderComponent() const {
+                return {
+                    .radius = radius,
+                };
+            }
+        };
+
+        struct PlaneColliderDescriptor {
+            float normalX = 0.0f;
+            float normalY = 0.0f;
+            float normalZ = 0.0f;
+            float distance = 0.0f;
+
+            ecs::PlaneColliderComponent getPlaneColliderComponent() const {
+                return {
+                    .normal = glm::vec3(normalX, normalY, normalZ),
+                    .distance = distance,
+                };
+            }
+        };
+
+        ColliderType colliderType;
+        float invMass = 0.0f;
+        float restitution = 0.0f;
+        float friction = 0.0f;
+        bool isStatic = false;
+
+        ecs::RigidBodyComponent getRigidBodyComponent() const {
+            return {
+                .invMass = invMass,
+                .restitution = restitution,
+                .friction = friction,
+            };
+        }
+
+        std::optional<SphereColliderDescriptor> sphereColliderDescriptor;
+        std::optional<PlaneColliderDescriptor> planeColliderDescriptor;
+    };
+
     PrefabType prefabType;
     std::string id;
     std::vector<InstanceInfo> instanceInfos;
     std::optional<AssetDescriptor> assetDescriptor;
     std::optional<PrimitiveDescriptor> primitiveDescriptor;
+    std::optional<PhysicsDescriptor> physicsDescriptor;
 
     vax::math::Transform getTransformForInstance(uint32_t instanceIndex) const {
         if (instanceInfos.empty()) {
@@ -172,6 +219,62 @@ inline void from_json(const nlohmann::json& json, PrefabDescriptor::PrimitiveDes
     }
 }
 
+NLOHMANN_JSON_SERIALIZE_ENUM(
+    PrefabDescriptor::PhysicsDescriptor::ColliderType,
+    {
+    {PrefabDescriptor::PhysicsDescriptor::ColliderType::SPHERE, "sphere"},
+    {PrefabDescriptor::PhysicsDescriptor::ColliderType::PLANE, "plane"},
+    {PrefabDescriptor::PhysicsDescriptor::ColliderType::NONE, "none"},
+    }
+)
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PrefabDescriptor::PhysicsDescriptor::SphereColliderDescriptor, radius)
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
+    PrefabDescriptor::PhysicsDescriptor::PlaneColliderDescriptor, normalX, normalY, normalZ, distance
+)
+
+inline void to_json(nlohmann::json& json, const PrefabDescriptor::PhysicsDescriptor& descriptor) {
+    json = {
+        {"colliderType", descriptor.colliderType},
+        {"invMass", descriptor.invMass},
+        {"restitution", descriptor.restitution},
+        {"friction", descriptor.friction},
+        {"isStatic", descriptor.isStatic},
+        {"sphereColliderDescriptor", descriptor.sphereColliderDescriptor},
+        {"planeColliderDescriptor", descriptor.planeColliderDescriptor},
+    };
+}
+
+inline void from_json(const nlohmann::json& json, PrefabDescriptor::PhysicsDescriptor& descriptor) {
+    PrefabDescriptor::PhysicsDescriptor defaults;
+    descriptor.invMass = json.value("invMass", defaults.invMass);
+    descriptor.restitution = json.value("restitution", defaults.restitution);
+    descriptor.friction = json.value("friction", defaults.friction);
+    descriptor.isStatic = json.value("isStatic", defaults.isStatic);
+    descriptor.sphereColliderDescriptor = json.value(
+        "sphereColliderDescriptor", std::optional<PrefabDescriptor::PhysicsDescriptor::SphereColliderDescriptor>{}
+    );
+    descriptor.planeColliderDescriptor = json.value(
+        "planeColliderDescriptor", std::optional<PrefabDescriptor::PhysicsDescriptor::PlaneColliderDescriptor>{}
+    );
+
+    if (json.contains("colliderType")) {
+        json.at("colliderType").get_to(descriptor.colliderType);
+        return;
+    }
+    int filledCount = descriptor.sphereColliderDescriptor.has_value() + descriptor.planeColliderDescriptor.has_value();
+    if (filledCount != 1) {
+        descriptor.colliderType = PrefabDescriptor::PhysicsDescriptor::ColliderType::NONE;
+        return;
+    }
+    if (descriptor.sphereColliderDescriptor) {
+        descriptor.colliderType = PrefabDescriptor::PhysicsDescriptor::ColliderType::SPHERE;
+    } else if (descriptor.planeColliderDescriptor) {
+        descriptor.colliderType = PrefabDescriptor::PhysicsDescriptor::ColliderType::PLANE;
+    }
+}
+
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PrefabDescriptor::AssetDescriptor, path)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PrefabDescriptor::InstanceInfo, isSelected, transform, selectionColor)
@@ -183,6 +286,7 @@ inline void to_json(nlohmann::json& json, const PrefabDescriptor& descriptor) {
         {"instanceInfos", descriptor.instanceInfos},
         {"assetDescriptor", descriptor.assetDescriptor},
         {"primitiveDescriptor", descriptor.primitiveDescriptor},
+        {"physicsDescriptor", descriptor.physicsDescriptor},
     };
 }
 
@@ -196,5 +300,7 @@ inline void from_json(const nlohmann::json& json, PrefabDescriptor& descriptor) 
     descriptor.assetDescriptor = json.value("assetDescriptor", std::optional<PrefabDescriptor::AssetDescriptor>{});
     descriptor.primitiveDescriptor =
         json.value("primitiveDescriptor", std::optional<PrefabDescriptor::PrimitiveDescriptor>{});
+    descriptor.physicsDescriptor =
+        json.value("physicsDescriptor", std::optional<PrefabDescriptor::PhysicsDescriptor>{});
 }
 } // namespace vax::engine

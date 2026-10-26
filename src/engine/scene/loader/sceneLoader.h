@@ -1,5 +1,6 @@
 #pragma once
 
+#include "logger.h"
 #include "scene.h"
 #include "sceneDescriptor.h"
 #include "world.h"
@@ -24,6 +25,8 @@ class SceneLoader {
     SceneWorldPair load(SceneDescriptor& descriptor);
 
   private:
+    vax::Logger _logger = vax::Logger("SceneLoader");
+
     std::reference_wrapper<vax::vk::Engine> _vkEngine;
 
     std::string _name;

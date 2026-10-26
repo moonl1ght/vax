@@ -2,7 +2,7 @@
 
 namespace vax::physics {
 
-class CollisionDetector {
+class CollisionDetector final {
   public:
     CollisionDetector() = default;
     ~CollisionDetector() = default;

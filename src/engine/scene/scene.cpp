@@ -92,7 +92,7 @@ void Scene::load(const vax::engine::SceneDescriptor& descriptor) {
     _gizmoCamera.setPosition(cameraPos);
     _gizmoCamera.setViewSize(1.5f);
 
-    _gizmoWorld->eachCoreComponent<ecs::GizmoComponent>([&](ecs::Entity entity, ecs::GizmoComponent&) {
+    _gizmoWorld->eachCoreComponentEntity<ecs::GizmoComponent>([&](ecs::Entity entity, ecs::GizmoComponent&) {
         _gizmoEntity = entity;
     });
 }

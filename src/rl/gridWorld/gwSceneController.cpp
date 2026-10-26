@@ -24,7 +24,7 @@ bool GWSceneController::load(const vax::engine::SceneDescriptor& descriptor) {
 
     _envEntities.clear();
 
-    _world->eachCoreComponent<vax::ecs::InstanceComponent>([&](vax::ecs::Entity entity,
+    _world->eachCoreComponentEntity<vax::ecs::InstanceComponent>([&](vax::ecs::Entity entity,
                                                                vax::ecs::InstanceComponent& instance) {
         if (instance.typeIndex >= descriptor.entities.size()) {
             return;
@@ -56,7 +56,7 @@ bool GWSceneController::load(const vax::engine::SceneDescriptor& descriptor) {
 
 bool GWSceneController::_loadAgent() {
     _agent = vax::ecs::NullEntity;
-    _world->eachCoreComponent<vax::ecs::AgentComponent>([&](vax::ecs::Entity entity, vax::ecs::AgentComponent&) {
+    _world->eachCoreComponentEntity<vax::ecs::AgentComponent>([&](vax::ecs::Entity entity, vax::ecs::AgentComponent&) {
         _agent = entity;
     });
     if (_agent.isNull()) {

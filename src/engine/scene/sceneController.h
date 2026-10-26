@@ -10,7 +10,7 @@ template <typename DerivedController> class SceneController {
     SceneController(std::unique_ptr<Scene> scene, std::shared_ptr<vax::ecs::World> world)
         : _scene(std::move(scene))
         , _world(std::move(world))
-        , _physicsEngine(std::make_unique<vax::physics::PhysicsEngine>(_world)) {}
+        , _physicsEngine(std::make_unique<vax::physics::PhysicsEngine>()) {}
 
     virtual ~SceneController() = default;
 
@@ -27,6 +27,10 @@ template <typename DerivedController> class SceneController {
         }
         _scene->update(sceneUpdateContext);
         static_cast<DerivedController*>(this)->onUpdate(sceneUpdateContext);
+    }
+
+    void load() {
+      _physicsEngine->loadWorld(_world);
     }
 
   protected:

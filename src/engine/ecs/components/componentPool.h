@@ -108,6 +108,7 @@ typedef ComponentPool<AgentComponent> AgentPool;
 typedef ComponentPool<BackgroundComponent> BackgroundPool;
 typedef ComponentPool<GizmoComponent> GizmoPool;
 typedef ComponentPool<RigidBodyComponent> RigidBodyPool;
+typedef ComponentPool<StaticRigidBodyComponent> StaticRigidBodyPool;
 typedef ComponentPool<SphereColliderComponent> SphereColliderPool;
 typedef ComponentPool<PlaneColliderComponent> PlaneColliderPool;
 
@@ -124,6 +125,7 @@ typedef std::tuple<
     BackgroundPool,
     GizmoPool,
     RigidBodyPool,
+    StaticRigidBodyPool,
     SphereColliderPool,
     PlaneColliderPool>
     CoreComponentPools;

@@ -7,10 +7,17 @@
 namespace vax::ecs {
 
 struct RigidBodyComponent final {
-    float invMass; // inverse mass, 1/mass
-    float restitution;
-    float friction;
+    float invMass = 0.0f; // inverse mass, 1/mass
+    float restitution = 0.0f;
+    float friction = 0.0f;
+
+    // Better to set StaticRigidBodyComponent instead of invMass == 0.0f
+    bool isStatic() const { return invMass == 0.0f; }
 };
+
+// if entity has RigidBodyComponent and StaticRigidBodyComponent, it treats as static, so try to avoid adding both
+// components to the same entity
+struct StaticRigidBodyComponent final {};
 
 struct SphereColliderComponent final {
     float radius;
@@ -26,7 +33,7 @@ struct PlaneColliderComponent final {
 namespace vax::physics {
 
 struct ShapeCollider final {
-    std::variant<ecs::SphereColliderComponent, ecs::PlaneColliderComponent> shapeColliderDescription;
+    std::variant<ecs::SphereColliderComponent, ecs::PlaneColliderComponent> shapeColliderComponent;
     uint32_t bodyIndex;
 };
 
@@ -35,7 +42,9 @@ struct RigidBody final {
     glm::vec3 previousPosition;
     glm::vec3 velocity;
 
-    ecs::RigidBodyComponent rigidBodyDescription;
+    ecs::Entity entity;
+
+    ecs::RigidBodyComponent rigidBodyComponent;
 };
 
 struct ContactConstraint final {

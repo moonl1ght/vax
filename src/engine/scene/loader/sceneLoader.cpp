@@ -1,5 +1,6 @@
 #include "sceneLoader.h"
 #include "environmentMap.h"
+#include "physicsComponents.h"
 #include "prefabSpawner.h"
 #include "resourceManager.h"
 #include "sceneDescriptor.h"
@@ -96,9 +97,42 @@ std::unique_ptr<Scene> SceneLoader::_initScene(ecs::World& world, const SceneDes
             continue;
         }
         for (uint32_t instanceIndex = 0; instanceIndex < prefabDescriptor->instanceInfos.size(); ++instanceIndex) {
-            Entity block =
+            Entity entity =
                 PrefabSpawner::spawnPrefab(world, *prefab, prefabDescriptor->getTransformForInstance(instanceIndex));
-            world.addCoreComponentFor<InstanceComponent>(block, envEntityTypeIndex, instanceIndex);
+            world.addCoreComponentFor<InstanceComponent>(entity, envEntityTypeIndex, instanceIndex);
+            if (prefabDescriptor->physicsDescriptor.has_value()) {
+                if (prefabDescriptor->physicsDescriptor->isStatic) {
+                    world.addCoreComponentFor<StaticRigidBodyComponent>(entity);
+                } else {
+                    RigidBodyComponent rigidBodyComponent =
+                        prefabDescriptor->physicsDescriptor->getRigidBodyComponent();
+                    world.addCoreComponentFor<RigidBodyComponent>(entity, rigidBodyComponent);
+                }
+                switch (prefabDescriptor->physicsDescriptor->colliderType) {
+                case vax::engine::PrefabDescriptor::PhysicsDescriptor::ColliderType::SPHERE: {
+                    if (prefabDescriptor->physicsDescriptor->sphereColliderDescriptor.has_value()) {
+                        SphereColliderComponent sphereColliderComponent =
+                            prefabDescriptor->physicsDescriptor->sphereColliderDescriptor->getSphereColliderComponent();
+                        world.addCoreComponentFor<SphereColliderComponent>(entity, sphereColliderComponent);
+                    } else {
+                        _logger.error("Sphere collider descriptor is not set for entity: ", prefabDescriptor->id);
+                        continue;
+                    }
+                    break;
+                }
+                case vax::engine::PrefabDescriptor::PhysicsDescriptor::ColliderType::PLANE: {
+                    if (prefabDescriptor->physicsDescriptor->planeColliderDescriptor.has_value()) {
+                        PlaneColliderComponent planeColliderComponent =
+                            prefabDescriptor->physicsDescriptor->planeColliderDescriptor->getPlaneColliderComponent();
+                        world.addCoreComponentFor<PlaneColliderComponent>(entity, planeColliderComponent);
+                    } else {
+                        _logger.error("Plane collider descriptor is not set for entity: ", prefabDescriptor->id);
+                        continue;
+                    }
+                    break;
+                }
+                };
+            }
         }
         ++envEntityTypeIndex;
     }

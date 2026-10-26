@@ -19,6 +19,8 @@ void PhysicsDemoView::load(vax::vk::Engine& engine, vax::InputController& inputC
     _controller =
         std::make_unique<vax::MainSceneController>(std::move(sceneWorldPair->first), std::move(sceneWorldPair->second));
 
+    _controller->load();
+
     _controller->getScene().resize();
     inputController.addObserver(&_controller->getScene());
 }
