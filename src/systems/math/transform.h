@@ -2,25 +2,33 @@
 
 #include "luna.h"
 #include <glm/ext/matrix_float4x4.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 namespace vax::math {
 struct Transform final {
     glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 rotation = glm::vec3(0.0f, 0.0f, 0.0f); // in radians
+    glm::quat orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
     glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f);
 
     Transform() {};
 
     Transform(glm::mat4 modelMatrix);
 
-    void updateRotationWithQuaternion(const glm::quat& rotation);
+    void setOrientation(const glm::quat& orientation) noexcept;
 
     // accepts rotation in degrees
-    void updateRotationInDegrees(const glm::vec3& rotation);
+    void setOrientationInDegrees(const glm::vec3& angles) noexcept;
 
-    glm::vec3 getRotationInDegrees() const;
+    // in radians
+    void setOrientationFromEulerAngles(const glm::vec3& angles) noexcept;
 
-    glm::mat4 getModelMatrix() const;
+    // in radians
+    glm::vec3 getEulerAngles() const noexcept;
+
+    // in degrees
+    glm::vec3 getEulerAnglesInDegrees() const noexcept;
+
+    glm::mat4 getModelMatrix() const noexcept;
 };
 
 struct TransformMatrixHandle final {

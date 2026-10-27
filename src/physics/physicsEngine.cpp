@@ -9,16 +9,15 @@ void PhysicsEngine::loadWorld(std::shared_ptr<vax::ecs::World> world) noexcept {
 }
 
 void PhysicsEngine::_loadPhysics() noexcept {
-    _dynamicBodies.clear();
-    _staticBodies.clear();
-    _shapeColliders.clear();
+    _bodyStorage.clear();
     _contactConstraints.clear();
 
-    _world->eachCoreComponentEntity<ecs::TransformComponent, ecs::RigidBodyComponent>(
+    _world->eachCoreComponentEntity<ecs::TransformComponent, ecs::RigidBodyComponent, ecs::SphereColliderComponent>(
         [&](ecs::Entity entity,
             ecs::TransformComponent& transformComponent,
-            ecs::RigidBodyComponent& rigidBodyComponent) {
-            vax::physics::RigidBody body{
+            ecs::RigidBodyComponent& rigidBodyComponent,
+            ecs::SphereColliderComponent& shapeColliderComponent) {
+            vax::physics::DynamicBody body{
                 .position = transformComponent.transform.position,
                 .previousPosition = transformComponent.transform.position,
                 .velocity = glm::vec3(0.0f),
@@ -26,29 +25,38 @@ void PhysicsEngine::_loadPhysics() noexcept {
                 .rigidBodyComponent = rigidBodyComponent,
             };
             if (rigidBodyComponent.isStatic()) [[unlikely]] {
-                _staticBodies.push_back(body);
+                vax::physics::StaticBody staticBody{
+                    .position = transformComponent.transform.position,
+                    .orientation = transformComponent.transform.orientation,
+                    .entity = entity,
+                };
+                _bodyStorage.addStaticBody(staticBody, shapeColliderComponent);
             } else [[likely]] {
                 if (_world->hasCoreComponent<ecs::StaticRigidBodyComponent>(entity)) [[unlikely]] {
-                    _staticBodies.push_back(body);
+                    vax::physics::StaticBody staticBody{
+                        .position = transformComponent.transform.position,
+                        .orientation = transformComponent.transform.orientation,
+                        .entity = entity,
+                    };
+                    _bodyStorage.addStaticBody(staticBody, shapeColliderComponent);
                 } else [[likely]] {
-                    _dynamicBodies.push_back(body);
+                    _bodyStorage.addDynamicBody(body, shapeColliderComponent);
                 }
             }
         }
     );
 
-    _world->eachCoreComponentEntity<ecs::TransformComponent, ecs::StaticRigidBodyComponent>(
+    _world->eachCoreComponentEntity<ecs::TransformComponent, ecs::StaticRigidBodyComponent, ecs::SphereColliderComponent>(
         [&](ecs::Entity entity,
             ecs::TransformComponent& transformComponent,
-            ecs::StaticRigidBodyComponent& staticRigidBodyComponent) {
-            vax::physics::RigidBody body{
+            ecs::StaticRigidBodyComponent& staticRigidBodyComponent,
+            ecs::SphereColliderComponent& shapeColliderComponent) {
+            vax::physics::StaticBody staticBody{
                 .position = transformComponent.transform.position,
-                .previousPosition = transformComponent.transform.position,
-                .velocity = glm::vec3(0.0f),
+                .orientation = transformComponent.transform.orientation,
                 .entity = entity,
-                .rigidBodyComponent = {},
             };
-            _staticBodies.push_back(body);
+            _bodyStorage.addStaticBody(staticBody, shapeColliderComponent);
         }
     );
 }
@@ -67,14 +75,14 @@ void PhysicsEngine::step(const engine::FrameTime& frameTime) noexcept {
         _accumulatedTime -= FIXED_STEP;
 
         for (int i = 0; i < substeps; ++i) {
-            kinematicsSystem.step(_dynamicBodies, sdt);
+            kinematicsSystem.step(_bodyStorage, sdt);
             collisionDetector.detectCollisions();
             xpbdSolver.solve();
-            kinematicsSystem.updateVelocities(_dynamicBodies, sdt);
+            kinematicsSystem.updateVelocities(_bodyStorage, sdt);
         }
     }
 
     float alpha = static_cast<float>(_accumulatedTime.count()) / FIXED_STEP.count();
 
-    worldUpdater.update(*_world, _dynamicBodies);
+    worldUpdater.update(*_world, _bodyStorage);
 }

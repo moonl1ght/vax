@@ -48,9 +48,7 @@ class PhysicsEngine {
     XPBDSolver xpbdSolver;
 
     std::vector<vax::ecs::Entity> _entities;
-    std::vector<vax::physics::RigidBody> _dynamicBodies;
-    std::vector<vax::physics::RigidBody> _staticBodies;
-    std::vector<vax::physics::ShapeCollider> _shapeColliders;
+    vax::physics::BodyStorage _bodyStorage;
 
     std::vector<vax::physics::ContactConstraint> _contactConstraints;
 

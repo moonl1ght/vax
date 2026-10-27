@@ -82,7 +82,7 @@ bool GWSceneController::_loadAgent() {
     }
 
     _agentState = AgentState();
-    _updateAgentTransform([](Transform& transform) { transform.updateRotationInDegrees({-90.0f, 0.0f, 0.0f}); });
+    _updateAgentTransform([](Transform& transform) { transform.setOrientationInDegrees({-90.0f, 0.0f, 0.0f}); });
     return true;
 }
 
@@ -102,7 +102,7 @@ ecs::Entity GWSceneController::_findInSubtree(ecs::Entity root, std::string_view
 void GWSceneController::_spinWheels(const engine::FrameTime& frameTime) {
     Transform spin;
     auto timestamp = std::chrono::duration<float, std::chrono::seconds::period>(frameTime.timestamp).count();
-    spin.updateRotationInDegrees({0.0f, timestamp * -100.0f, 0.0f});
+    spin.setOrientationInDegrees({0.0f, timestamp * -100.0f, 0.0f});
     for (const auto& wheel : _wheels) {
         ecs::TransformComponent transform{
             .transform = Transform(wheel.jointOrigin.getModelMatrix() * spin.getModelMatrix())
@@ -137,7 +137,7 @@ void GWSceneController::moveAgentTo(
     }
     if (withAnimation) {
         auto transform = _world->getCoreComponentFor<vax::ecs::TransformComponent>(_agent);
-        auto startRotation = transform ? transform->transform.getRotationInDegrees().y : 0.0f;
+        auto startRotation = transform ? transform->transform.getEulerAnglesInDegrees().y : 0.0f;
         if (!_animations.has_value()) {
             _animations = std::make_optional(vax::AnimationGroup(vax::AnimationGroup::Mode::SERIAL));
         } else if (_agentState.latestRotationEnd.has_value()) {
@@ -157,7 +157,7 @@ void GWSceneController::moveAgentTo(
                 auto zValue = sin(value * M_PI / 180.0f);
                 _scene->agentCamera().setDirection({xValue, 0.0f, zValue});
                 _updateAgentTransform([value](Transform& transform) {
-                    transform.updateRotationInDegrees({-90.0f, value, 0.0f});
+                    transform.setOrientationInDegrees({-90.0f, value, 0.0f});
                 });
             });
             _animations->pushAnimation(std::move(animation));
@@ -214,7 +214,7 @@ void GWSceneController::moveAgentTo(
         _scene->agentCamera().setPosition({position.x, 0.5f, position.y});
         _updateAgentTransform([&](Transform& transform) {
             transform.position = {position.x, 0.0f, position.y};
-            transform.updateRotationInDegrees({-90.0f, rotation, 0.0f});
+            transform.setOrientationInDegrees({-90.0f, rotation, 0.0f});
         });
     }
     _agentState.orientation = static_cast<int>(orientation);

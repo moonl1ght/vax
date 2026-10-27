@@ -1,7 +1,6 @@
 #pragma once
 
 #include "physicsComponents.h"
-#include <vector>
 
 namespace vax::physics {
 
@@ -12,9 +11,9 @@ class KinematicsSystem final {
     KinematicsSystem() = default;
     ~KinematicsSystem() = default;
 
-    void step(std::vector<vax::physics::RigidBody>& dynamicBodies, float deltaTime) noexcept;
+    void step(BodyStorage& bodyStorage, float deltaTime) noexcept;
 
-    void updateVelocities(std::vector<RigidBody>& bodies, float deltaTime) noexcept;
+    void updateVelocities(BodyStorage& bodyStorage, float deltaTime) noexcept;
 
     void setGravity(glm::vec3 gravity) noexcept;
 

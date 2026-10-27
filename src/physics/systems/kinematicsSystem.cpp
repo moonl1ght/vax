@@ -4,8 +4,9 @@ using namespace vax::physics;
 
 void KinematicsSystem::setGravity(glm::vec3 gravity) noexcept { _gravity = gravity; }
 
-void KinematicsSystem::step(std::vector<vax::physics::RigidBody>& dynamicBodies, float deltaTime) noexcept {
-    for (auto& body : dynamicBodies) {
+void KinematicsSystem::step(BodyStorage& bodyStorage, float deltaTime) noexcept {
+    for (size_t i = 0; i < bodyStorage.dynamicBodies.size(); ++i) {
+        auto& body = bodyStorage.dynamicBodies[i];
         body.velocity += _gravity * deltaTime;
 
         body.previousPosition = body.position;
@@ -14,9 +15,10 @@ void KinematicsSystem::step(std::vector<vax::physics::RigidBody>& dynamicBodies,
     }
 }
 
-void KinematicsSystem::updateVelocities(std::vector<RigidBody>& bodies, float h) noexcept {
-    const float invDeltaTime = 1.0f / h;
-    for (auto& body : bodies) {
+void KinematicsSystem::updateVelocities(BodyStorage& bodyStorage, float deltaTime) noexcept {
+    const float invDeltaTime = 1.0f / deltaTime;
+    for (size_t i = 0; i < bodyStorage.dynamicBodies.size(); ++i) {
+        auto& body = bodyStorage.dynamicBodies[i];
         body.velocity = (body.position - body.previousPosition) * invDeltaTime;
     }
 }

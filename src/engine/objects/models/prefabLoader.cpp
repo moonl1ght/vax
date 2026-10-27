@@ -23,7 +23,9 @@ void _processURDFLink(
         localTransform.position = {pose.position.x, pose.position.y, pose.position.z};
         double x, y, z, w;
         pose.rotation.getQuaternion(x, y, z, w);
-        localTransform.updateRotationWithQuaternion(glm::quat(w, x, y, z));
+        localTransform.setOrientation(
+            {static_cast<float>(w), static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)}
+        );
     }
 
     auto linkIndex = static_cast<int32_t>(prefab.nodes.size());

@@ -2,7 +2,6 @@
 
 #include "physicsComponents.h"
 #include "world.h"
-#include <vector>
 
 namespace vax::physics {
 
@@ -11,7 +10,7 @@ class WorldUpdater final {
     WorldUpdater() = default;
     ~WorldUpdater() = default;
 
-    void update(vax::ecs::World& world, const std::vector<RigidBody>& dynamicBodies) noexcept;
+    void update(vax::ecs::World& world, const BodyStorage& bodyStorage) noexcept;
 };
 
 } // namespace vax::physics

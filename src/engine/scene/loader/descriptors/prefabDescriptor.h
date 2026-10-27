@@ -12,7 +12,20 @@
 #include <vector>
 
 namespace vax::math {
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Transform, position, rotation, scale)
+inline void to_json(nlohmann::json& json, const Transform& transform) {
+    json = {
+        {"position", transform.position},
+        {"rotation", glm::eulerAngles(transform.orientation)},
+        {"scale", transform.scale},
+    };
+}
+
+inline void from_json(const nlohmann::json& json, Transform& transform) {
+    Transform defaults;
+    transform.position = json.value("position", defaults.position);
+    transform.orientation = glm::quat(json.value("rotation", glm::eulerAngles(defaults.orientation)));
+    transform.scale = json.value("scale", defaults.scale);
+}
 } // namespace vax::math
 
 namespace vax::engine {
@@ -118,14 +131,14 @@ struct PrefabDescriptor {
         ColliderType colliderType;
         float invMass = 0.0f;
         float restitution = 0.0f;
-        float friction = 0.0f;
+        float staticFriction = 0.0f;
         bool isStatic = false;
 
         ecs::RigidBodyComponent getRigidBodyComponent() const {
             return {
                 .invMass = invMass,
                 .restitution = restitution,
-                .friction = friction,
+                .staticFriction = staticFriction,
             };
         }
 
@@ -239,7 +252,7 @@ inline void to_json(nlohmann::json& json, const PrefabDescriptor::PhysicsDescrip
         {"colliderType", descriptor.colliderType},
         {"invMass", descriptor.invMass},
         {"restitution", descriptor.restitution},
-        {"friction", descriptor.friction},
+        {"staticFriction", descriptor.staticFriction},
         {"isStatic", descriptor.isStatic},
         {"sphereColliderDescriptor", descriptor.sphereColliderDescriptor},
         {"planeColliderDescriptor", descriptor.planeColliderDescriptor},
@@ -250,7 +263,7 @@ inline void from_json(const nlohmann::json& json, PrefabDescriptor::PhysicsDescr
     PrefabDescriptor::PhysicsDescriptor defaults;
     descriptor.invMass = json.value("invMass", defaults.invMass);
     descriptor.restitution = json.value("restitution", defaults.restitution);
-    descriptor.friction = json.value("friction", defaults.friction);
+    descriptor.staticFriction = json.value("staticFriction", defaults.staticFriction);
     descriptor.isStatic = json.value("isStatic", defaults.isStatic);
     descriptor.sphereColliderDescriptor = json.value(
         "sphereColliderDescriptor", std::optional<PrefabDescriptor::PhysicsDescriptor::SphereColliderDescriptor>{}

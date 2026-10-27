@@ -16,24 +16,29 @@ Transform::Transform(glm::mat4 modelMatrix) {
         glm::vec3(modelMatrix[0]) / scale.x, glm::vec3(modelMatrix[1]) / scale.y, glm::vec3(modelMatrix[2]) / scale.z
     );
 
-    glm::quat rotationQuat = glm::quat_cast(rotationMatrix);
-    rotation = glm::eulerAngles(rotationQuat);
+    orientation = glm::quat_cast(rotationMatrix);
 }
 
-void Transform::updateRotationWithQuaternion(const glm::quat& rotation) { this->rotation = glm::eulerAngles(rotation); }
+void Transform::setOrientation(const glm::quat& orientation) noexcept { this->orientation = orientation; }
 
-void Transform::updateRotationInDegrees(const glm::vec3& rotation) {
-    this->rotation = glm::vec3(glm::radians(rotation.x), glm::radians(rotation.y), glm::radians(rotation.z));
+void Transform::setOrientationInDegrees(const glm::vec3& angles) noexcept {
+    this->orientation = glm::quat(glm::vec3(glm::radians(angles.x), glm::radians(angles.y), glm::radians(angles.z)));
 }
 
-glm::vec3 Transform::getRotationInDegrees() const {
-    return glm::vec3(glm::degrees(rotation.x), glm::degrees(rotation.y), glm::degrees(rotation.z));
+void Transform::setOrientationFromEulerAngles(const glm::vec3& angles) noexcept {
+    this->orientation = glm::quat(angles);
 }
 
-glm::mat4 Transform::getModelMatrix() const {
-    glm::quat rotationQuat = glm::quat(rotation);
+glm::vec3 Transform::getEulerAngles() const noexcept { return glm::eulerAngles(orientation); }
+
+glm::vec3 Transform::getEulerAnglesInDegrees() const noexcept {
+    auto angles = glm::eulerAngles(orientation);
+    return glm::vec3(glm::degrees(angles.x), glm::degrees(angles.y), glm::degrees(angles.z));
+}
+
+glm::mat4 Transform::getModelMatrix() const noexcept {
     glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), position);
-    glm::mat4 rotationMatrix = glm::mat4_cast(rotationQuat);
+    glm::mat4 rotationMatrix = glm::mat4_cast(orientation);
     glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), scale);
     return translationMatrix * rotationMatrix * scaleMatrix;
 }

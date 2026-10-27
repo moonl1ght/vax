@@ -54,7 +54,7 @@
                     "colliderType": "plane",
                     "invMass": 0,
                     "restitution": 0.5,
-                    "friction": 0.5,
+                    "staticFriction": 0.5,
                     "isStatic": true,
                     "planeColliderDescriptor": {
                         "normalX": 0,
@@ -111,7 +111,7 @@
                     "colliderType": "sphere",
                     "invMass": 1,
                     "restitution": 0.5,
-                    "friction": 0.5,
+                    "staticFriction": 0.5,
                     "isStatic": false,
                     "sphereColliderDescriptor": {
                         "radius": 1
