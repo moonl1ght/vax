@@ -69,6 +69,10 @@ struct AABB final {
     glm::vec3 min;
     glm::vec3 max;
 
+    AABB() noexcept
+        : min(glm::vec3(0))
+        , max(glm::vec3(0)) {}
+
     AABB(const glm::vec3& min, const glm::vec3& max) noexcept
         : min(min)
         , max(max) {};
@@ -160,7 +164,7 @@ struct DynamicBody final {
     glm::vec3 previousPosition;
     glm::vec3 velocity;
 
-    // glm::quat orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+    glm::quat orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
     // glm::quat previousOrientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
     // glm::vec3 angularVelocity = glm::vec3(0.0f);
 
@@ -201,13 +205,24 @@ struct BodyStorage final {
 };
 
 struct ContactConstraint final {
-    ecs::Entity entityA;
-    ecs::Entity entityB;
-    glm::vec3 point;
-    glm::vec3 normal;
+    uint32_t first;
+    uint32_t second;
+    bool secondIsStatic;
+
+    glm::vec3 normalFromFirstToSecond;
+    glm::vec3 localPointFirst;
+    glm::vec3 localPointSecond;
     float penetrationDepth;
+
     float compliance = 0.0f;
-    float lagrangeMultiplier = 0.0f;
+    float staticFriction;
+    float dynamicFriction;
+    float restitution;
+
+    float lambdaNormal = 0.0f;
+    float lambdaTangent = 0.0f;
+
+    float normalVelocityBefore;
 };
 
 } // namespace vax::physics

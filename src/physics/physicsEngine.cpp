@@ -46,19 +46,22 @@ void PhysicsEngine::_loadPhysics() noexcept {
         }
     );
 
-    _world->eachCoreComponentEntity<ecs::TransformComponent, ecs::StaticRigidBodyComponent, ecs::SphereColliderComponent>(
-        [&](ecs::Entity entity,
-            ecs::TransformComponent& transformComponent,
-            ecs::StaticRigidBodyComponent& staticRigidBodyComponent,
-            ecs::SphereColliderComponent& shapeColliderComponent) {
-            vax::physics::StaticBody staticBody{
-                .position = transformComponent.transform.position,
-                .orientation = transformComponent.transform.orientation,
-                .entity = entity,
-            };
-            _bodyStorage.addStaticBody(staticBody, shapeColliderComponent);
-        }
-    );
+    _world
+        ->eachCoreComponentEntity<ecs::TransformComponent, ecs::StaticRigidBodyComponent, ecs::SphereColliderComponent>(
+            [&](ecs::Entity entity,
+                ecs::TransformComponent& transformComponent,
+                ecs::StaticRigidBodyComponent& staticRigidBodyComponent,
+                ecs::SphereColliderComponent& shapeColliderComponent) {
+                vax::physics::StaticBody staticBody{
+                    .position = transformComponent.transform.position,
+                    .orientation = transformComponent.transform.orientation,
+                    .entity = entity,
+                };
+                _bodyStorage.addStaticBody(staticBody, shapeColliderComponent);
+            }
+        );
+
+    collisionDetector.buildStaticAABB(_bodyStorage);
 }
 
 void PhysicsEngine::step(const engine::FrameTime& frameTime) noexcept {
@@ -70,6 +73,9 @@ void PhysicsEngine::step(const engine::FrameTime& frameTime) noexcept {
     }
 
     _accumulatedTime += frameDeltaTime;
+
+    collisionDetector.buildDynamicAABB(_bodyStorage, sdt);
+    collisionDetector.findCollisionPairs();
 
     while (_accumulatedTime >= FIXED_STEP) [[likely]] {
         _accumulatedTime -= FIXED_STEP;
