@@ -75,14 +75,14 @@ void PhysicsEngine::step(const engine::FrameTime& frameTime) noexcept {
     _accumulatedTime += frameDeltaTime;
 
     collisionDetector.buildDynamicAABB(_bodyStorage, sdt);
-    collisionDetector.findCollisionPairs();
+    collisionDetector.findCollisionPairs(_bodyStorage);
 
     while (_accumulatedTime >= FIXED_STEP) [[likely]] {
         _accumulatedTime -= FIXED_STEP;
 
         for (int i = 0; i < substeps; ++i) {
             kinematicsSystem.step(_bodyStorage, sdt);
-            collisionDetector.detectCollisions();
+            collisionDetector.detectCollisions(_bodyStorage);
             xpbdSolver.solve();
             kinematicsSystem.updateVelocities(_bodyStorage, sdt);
         }
