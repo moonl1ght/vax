@@ -102,7 +102,9 @@ std::unique_ptr<Scene> SceneLoader::_initScene(ecs::World& world, const SceneDes
             world.addCoreComponentFor<InstanceComponent>(entity, envEntityTypeIndex, instanceIndex);
             if (prefabDescriptor->physicsDescriptor.has_value()) {
                 if (prefabDescriptor->physicsDescriptor->isStatic) {
-                    world.addCoreComponentFor<StaticRigidBodyComponent>(entity);
+                    StaticRigidBodyComponent staticRigidBodyComponent =
+                        prefabDescriptor->physicsDescriptor->getStaticRigidBodyComponent();
+                    world.addCoreComponentFor<StaticRigidBodyComponent>(entity, staticRigidBodyComponent);
                 } else {
                     RigidBodyComponent rigidBodyComponent =
                         prefabDescriptor->physicsDescriptor->getRigidBodyComponent();

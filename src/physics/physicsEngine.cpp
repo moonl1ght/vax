@@ -16,32 +16,30 @@ void PhysicsEngine::_loadPhysics() noexcept {
                               ecs::TransformComponent& transformComponent,
                               ecs::RigidBodyComponent& rigidBodyComponent,
                               const ShapeCollider& shapeCollider) {
-        vax::physics::DynamicBody body{
-            .position = transformComponent.transform.position,
-            .previousPosition = transformComponent.transform.position,
-            .velocity = glm::vec3(0.0f),
-            .entity = entity,
-            .rigidBodyComponent = rigidBodyComponent,
-        };
+        if (_world->hasCoreComponent<ecs::StaticRigidBodyComponent>(entity)) [[unlikely]] {
+            return;
+        }
         if (rigidBodyComponent.isStatic()) [[unlikely]] {
             vax::physics::StaticBody staticBody{
                 .position = transformComponent.transform.position,
                 .orientation = transformComponent.transform.orientation,
+                .restitution = rigidBodyComponent.restitution,
+                .staticFriction = rigidBodyComponent.staticFriction,
+                .dynamicFriction = rigidBodyComponent.dynamicFriction,
                 .entity = entity,
             };
             _bodyStorage.addStaticBody(staticBody, shapeCollider);
-        } else [[likely]] {
-            if (_world->hasCoreComponent<ecs::StaticRigidBodyComponent>(entity)) [[unlikely]] {
-                vax::physics::StaticBody staticBody{
-                    .position = transformComponent.transform.position,
-                    .orientation = transformComponent.transform.orientation,
-                    .entity = entity,
-                };
-                _bodyStorage.addStaticBody(staticBody, shapeCollider);
-            } else [[likely]] {
-                _bodyStorage.addDynamicBody(body, shapeCollider);
-            }
+            return;
         }
+        vax::physics::DynamicBody body{
+            .position = transformComponent.transform.position,
+            .previousPosition = transformComponent.transform.position,
+            .velocity = glm::vec3(0.0f),
+            .orientation = transformComponent.transform.orientation,
+            .entity = entity,
+            .rigidBodyComponent = rigidBodyComponent,
+        };
+        _bodyStorage.addDynamicBody(body, shapeCollider);
     };
 
     _world->eachCoreComponentEntity<ecs::TransformComponent, ecs::RigidBodyComponent, ecs::SphereColliderComponent>(

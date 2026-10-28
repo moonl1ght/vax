@@ -132,6 +132,7 @@ struct PrefabDescriptor {
         float invMass = 0.0f;
         float restitution = 0.0f;
         float staticFriction = 0.0f;
+        float dynamicFriction = 0.3f;
         bool isStatic = false;
 
         ecs::RigidBodyComponent getRigidBodyComponent() const {
@@ -139,6 +140,15 @@ struct PrefabDescriptor {
                 .invMass = invMass,
                 .restitution = restitution,
                 .staticFriction = staticFriction,
+                .dynamicFriction = dynamicFriction,
+            };
+        }
+
+        ecs::StaticRigidBodyComponent getStaticRigidBodyComponent() const {
+            return {
+                .restitution = restitution,
+                .staticFriction = staticFriction,
+                .dynamicFriction = dynamicFriction,
             };
         }
 
@@ -253,6 +263,7 @@ inline void to_json(nlohmann::json& json, const PrefabDescriptor::PhysicsDescrip
         {"invMass", descriptor.invMass},
         {"restitution", descriptor.restitution},
         {"staticFriction", descriptor.staticFriction},
+        {"dynamicFriction", descriptor.dynamicFriction},
         {"isStatic", descriptor.isStatic},
         {"sphereColliderDescriptor", descriptor.sphereColliderDescriptor},
         {"planeColliderDescriptor", descriptor.planeColliderDescriptor},
@@ -264,6 +275,7 @@ inline void from_json(const nlohmann::json& json, PrefabDescriptor::PhysicsDescr
     descriptor.invMass = json.value("invMass", defaults.invMass);
     descriptor.restitution = json.value("restitution", defaults.restitution);
     descriptor.staticFriction = json.value("staticFriction", defaults.staticFriction);
+    descriptor.dynamicFriction = json.value("dynamicFriction", defaults.dynamicFriction);
     descriptor.isStatic = json.value("isStatic", defaults.isStatic);
     descriptor.sphereColliderDescriptor = json.value(
         "sphereColliderDescriptor", std::optional<PrefabDescriptor::PhysicsDescriptor::SphereColliderDescriptor>{}
