@@ -49,7 +49,7 @@ class CollisionDetector final {
     // narrow phase
     void detectCollisions(const BodyStorage& bodyStorage) noexcept;
 
-    const std::vector<ContactConstraint>& getContactConstraints() const noexcept { return _contactConstraints; }
+    std::vector<ContactConstraint>& getContactConstraints() noexcept { return _contactConstraints; }
 
   private:
     std::vector<ColliderHandler> _dynamicAABBs;

@@ -4,7 +4,7 @@
 using namespace vax::physics;
 
 struct ColliderView final {
-    uint32_t colliderIndex;
+    uint32_t bodyIndex;
     const glm::vec3& position;
     const glm::quat& orientation;
     const ShapeCollider& shape;
@@ -108,13 +108,13 @@ void flipContact(ContactConstraint& contact, bool isNewSecondStatic) noexcept {
 std::optional<ContactConstraint>
 sphereToSphere(const ColliderView& a, const ColliderView& b, bool isSecondStatic) noexcept {
     return sphereToSphere(
-        a.colliderIndex,
+        a.bodyIndex,
         a.position,
         std::get<vax::ecs::SphereColliderComponent>(a.shape).radius,
         a.restitution,
         a.staticFriction,
         a.dynamicFriction,
-        b.colliderIndex,
+        b.bodyIndex,
         b.position,
         std::get<vax::ecs::SphereColliderComponent>(b.shape).radius,
         b.restitution,
@@ -128,13 +128,13 @@ std::optional<ContactConstraint>
 sphereToPlane(const ColliderView& sphere, const ColliderView& plane, bool isPlaneStatic) noexcept {
     const auto& planeShape = std::get<vax::ecs::PlaneColliderComponent>(plane.shape);
     return sphereToPlane(
-        sphere.colliderIndex,
+        sphere.bodyIndex,
         sphere.position,
         std::get<vax::ecs::SphereColliderComponent>(sphere.shape).radius,
         sphere.restitution,
         sphere.staticFriction,
         sphere.dynamicFriction,
-        plane.colliderIndex,
+        plane.bodyIndex,
         plane.position,
         plane.orientation,
         planeShape.normal,
@@ -148,11 +148,10 @@ sphereToPlane(const ColliderView& sphere, const ColliderView& plane, bool isPlan
 
 void CollisionDetector::detectCollisions(const BodyStorage& bodyStorage) noexcept {
     auto dynamicView = [&](uint32_t aabbIndex) {
-        const uint32_t colliderIndex = _dynamicAABBs[aabbIndex].colliderIndex;
-        const auto& collider = bodyStorage.dynamicBodyColliders[colliderIndex];
+        const auto& collider = bodyStorage.dynamicBodyColliders[_dynamicAABBs[aabbIndex].colliderIndex];
         const auto& body = bodyStorage.dynamicBodies[collider.bodyIndex];
         return ColliderView{
-            colliderIndex,
+            collider.bodyIndex,
             body.position,
             body.orientation,
             collider.shapeCollider,
@@ -162,11 +161,10 @@ void CollisionDetector::detectCollisions(const BodyStorage& bodyStorage) noexcep
         };
     };
     auto staticView = [&](uint32_t aabbIndex) {
-        const uint32_t colliderIndex = _staticAABBs[aabbIndex].colliderIndex;
-        const auto& collider = bodyStorage.staticBodyColliders[colliderIndex];
+        const auto& collider = bodyStorage.staticBodyColliders[_staticAABBs[aabbIndex].colliderIndex];
         const auto& body = bodyStorage.staticBodies[collider.bodyIndex];
         return ColliderView{
-            colliderIndex,
+            collider.bodyIndex,
             body.position,
             body.orientation,
             collider.shapeCollider,
@@ -176,9 +174,14 @@ void CollisionDetector::detectCollisions(const BodyStorage& bodyStorage) noexcep
         };
     };
     auto addContact = [&](std::optional<ContactConstraint> contact) {
-        if (contact) {
-            _contactConstraints.push_back(*contact);
+        if (!contact) {
+            return;
         }
+        const glm::vec3& firstVelocity = bodyStorage.dynamicBodies[contact->first].velocity;
+        const glm::vec3& secondVelocity =
+            contact->secondIsStatic ? glm::vec3(0.0f) : bodyStorage.dynamicBodies[contact->second].velocity;
+        contact->normalVelocityBefore = glm::dot(firstVelocity - secondVelocity, contact->normalFromFirstToSecond);
+        _contactConstraints.push_back(*contact);
     };
     auto dts = [&](CollisionType type) -> const CollisionBucket& {
         return _dynamicToStaticCollisions[static_cast<uint32_t>(type)];
@@ -200,6 +203,9 @@ void CollisionDetector::detectCollisions(const BodyStorage& bodyStorage) noexcep
     }
     for (const auto& pair : dtd(CollisionType::SphereToPlane)) {
         addContact(sphereToPlane(dynamicView(pair.first), dynamicView(pair.second), false));
+    }
+    for (const auto& pair : dtd(CollisionType::PlaneToSphere)) {
+        addContact(sphereToPlane(dynamicView(pair.second), dynamicView(pair.first), false));
     }
     for (const auto& pair : dts(CollisionType::PlaneToSphere)) {
         auto contact = sphereToPlane(staticView(pair.second), dynamicView(pair.first), false);
@@ -242,23 +248,30 @@ void CollisionDetector::buildStaticAABB(const BodyStorage& bodyStorage) noexcept
 }
 
 void CollisionDetector::findCollisionPairs(const BodyStorage& bodyStorage) noexcept {
-    auto processCollision = [&](const auto& shapeA, const auto& shapeB, uint32_t indexA, uint32_t indexB) {
+    auto processCollision = [&](std::array<CollisionBucket, NUM_COLLISION_TYPES>& collisionsStorage,
+                                const auto& shapeA,
+                                const auto& shapeB,
+                                uint32_t indexA,
+                                uint32_t indexB) {
         std::visit(
             [&](const auto& shapeA, const auto& shapeB) {
-                using TD = std::decay_t<decltype(shapeA)>;
-                using TS = std::decay_t<decltype(shapeB)>;
+                using AType = std::decay_t<decltype(shapeA)>;
+                using BType = std::decay_t<decltype(shapeB)>;
                 if constexpr (
-                    std::is_same_v<TD, ecs::SphereColliderComponent> && std::is_same_v<TS, ecs::SphereColliderComponent>
+                    std::is_same_v<AType, ecs::SphereColliderComponent> &&
+                    std::is_same_v<BType, ecs::SphereColliderComponent>
                 ) {
-                    _dynamicToStaticCollisions[static_cast<uint32_t>(CollisionType::SphereToSphere)].push_back(
-                        {indexA, indexB}
-                    );
+                    collisionsStorage[static_cast<uint32_t>(CollisionType::SphereToSphere)].push_back({indexA, indexB});
                 } else if constexpr (
-                    std::is_same_v<TD, ecs::SphereColliderComponent> && std::is_same_v<TS, ecs::PlaneColliderComponent>
+                    std::is_same_v<AType, ecs::SphereColliderComponent> &&
+                    std::is_same_v<BType, ecs::PlaneColliderComponent>
                 ) {
-                    _dynamicToStaticCollisions[static_cast<uint32_t>(CollisionType::SphereToPlane)].push_back(
-                        {indexA, indexB}
-                    );
+                    collisionsStorage[static_cast<uint32_t>(CollisionType::SphereToPlane)].push_back({indexA, indexB});
+                } else if constexpr (
+                    std::is_same_v<AType, ecs::PlaneColliderComponent> &&
+                    std::is_same_v<BType, ecs::SphereColliderComponent>
+                ) {
+                    collisionsStorage[static_cast<uint32_t>(CollisionType::PlaneToSphere)].push_back({indexA, indexB});
                 }
             },
             shapeA,
@@ -274,7 +287,11 @@ void CollisionDetector::findCollisionPairs(const BodyStorage& bodyStorage) noexc
                 auto& colliderShapeStatic =
                     bodyStorage.staticBodyColliders[_staticAABBs[j].colliderIndex].shapeCollider;
                 processCollision(
-                    colliderShapeDynamic, colliderShapeStatic, static_cast<uint32_t>(i), static_cast<uint32_t>(j)
+                    _dynamicToStaticCollisions,
+                    colliderShapeDynamic,
+                    colliderShapeStatic,
+                    static_cast<uint32_t>(i),
+                    static_cast<uint32_t>(j)
                 );
             }
         }
@@ -283,14 +300,20 @@ void CollisionDetector::findCollisionPairs(const BodyStorage& bodyStorage) noexc
     // TODO: fix this, remove O(n2)
     std::fill(_dynamicToDynamicCollisions.begin(), _dynamicToDynamicCollisions.end(), CollisionBucket());
     for (size_t i = 0; i < _dynamicAABBs.size(); ++i) {
-        for (size_t j = 0; j < _dynamicAABBs.size(); ++j) {
-            if (i == j) [[unlikely]] {
-                continue;
-            }
+        for (size_t j = i + 1; j < _dynamicAABBs.size(); ++j) {
             if (_dynamicAABBs[i].aabb.intersects(_dynamicAABBs[j].aabb)) {
-                auto& colliderShapeA = bodyStorage.dynamicBodyColliders[_dynamicAABBs[i].colliderIndex].shapeCollider;
-                auto& colliderShapeB = bodyStorage.staticBodyColliders[_staticAABBs[j].colliderIndex].shapeCollider;
-                processCollision(colliderShapeA, colliderShapeB, static_cast<uint32_t>(i), static_cast<uint32_t>(j));
+                const auto& colliderA = bodyStorage.dynamicBodyColliders[_dynamicAABBs[i].colliderIndex];
+                const auto& colliderB = bodyStorage.dynamicBodyColliders[_dynamicAABBs[j].colliderIndex];
+                if (colliderA.bodyIndex == colliderB.bodyIndex) [[unlikely]] {
+                    continue;
+                }
+                processCollision(
+                    _dynamicToDynamicCollisions,
+                    colliderA.shapeCollider,
+                    colliderB.shapeCollider,
+                    static_cast<uint32_t>(i),
+                    static_cast<uint32_t>(j)
+                );
             }
         }
     }

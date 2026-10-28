@@ -26,7 +26,11 @@ struct RigidBodyComponent final {
 }; // 28 bytes
 
 // if entity has RigidBodyComponent and StaticRigidBodyComponent, it treats as static
-struct StaticRigidBodyComponent final {};
+struct StaticRigidBodyComponent final {
+    float restitution = 0.0f;
+    float staticFriction = 0.0f;
+    float dynamicFriction = 0.3f;
+}; // 12 bytes
 
 struct EmptyColliderComponent final {};
 
@@ -182,16 +186,16 @@ struct BodyStorage final {
     std::vector<StaticBody> staticBodies;
     std::vector<BodyCollider> staticBodyColliders;
 
-    template <typename ShapeType> void addDynamicBody(const DynamicBody& dynamicBody, const ShapeType& shape) noexcept {
+    void addDynamicBody(const DynamicBody& dynamicBody, const ShapeCollider& shapeCollider) noexcept {
         dynamicBodyColliders.push_back(
-            BodyCollider{.shapeCollider = shape, .bodyIndex = static_cast<uint32_t>(dynamicBodies.size())}
+            BodyCollider{.shapeCollider = shapeCollider, .bodyIndex = static_cast<uint32_t>(dynamicBodies.size())}
         );
         dynamicBodies.push_back(dynamicBody);
     }
 
-    template <typename ShapeType> void addStaticBody(const StaticBody& staticBody, const ShapeType& shape) noexcept {
+    void addStaticBody(const StaticBody& staticBody, const ShapeCollider& shapeCollider) noexcept {
         staticBodyColliders.push_back(
-            BodyCollider{.shapeCollider = shape, .bodyIndex = static_cast<uint32_t>(staticBodies.size())}
+            BodyCollider{.shapeCollider = shapeCollider, .bodyIndex = static_cast<uint32_t>(staticBodies.size())}
         );
         staticBodies.push_back(staticBody);
     }

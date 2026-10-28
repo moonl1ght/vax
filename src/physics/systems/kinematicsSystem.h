@@ -17,6 +17,8 @@ class KinematicsSystem final {
 
     void setGravity(glm::vec3 gravity) noexcept;
 
+    const glm::vec3& getGravity() const noexcept { return _gravity; }
+
   private:
     glm::vec3 _gravity = glm::vec3(0.0f, EARTH_GRAVITY, 0.0f);
 };
