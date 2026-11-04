@@ -1,0 +1,86 @@
+VAX Non-Commercial License (No AI Training)
+Version 1.0
+
+Copyright (c) 2025-2026 Alexander (moonL1ght). All rights reserved.
+
+1. Definitions
+
+  "Software" means the source code, shaders, binaries, documentation,
+  assets, and any other material in this repository.
+
+  "Non-Commercial Use" means use that is not primarily intended for, or
+  directed toward, commercial advantage or monetary compensation. Personal
+  study, hobby projects, academic research, and teaching are examples of
+  Non-Commercial Use.
+
+  "AI Training" means using the Software itself (its source code, shaders,
+  documentation, or other contents of this repository), in whole or in
+  part, as training data or as other input to build, train, fine-tune,
+  evaluate, benchmark, or otherwise improve any machine learning model,
+  large language model, code-generation system, or other artificial
+  intelligence system, including by placing the Software in any dataset,
+  corpus, or retrieval index intended for such purposes.
+
+  "Framework Use" means running the Software as an engine, simulator, or
+  environment, including using its built-in features to train, run, or
+  evaluate models (for example, reinforcement learning agents) that learn
+  from the simulation, observations, or data produced while the Software
+  runs, rather than from the contents of the Software itself.
+
+2. Grant of Permission
+
+  Subject to the conditions below, you are granted a free, worldwide,
+  non-exclusive, non-transferable, revocable permission to use, copy,
+  modify, and distribute the Software and derivative works of it, solely
+  for Non-Commercial Use.
+
+3. Conditions
+
+  a. Attribution. You must keep this license file and the above copyright
+     notice in all copies or substantial portions of the Software, and in
+     any derivative works.
+
+  b. Same terms. Any distribution of the Software or derivative works must
+     be under this same license.
+
+  c. No commercial use. You may not use the Software, or any derivative
+     work, for commercial purposes, including selling it, offering it as
+     part of a paid product or service, or using it inside a commercial
+     organization's products, without prior written permission from the
+     copyright holder.
+
+  d. No AI Training. You may not use the Software, or any portion of it,
+     for AI Training. This prohibition applies regardless of whether the
+     use would otherwise be Non-Commercial Use, and regardless of whether
+     the Software was obtained directly, through a mirror, scraping, or any
+     other means.
+
+  e. Framework Use is allowed. Framework Use, as defined above, is not AI
+     Training and is permitted under this license, subject to conditions
+     (a) to (c). Models you train through Framework Use, and the data the
+     Software generates while running, are not restricted by condition (d).
+
+4. Commercial Licensing
+
+  For commercial use or any use not permitted by this license, contact the
+  copyright holder to request a separate license.
+
+5. Termination
+
+  Any use of the Software in violation of this license automatically
+  terminates the permissions granted to you. Upon termination you must
+  stop all use and distribution of the Software and destroy all copies in
+  your possession.
+
+6. Disclaimer of Warranty
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+
+7. Limitation of Liability
+
+  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT
+  OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
+  THE USE OR OTHER DEALINGS IN THE SOFTWARE.
