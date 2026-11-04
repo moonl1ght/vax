@@ -7,7 +7,7 @@ using namespace vax::vk;
 using namespace vax;
 
 std::optional<DrawableModel>
-PrimitivesBuilder::createCube(float width, float height, float depth, vax::engine::Color color) {
+PrimitivesBuilder::createCube(float width, float height, float depth, PBRMaterial material) noexcept {
     auto mesh = _resourceManager.get().meshManager().createEmptyMesh();
     if (!mesh)
         return std::nullopt;
@@ -65,12 +65,6 @@ PrimitivesBuilder::createCube(float width, float height, float depth, vax::engin
         return std::nullopt;
     }
 
-    PBRMaterial material{
-        .baseColor = color,
-    };
-    material.baseColorTextureIndex = NO_TEXTURE_FLAG;
-    material.metallicFactor = 0.0f;
-    material.roughnessFactor = 1.0f;
     auto materialIndex = _resourceManager.get().materialManager().insert(material);
     Submesh submesh{
         .indexCount = static_cast<uint32_t>(mesh.value().second->indexCount()),
@@ -82,7 +76,7 @@ PrimitivesBuilder::createCube(float width, float height, float depth, vax::engin
     return std::optional<DrawableModel>(std::in_place, std::move(drawableModel));
 }
 
-std::optional<DrawableModel> PrimitivesBuilder::createPlane(float width, float height, vax::engine::Color color) {
+std::optional<DrawableModel> PrimitivesBuilder::createPlane(float width, float height, PBRMaterial material) noexcept {
     auto mesh = _resourceManager.get().meshManager().createEmptyMesh();
     if (!mesh)
         return std::nullopt;
@@ -123,7 +117,7 @@ std::optional<DrawableModel> PrimitivesBuilder::createPlane(float width, float h
 }
 
 std::optional<DrawableModel>
-PrimitivesBuilder::createSphere(float radius, uint32_t segments, uint32_t rings, vax::engine::Color color) {
+PrimitivesBuilder::createSphere(float radius, uint32_t segments, uint32_t rings, PBRMaterial material) noexcept {
     segments = std::max(segments, 3u);
     rings = std::max(rings, 2u);
 
@@ -156,11 +150,11 @@ PrimitivesBuilder::createSphere(float radius, uint32_t segments, uint32_t rings,
         }
     }
 
-    return _createModel(vertices, indices, color);
+    return _createModel(vertices, indices, material);
 }
 
 std::optional<DrawableModel>
-PrimitivesBuilder::createIcosphere(float radius, uint32_t subdivisions, vax::engine::Color color) {
+PrimitivesBuilder::createIcosphere(float radius, uint32_t subdivisions, PBRMaterial material) noexcept {
     subdivisions = std::min(subdivisions, 7u);
 
     const float t = (1.0f + std::sqrt(5.0f)) / 2.0f;
@@ -223,12 +217,12 @@ PrimitivesBuilder::createIcosphere(float radius, uint32_t subdivisions, vax::eng
         vertices.push_back({normal * radius, 0, tangent, normal, 0, {u, v}, {0, 0}});
     }
 
-    return _createModel(vertices, indices, color);
+    return _createModel(vertices, indices, material);
 }
 
 std::optional<DrawableModel> PrimitivesBuilder::_createModel(
-    const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, vax::engine::Color color
-) {
+    const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, PBRMaterial material
+) noexcept {
     auto mesh = _resourceManager.get().meshManager().createEmptyMesh();
     if (!mesh)
         return std::nullopt;
@@ -244,11 +238,6 @@ std::optional<DrawableModel> PrimitivesBuilder::_createModel(
         return std::nullopt;
     }
 
-    PBRMaterial material{
-        .baseColor = color,
-    };
-    material.metallicFactor = 0.0f;
-    material.roughnessFactor = 1.0f;
     auto materialIndex = _resourceManager.get().materialManager().insert(material);
     Submesh submesh{
         .indexCount = static_cast<uint32_t>(mesh.value().second->indexCount()),

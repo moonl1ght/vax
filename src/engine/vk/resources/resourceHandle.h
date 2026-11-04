@@ -8,6 +8,9 @@ template <typename T, T NullId> class ResourceHandle final {
     ResourceHandle(T id)
         : _id(id) {};
 
+    ResourceHandle()
+        : _id(NullId) {};
+
     T id() const { return _id; }
 
   private:

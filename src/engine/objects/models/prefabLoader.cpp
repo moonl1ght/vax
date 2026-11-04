@@ -1,6 +1,7 @@
 #include "prefabLoader.h"
 #include "drawableModel.h"
 #include "resourceUtils.h"
+#include "textureGenerator.h"
 #include <urdf_parser/urdf_parser.h>
 #include <uuid_v4.h>
 
@@ -92,29 +93,38 @@ PrefabLoader::_loadPrimitivePrefab(const PrefabDescriptor& descriptor) {
         return std::nullopt;
     }
     std::vector<DrawableModel> models;
+    PBRMaterial material;
+    auto materialDescriptor = primitiveDescriptor->materialDescriptor;
+    material.baseColor = primitiveDescriptor->color;
+    material.baseColorTextureIndex = NO_TEXTURE_FLAG;
+    material.metallicFactor = 0.0f;
+    material.roughnessFactor = 1.0f;
+    if (materialDescriptor && materialDescriptor->textureDescriptor.generatedTextureDescriptor) {
+
+        auto textureGenerator = TextureGenerator(*_textureLoader);
+        auto texture =
+            textureGenerator.generateCheckerboardTexture(materialDescriptor->textureDescriptor.name, 512, 512, 64);
+        if (texture.has_value()) {
+            material.baseColorTextureIndex = texture->first.id();
+        }
+    }
     switch (primitiveDescriptor->primitiveType) {
     case PrefabDescriptor::PrimitiveType::CUBE: {
         auto cube = std::get<PrefabDescriptor::CubePrimitiveDescriptor>(primitiveDescriptor->getShapeDescriptor());
         models.push_back(
-            std::move(
-                _primitivesBuilder->createCube(cube.width, cube.height, cube.depth, primitiveDescriptor->color).value()
-            )
+            std::move(_primitivesBuilder->createCube(cube.width, cube.height, cube.depth, material).value())
         );
         break;
     }
     case PrefabDescriptor::PrimitiveType::PLANE: {
         auto plane = std::get<PrefabDescriptor::PlanePrimitiveDescriptor>(primitiveDescriptor->getShapeDescriptor());
-        models.push_back(
-            std::move(_primitivesBuilder->createPlane(plane.width, plane.height, primitiveDescriptor->color).value())
-        );
+        models.push_back(std::move(_primitivesBuilder->createPlane(plane.width, plane.height, material).value()));
         break;
     }
     case PrefabDescriptor::PrimitiveType::SPHERE: {
         auto sphere = std::get<PrefabDescriptor::SpherePrimitiveDescriptor>(primitiveDescriptor->getShapeDescriptor());
         models.push_back(
-            std::move(_primitivesBuilder
-                          ->createSphere(sphere.radius, sphere.segments, sphere.rings, primitiveDescriptor->color)
-                          .value())
+            std::move(_primitivesBuilder->createSphere(sphere.radius, sphere.segments, sphere.rings, material).value())
         );
         break;
     }
@@ -122,9 +132,7 @@ PrefabLoader::_loadPrimitivePrefab(const PrefabDescriptor& descriptor) {
         auto icosphere =
             std::get<PrefabDescriptor::IcospherePrimitiveDescriptor>(primitiveDescriptor->getShapeDescriptor());
         models.push_back(
-            std::move(_primitivesBuilder
-                          ->createIcosphere(icosphere.radius, icosphere.subdivisions, primitiveDescriptor->color)
-                          .value())
+            std::move(_primitivesBuilder->createIcosphere(icosphere.radius, icosphere.subdivisions, material).value())
         );
         break;
     }

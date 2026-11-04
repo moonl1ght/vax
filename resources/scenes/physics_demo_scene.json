@@ -48,7 +48,19 @@
                         1,
                         1,
                         1
-                    ]
+                    ],
+                    "materialDescriptor": {
+                        "name": "floorMaterial",
+                        "textureDescriptor": {
+                            "name": "floorCheckerboard",
+                            "generatedTextureDescriptor": {
+                                "type": "checkerboard",
+                                "width": 512,
+                                "height": 512,
+                                "cellSize": 64
+                            }
+                        }
+                    }
                 },
                 "physicsDescriptor": {
                     "colliderType": "plane",
@@ -105,7 +117,19 @@
                         0.5,
                         1,
                         1
-                    ]
+                    ],
+                    "materialDescriptor": {
+                        "name": "sphereMaterial",
+                        "textureDescriptor": {
+                            "name": "sphereCheckerboard",
+                            "generatedTextureDescriptor": {
+                                "type": "checkerboard",
+                                "width": 256,
+                                "height": 256,
+                                "cellSize": 32
+                            }
+                        }
+                    }
                 },
                 "physicsDescriptor": {
                     "colliderType": "sphere",

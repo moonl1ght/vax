@@ -27,7 +27,7 @@ enum MainSetIndices {
     PER_DRAW_SET_INDEX = 2,
 };
 
-enum PerFrameDescriptorSetResourceIndex{
+enum PerFrameDescriptorSetResourceIndex {
     FRAME_UNIFORM_BUFFER_INDEX = 0,
     FRAME_LIGHT_BUFFER_INDEX = 1,
     FRAME_INSTANCE_BUFFER_INDEX = 2,
@@ -141,7 +141,7 @@ struct InstanceData {     // total size: 144 bytes
 };
 
 struct PerDrawData {
-    uint32_t flags = 0; // 4 bytes
+    uint32_t flags = 0;                         // 4 bytes
     uint32_t materialIndex = NO_MATERIAL_INDEX; // 4 bytes
 };
 
@@ -150,9 +150,9 @@ struct GlobalPushConstants {
 };
 
 struct PBRMaterial {
-    vec4 baseColor;
-    float metallicFactor, roughnessFactor, normalScale, occlusionStrength; // vec4
-    vec4 emissiveFactorAlphaCutoff;
+    vec4 baseColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    float metallicFactor = 0.0f, roughnessFactor = 1.0f, normalScale = 1.0f, occlusionStrength = 1.0f; // vec4
+    vec4 emissiveFactorAlphaCutoff = vec4(0.0f, 0.0f, 0.0f, 0.5f);
 
     uint32_t baseColorTextureIndex = NO_TEXTURE_FLAG;
     uint32_t baseColorTextureSamplerIndex = NO_SAMPLER_INDEX;

@@ -12,6 +12,7 @@ class PrefabLoader {
     PrefabLoader(const vax::vk::Device& device, vax::vk::ResourceManager& resourceManager)
         : _resourceManager(resourceManager) {
         _modelLoader = std::make_unique<vax::engine::ModelLoader>(device, resourceManager);
+        _textureLoader = std::make_unique<vax::vk::TextureLoader>(device, resourceManager.textureManager());
         _primitivesBuilder = std::make_unique<vax::engine::PrimitivesBuilder>(resourceManager);
     };
 
@@ -30,6 +31,7 @@ class PrefabLoader {
     std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;
 
     std::unique_ptr<vax::engine::ModelLoader> _modelLoader;
+    std::unique_ptr<vax::vk::TextureLoader> _textureLoader;
     std::unique_ptr<vax::engine::PrimitivesBuilder> _primitivesBuilder;
 
     std::optional<std::pair<Prefab, std::vector<DrawableModel>>> _loadURDFPrefab(const PrefabDescriptor& descriptor);

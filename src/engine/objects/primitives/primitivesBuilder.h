@@ -3,14 +3,15 @@
 #include "colorPalette.h"
 #include "drawableModel.h"
 #include "resourceManager.h"
+#include "textureManager.h"
 
 namespace vax::engine {
 class PrimitivesBuilder {
   public:
-    PrimitivesBuilder(vax::vk::ResourceManager& resourceManager)
+    explicit PrimitivesBuilder(vax::vk::ResourceManager& resourceManager) noexcept
         : _resourceManager(resourceManager) {};
 
-    ~PrimitivesBuilder() {};
+    ~PrimitivesBuilder() = default;
 
     PrimitivesBuilder(const PrimitivesBuilder& other) = delete;
     PrimitivesBuilder(PrimitivesBuilder&& other) noexcept = delete;
@@ -18,20 +19,20 @@ class PrimitivesBuilder {
     PrimitivesBuilder& operator=(PrimitivesBuilder&& other) noexcept = delete;
 
     std::optional<vax::engine::DrawableModel>
-    createCube(float width, float height, float depth, vax::engine::Color color);
+    createCube(float width, float height, float depth, PBRMaterial material) noexcept;
 
-    std::optional<vax::engine::DrawableModel> createPlane(float width, float height, vax::engine::Color color);
-
-    std::optional<vax::engine::DrawableModel>
-    createSphere(float radius, uint32_t segments, uint32_t rings, vax::engine::Color color);
+    std::optional<vax::engine::DrawableModel> createPlane(float width, float height, PBRMaterial material) noexcept;
 
     std::optional<vax::engine::DrawableModel>
-    createIcosphere(float radius, uint32_t subdivisions, vax::engine::Color color);
+    createSphere(float radius, uint32_t segments, uint32_t rings, PBRMaterial material) noexcept;
+
+    std::optional<vax::engine::DrawableModel>
+    createIcosphere(float radius, uint32_t subdivisions, PBRMaterial material) noexcept;
 
   private:
     std::optional<vax::engine::DrawableModel> _createModel(
-        const std::vector<vax::vk::Vertex>& vertices, const std::vector<uint32_t>& indices, vax::engine::Color color
-    );
+        const std::vector<vax::vk::Vertex>& vertices, const std::vector<uint32_t>& indices, PBRMaterial material
+    ) noexcept;
 
   private:
     std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;

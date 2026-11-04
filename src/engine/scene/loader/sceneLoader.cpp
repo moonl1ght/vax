@@ -111,7 +111,7 @@ std::unique_ptr<Scene> SceneLoader::_initScene(ecs::World& world, const SceneDes
                     world.addCoreComponentFor<RigidBodyComponent>(entity, rigidBodyComponent);
                 }
                 switch (prefabDescriptor->physicsDescriptor->colliderType) {
-                case vax::engine::PrefabDescriptor::PhysicsDescriptor::ColliderType::SPHERE: {
+                case vax::engine::PhysicsDescriptor::ColliderType::SPHERE: {
                     if (prefabDescriptor->physicsDescriptor->sphereColliderDescriptor.has_value()) {
                         SphereColliderComponent sphereColliderComponent =
                             prefabDescriptor->physicsDescriptor->sphereColliderDescriptor->getSphereColliderComponent();
@@ -122,7 +122,7 @@ std::unique_ptr<Scene> SceneLoader::_initScene(ecs::World& world, const SceneDes
                     }
                     break;
                 }
-                case vax::engine::PrefabDescriptor::PhysicsDescriptor::ColliderType::PLANE: {
+                case vax::engine::PhysicsDescriptor::ColliderType::PLANE: {
                     if (prefabDescriptor->physicsDescriptor->planeColliderDescriptor.has_value()) {
                         PlaneColliderComponent planeColliderComponent =
                             prefabDescriptor->physicsDescriptor->planeColliderDescriptor->getPlaneColliderComponent();

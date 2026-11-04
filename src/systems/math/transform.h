@@ -1,8 +1,10 @@
 #pragma once
 
+#include "jsonGlm.h"
 #include "luna.h"
 #include <glm/ext/matrix_float4x4.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <nlohmann/json.hpp>
 
 namespace vax::math {
 struct Transform final {
@@ -51,4 +53,19 @@ struct TransformMatrixHandle final {
 
     void _updateNormalMatrix();
 };
+
+inline void to_json(nlohmann::json& json, const Transform& transform) {
+    json = {
+        {"position", transform.position},
+        {"rotation", glm::eulerAngles(transform.orientation)},
+        {"scale", transform.scale},
+    };
+}
+
+inline void from_json(const nlohmann::json& json, Transform& transform) {
+    Transform defaults;
+    transform.position = json.value("position", defaults.position);
+    transform.orientation = glm::quat(json.value("rotation", glm::eulerAngles(defaults.orientation)));
+    transform.scale = json.value("scale", defaults.scale);
+}
 } // namespace vax::math

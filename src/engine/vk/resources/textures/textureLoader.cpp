@@ -11,7 +11,7 @@
 using namespace vax::vk;
 using namespace vax;
 
-VkFormat getVkFormatFromGlInternalFormat(uint32_t glInternalFormat) {
+VkFormat getVkFormatFromGlInternalFormat(uint32_t glInternalFormat) noexcept {
     switch (glInternalFormat) {
     // --- Uncompressed Base Formats ---
     case GL_R8:
@@ -99,7 +99,7 @@ VkFormat getVkFormatFromGlInternalFormat(uint32_t glInternalFormat) {
 }
 
 std::optional<TextureManager::TextureResource>
-TextureLoader::loadTexture(std::string name, std::span<unsigned char> data) {
+TextureLoader::loadTexture(std::string name, std::span<unsigned char> data) const noexcept {
     int texWidth, texHeight, texChannels;
     stbi_uc* pixels =
         stbi_load_from_memory(data.data(), data.size(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
@@ -107,11 +107,22 @@ TextureLoader::loadTexture(std::string name, std::span<unsigned char> data) {
         _logger.error("Failed to load pixels");
         return std::nullopt;
     }
-    return _loadTexture(name, pixels, texWidth, texHeight, texChannels);
+    auto texture = _loadTexture(name, pixels, texWidth, texHeight);
+    stbi_image_free(pixels);
+    return texture;
 }
 
-std::optional<TextureManager::TextureResource>
-TextureLoader::loadTexture(std::string path) {
+std::optional<TextureManager::TextureResource> TextureLoader::loadRawRGBATexture(
+    std::string name, std::span<const unsigned char> pixels, int width, int height
+) const noexcept {
+    if (width <= 0 || height <= 0 || pixels.size() != static_cast<size_t>(width) * height * 4) {
+        _logger.error("Invalid raw RGBA texture data for: ", name);
+        return std::nullopt;
+    }
+    return _loadTexture(name, pixels.data(), width, height);
+}
+
+std::optional<TextureManager::TextureResource> TextureLoader::loadTexture(std::string path) const noexcept {
     if (path.ends_with(".ktx")) {
         return _loadKTXTexture(path);
     }
@@ -121,11 +132,12 @@ TextureLoader::loadTexture(std::string path) {
         _logger.error("Failed to load pixels");
         return std::nullopt;
     }
-    return _loadTexture(path, pixels, texWidth, texHeight, texChannels);
+    auto texture = _loadTexture(path, pixels, texWidth, texHeight);
+    stbi_image_free(pixels);
+    return texture;
 }
 
-std::optional<TextureManager::TextureResource>
-TextureLoader::_loadKTXTexture(std::string path) {
+std::optional<TextureManager::TextureResource> TextureLoader::_loadKTXTexture(std::string path) const noexcept {
     ktxTexture* ktxTex = nullptr;
     ktxResult result = ktxTexture_CreateFromNamedFile(path.c_str(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &ktxTex);
     if (result != KTX_SUCCESS) {
@@ -216,9 +228,8 @@ TextureLoader::_loadKTXTexture(std::string path) {
     return texture;
 }
 
-std::optional<TextureManager::TextureResource> TextureLoader::_loadTexture(
-    std::string name, unsigned char* pixels, int texWidth, int texHeight, int texChannels
-) {
+std::optional<TextureManager::TextureResource>
+TextureLoader::_loadTexture(std::string name, const unsigned char* pixels, int texWidth, int texHeight) const noexcept {
     VkDeviceSize imageSize = texWidth * texHeight * 4;
     auto stagingBuffer = vk::AnyBuffer::allocateAndFillData(
         _device.get(),
@@ -229,8 +240,6 @@ std::optional<TextureManager::TextureResource> TextureLoader::_loadTexture(
         VMA_MEMORY_USAGE_CPU_TO_GPU,
         VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
     );
-
-    stbi_image_free(pixels);
 
     if (!stagingBuffer.has_value()) {
         return std::nullopt;
