@@ -1,0 +1,33 @@
+VAX
+Copyright 2025-2026 Alexander (moonL1ght)
+https://github.com/moonl1ght/VAX
+
+This product includes software developed by Alexander (moonL1ght).
+
+
+Third-party components
+======================
+
+The following files were created by others and are NOT covered by the
+Apache License 2.0 in the LICENSE file. Each is distributed under its own
+license.
+
+Fira Code
+  Files:    resources/fonts/FiraCode-Regular.ttf
+  Author:   The Fira Code Project Authors (https://github.com/tonsky/FiraCode)
+  License:  SIL Open Font License, Version 1.1
+            (resources/fonts/OFL.txt)
+
+Clearpath Husky robot model
+  Files:    resources/assets/models/rover/rover.urdf
+            resources/assets/models/rover/meshes/*.stl
+            resources/assets/models/rover_s1_v1.glb (derived from the above)
+  Source:   husky_description (https://github.com/husky/husky)
+  Author:   Copyright (c) 2015, Clearpath Robotics, Inc.
+  License:  BSD-3-Clause
+            (resources/assets/models/rover/LICENSE-Clearpath.txt)
+  Changes:  the model was cleaned up and modified for use in VAX.
+
+Libraries downloaded by Conan at build time (assimp, nlohmann_json, glm,
+imgui, taskflow, tracy, SDL, KTX-Software, urdfdom) are not stored in this
+repository and are distributed under their own licenses.

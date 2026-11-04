@@ -32,9 +32,13 @@ gltf-ibl-sampler -inputPath ./university_workshop_4k.hdr -outCubeMap ./irradianc
 
 ## License
 
-Free for non-commercial use. Commercial use requires written permission.
-Using this code as training data for AI/LLM models is not allowed for any purpose, including educational, research, and other non-commercial use.
-Training and running models (e.g. RL agents) with the framework itself is allowed for non-commercial use.
-Using AI to replicate or re-create this project as a separate work is not allowed.
-Cloning or forking it and modifying it with AI assistance is allowed for non-commercial use.
-See [LICENSE](LICENSE) for the full terms.
+VAX is licensed under the [Apache License 2.0](LICENSE).
+You are free to use, modify, and distribute it, including for commercial purposes,
+as long as you keep the copyright notice and the [NOTICE](NOTICE) file.
+The license includes an explicit patent grant from contributors and terminates
+the patent rights of anyone who files a patent lawsuit over this project.
+
+Third-party components are distributed under their own licenses,
+see [NOTICE](NOTICE).
+
+Contributions are accepted under the same license (Apache-2.0, Section 5).
