@@ -29,3 +29,12 @@ gltf-ibl-sampler -inputPath ./university_workshop_4k.hdr -outCubeMap ./irradianc
 - CMake 3.18+
 - Conan 2.x
 - Vulkan SDK (set `VULKAN_SDK` environment variable)
+
+## License
+
+Free for non-commercial use. Commercial use requires written permission.
+Using this code as training data for AI/LLM models is not allowed for any purpose, including educational, research, and other non-commercial use.
+Training and running models (e.g. RL agents) with the framework itself is allowed for non-commercial use.
+Using AI to replicate or re-create this project as a separate work is not allowed.
+Cloning or forking it and modifying it with AI assistance is allowed for non-commercial use.
+See [LICENSE](LICENSE) for the full terms.

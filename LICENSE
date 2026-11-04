@@ -21,6 +21,18 @@ Copyright (c) 2025-2026 Alexander (moonL1ght). All rights reserved.
   intelligence system, including by placing the Software in any dataset,
   corpus, or retrieval index intended for such purposes.
 
+  "AI Replication" means using an AI system (for example, an LLM or
+  code-generation tool) to reproduce, re-create, rewrite, port to another
+  language, or otherwise generate a new project that is a copy of, or
+  substantially similar to, the Software or a substantial part of it,
+  where the result is presented or distributed as a separate work not
+  covered by this license.
+
+  "AI-Assisted Modification" means using an AI system as a development
+  aid to read, understand, fix, or extend your own copy or fork of the
+  Software, where the result remains a derivative work of the Software
+  covered by this license.
+
   "Framework Use" means running the Software as an engine, simulator, or
   environment, including using its built-in features to train, run, or
   evaluate models (for example, reinforcement learning agents) that learn
@@ -50,15 +62,34 @@ Copyright (c) 2025-2026 Alexander (moonL1ght). All rights reserved.
      copyright holder.
 
   d. No AI Training. You may not use the Software, or any portion of it,
-     for AI Training. This prohibition applies regardless of whether the
-     use would otherwise be Non-Commercial Use, and regardless of whether
+     for AI Training. This prohibition is absolute: it applies to every
+     kind of use, including personal, hobby, educational, academic,
+     research, and other Non-Commercial Use, and regardless of whether
      the Software was obtained directly, through a mirror, scraping, or any
      other means.
 
-  e. Framework Use is allowed. Framework Use, as defined above, is not AI
-     Training and is permitted under this license, subject to conditions
-     (a) to (c). Models you train through Framework Use, and the data the
-     Software generates while running, are not restricted by condition (d).
+  e. Framework Use is allowed for Non-Commercial Use only. Framework Use,
+     as defined above, is not AI Training and is permitted under this
+     license, subject to conditions (a) to (c). Models you train through
+     Framework Use, and the data the Software generates while running, are
+     not restricted by condition (d), but they may be used only for
+     Non-Commercial Use. Training, running, or deploying such models for
+     commercial purposes requires prior written permission from the
+     copyright holder.
+
+  f. No AI Replication. You may not use the Software, or any portion of
+     it, for AI Replication, for any purpose, including Non-Commercial Use.
+     A work produced by AI Replication is treated as a derivative work of
+     the Software and remains subject to all terms of this license.
+
+  g. AI-Assisted Modification is allowed for Non-Commercial Use. You may
+     clone or fork the Software and use AI tools to help you modify it,
+     subject to conditions (a) to (c). Giving parts of the Software to an
+     AI tool as context for this purpose is not AI Training under
+     condition (d), provided that you do not knowingly permit the tool's
+     provider to use the Software for AI Training (for example, you must
+     turn off any setting that lets the provider train on your inputs,
+     where such a setting exists).
 
 4. Commercial Licensing
 
