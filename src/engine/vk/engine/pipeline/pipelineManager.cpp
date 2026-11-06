@@ -4,6 +4,7 @@
 #include "shaderUniforms.h"
 #include "vkEngine.h"
 #include <optional>
+#include "vertex.h"
 
 using namespace vax::vk;
 using namespace vax;

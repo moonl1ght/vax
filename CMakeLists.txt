@@ -4,12 +4,17 @@ set(CUDA_PATH /usr/local/cuda CACHE PATH "CUDA toolkit root")
 set(CMAKE_CUDA_COMPILER ${CUDA_PATH}/bin/nvcc)
 set(CUDA_ARCH sm_120)
 
+set(CMAKE_CUDA23_STANDARD_COMPILE_OPTION -std=c++23)
+set(CMAKE_CUDA23_EXTENSION_COMPILE_OPTION -std=c++23)
+set(CMAKE_TRY_COMPILE_PLATFORM_VARIABLES
+    CMAKE_CUDA23_STANDARD_COMPILE_OPTION
+    CMAKE_CUDA23_EXTENSION_COMPILE_OPTION
+)
+
 project(Luna VERSION 0.1.0 LANGUAGES C CXX CUDA)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CUDA_STANDARD 23)
-set(CMAKE_CUDA23_STANDARD_COMPILE_OPTION -std=c++23)
-set(CMAKE_CUDA23_EXTENSION_COMPILE_OPTION -std=c++23)
 
 string(REGEX REPLACE "^sm_" "" CMAKE_CUDA_ARCHITECTURES ${CUDA_ARCH})
 
@@ -70,6 +75,10 @@ if(NOT SLANG_COMPILER)
     message(FATAL_ERROR "slangc not found. Install Slang and ensure it is on PATH or set SLANG_DIR.")
 endif()
 message(STATUS "Found slangc: ${SLANG_COMPILER}")
+
+get_filename_component(_SLANG_ROOT "${SLANG_COMPILER}" DIRECTORY)
+get_filename_component(_SLANG_ROOT "${_SLANG_ROOT}" DIRECTORY)
+find_package(slang REQUIRED CONFIG HINTS "${_SLANG_ROOT}")
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
@@ -186,6 +195,10 @@ if(WIN32)
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "C:/msys64/mingw64/bin/SDL3.dll"
         $<TARGET_FILE_DIR:Luna>/SDL3.dll)
+    add_custom_command(TARGET Luna POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        $<TARGET_FILE:slang::slang>
+        $<TARGET_FILE_DIR:Luna>)
 endif()
 
 target_include_directories(Luna PRIVATE
@@ -207,6 +220,7 @@ if(WIN32)
             Tracy::TracyClient
             KTX::ktx
             urdfdom::urdfdom
+            slang::slang
             -L${CUDA_PATH}/lib64 -lcudart
         )
     endif(VULKAN_FOUND)
@@ -224,6 +238,7 @@ else()
             Tracy::TracyClient
             KTX::ktx
             urdfdom::urdfdom
+            slang::slang
             -L${CUDA_PATH}/lib64 -lcudart
         )
     endif(VULKAN_FOUND)

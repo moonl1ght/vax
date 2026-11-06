@@ -7,7 +7,7 @@
 #include "pipelineBuilder.h"
 #include "renderPassDescriptor.h"
 #include "shaderModuleBuilder.h"
-#include "vertex.h"
+#include "shaderLibrary.h"
 
 namespace vax::vk {
 class PipelineManager final {
