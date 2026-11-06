@@ -2,6 +2,33 @@
 
 using namespace vax::vk;
 
+// MARK: - PipelineLayoutBuilder
+
+VkPipelineLayout PipelineLayoutBuilder::build(std::string name) {
+    VkPipelineLayoutCreateInfo pipelineLayoutInfo{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+        .setLayoutCount = static_cast<uint32_t>(_descriptorSetLayouts.size()),
+        .pSetLayouts = _descriptorSetLayouts.data(),
+        .pushConstantRangeCount = 1,
+        .pPushConstantRanges = &_pushConstantRange
+    };
+    VkPipelineLayout pipelineLayout;
+    auto result = vkCreatePipelineLayout(_device.get().vkDevice, &pipelineLayoutInfo, nullptr, &pipelineLayout);
+    if (result != VK_SUCCESS) {
+        _logger.error("failed to create pipeline layout!");
+        return VK_NULL_HANDLE;
+    }
+
+    VkDebugUtilsObjectNameInfoEXT nameInfo{
+        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
+        .objectType = VK_OBJECT_TYPE_PIPELINE_LAYOUT,
+        .objectHandle = reinterpret_cast<size_t>(pipelineLayout),
+        .pObjectName = (name + "_pipeline_layout").c_str(),
+    };
+    vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice, &nameInfo);
+    return pipelineLayout;
+}
+
 // MARK: - ComputePipelineBuilder
 
 std::optional<vax::vk::Pipeline> ComputePipelineBuilder::build(std::string name) {

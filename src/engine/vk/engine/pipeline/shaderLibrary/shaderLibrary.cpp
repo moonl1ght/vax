@@ -14,7 +14,7 @@ constexpr const char* profileToString(ShaderLibrary::Profile profile) {
     return "sm_5_0";
 }
 
-void ShaderLibrary::loadSession(const std::string& shaderDirectory, Profile profile) noexcept {
+void ShaderLibrary::startSession(const std::string& shaderDirectory, Profile profile) noexcept {
     const char* searchPaths[] = {shaderDirectory.c_str()};
 
     slang::SessionDesc sessionDesc = {};
@@ -30,7 +30,11 @@ void ShaderLibrary::loadSession(const std::string& shaderDirectory, Profile prof
     _globalSession->createSession(sessionDesc, _session.writeRef());
 }
 
-void ShaderLibrary::loadModule(const ModuleDescriptor& descriptor) noexcept {
+void ShaderLibrary::endSession() noexcept {
+    _session = nullptr;
+}
+
+void ShaderLibrary::loadModule(const ShaderModuleDescriptor& descriptor) noexcept {
     auto module = _session->loadModule(descriptor.name.c_str());
     if (module == nullptr) {
         _logger.error("Failed to load module: ", descriptor.name);

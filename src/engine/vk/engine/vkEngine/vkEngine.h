@@ -8,8 +8,8 @@
 #include "pipelineManager.h"
 #include "queueManager.h"
 #include "syncObjectsManager.h"
-#include "window.h"
 #include "windowController.h"
+#include "shaderLibrary.h"
 
 namespace vax::vk {
 class Device;
@@ -34,6 +34,7 @@ class Engine final {
     VkInstance instance = VK_NULL_HANDLE;
 
     std::unique_ptr<vax::vk::Device> device;
+    std::unique_ptr<vax::vk::ShaderLibrary> shaderLibrary;
 
     std::unique_ptr<vax::vk::QueueManager> queueManager;
     std::unique_ptr<vax::vk::DescriptorSetManager> descriptorSetManager;

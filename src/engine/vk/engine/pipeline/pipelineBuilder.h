@@ -17,6 +17,28 @@ struct DepthStencilState {
 
 // MARK: - ComputePipelineBuilder
 
+class PipelineLayoutBuilder final {
+  public:
+    explicit PipelineLayoutBuilder(const vax::vk::Device& device)
+        : _device(device) {};
+
+    VkPipelineLayout build(std::string name);
+
+    void setDescriptorSetLayouts(const std::vector<VkDescriptorSetLayout>& descriptorSetLayouts) noexcept {
+        _descriptorSetLayouts = descriptorSetLayouts;
+    }
+
+    void setPushConstantRange(const VkPushConstantRange& pushConstantRange) noexcept {
+        _pushConstantRange = pushConstantRange;
+    }
+
+  private:
+    vax::Logger _logger = vax::Logger("GraphicsPipelineBuilder");
+    std::reference_wrapper<const vax::vk::Device> _device;
+    std::vector<VkDescriptorSetLayout> _descriptorSetLayouts;
+    VkPushConstantRange _pushConstantRange = {};
+};
+
 class ComputePipelineBuilder final {
   public:
     explicit ComputePipelineBuilder(const vax::vk::Device& device)

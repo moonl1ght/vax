@@ -9,7 +9,7 @@
 #include <unordered_map>
 
 namespace vax::vk {
-class DescriptorSetManager {
+class DescriptorSetManager final {
   public:
     explicit DescriptorSetManager(const vax::vk::Device& device, const int32_t maxFramesInFlight)
         : _device(device)

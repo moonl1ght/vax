@@ -2,12 +2,55 @@
 #include "descriptorSetManager.h"
 #include "shaderModuleBuilder.h"
 #include "shaderUniforms.h"
+#include "vertex.h"
 #include "vkEngine.h"
 #include <optional>
-#include "vertex.h"
 
 using namespace vax::vk;
 using namespace vax;
+
+void PipelineManager::loadShaderLibrary(const std::string& shaderDirectory) {
+    _shaderLibrary.get().startSession(shaderDirectory);
+}
+
+void PipelineManager::unloadShaderLibrary() { _shaderLibrary.get().endSession(); }
+
+void PipelineManager::prebuildPipelines(const std::vector<PipelineDescriptor>& pipelineDescriptors) {
+    for (const PipelineDescriptor& pipelineDescriptor : pipelineDescriptors) {
+        _shaderLibrary.get().loadModule(pipelineDescriptor.shaderModuleDescriptor);
+    }
+}
+
+bool vax::vk::PipelineManager::_createComputePipelineLayout(
+    PipelineDescriptor& pipelineDescriptor, ShaderLibrary::CompilationResult compilationResult
+) {
+    auto pipelineLayoutBuilder = vax::vk::PipelineLayoutBuilder(_device.get());
+    // pipelineLayoutBuilder.setDescriptorSetLayouts(compilationResult.reflectionData.bindings);
+    // pipelineLayoutBuilder.setPushConstantRange(compilationResult.reflectionData.pushConstants);
+    auto pipelineLayout = pipelineLayoutBuilder.build(pipelineDescriptor.name);
+    if (!pipelineLayout) {
+        _logger.error("Failed to create compute pipeline layout!");
+        return false;
+    }
+    _pipelineLayouts.emplace(pipelineDescriptor.name, pipelineLayout);
+    return true;
+}
+
+bool vax::vk::PipelineManager::_createGraphicsPipelineLayout(
+    PipelineDescriptor& pipelineDescriptor, ShaderLibrary::CompilationResult compilationResult
+) {
+    // auto pipelineBuilder = vax::vk::GraphicsPipelineBuilder(_device.get());
+    // auto name = vax::vk::Pipeline::pipelineLayoutNameToString(pipelineLayoutName);
+    // auto pipelineLayout = pipelineBuilder.buildPipelineLayout(name);
+    // if (!pipelineLayout) {
+    //     _logger.error("Failed to create background pipeline layout!");
+    //     return false;
+    // }
+    // _pipelineLayouts.emplace(name, pipelineLayout);
+    return true;
+}   
+
+// Legacy
 
 bool PipelineManager::setup(
     const RenderPassDescriptor& renderPassDescriptor,
@@ -249,9 +292,8 @@ bool vax::vk::PipelineManager::_createFinalBlendPipelineLayout(vax::vk::Pipeline
 bool vax::vk::PipelineManager::_createAgentCameraFBPipelineLayout(vax::vk::PipelineLayoutName pipelineLayoutName) {
     auto pipelineBuilder = vax::vk::GraphicsPipelineBuilder(_device.get());
     auto name = vax::vk::Pipeline::pipelineLayoutNameToString(pipelineLayoutName);
-    auto finalBlendCamSampledDescriptorSetLayout = _descriptorSetManager.get().getDescriptorSetLayout(
-        DescriptorSetLayoutName::FINAL_BLEND_SIMPLE
-    );
+    auto finalBlendCamSampledDescriptorSetLayout =
+        _descriptorSetManager.get().getDescriptorSetLayout(DescriptorSetLayoutName::FINAL_BLEND_SIMPLE);
     if (!finalBlendCamSampledDescriptorSetLayout) {
         _logger.error("Failed to get agent camera FB descriptor set layout!");
         return false;
