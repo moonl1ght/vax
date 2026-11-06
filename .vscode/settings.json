@@ -2,6 +2,10 @@
     "C_Cpp.default.cppStandard": "c++20",
     "files.encoding": "utf8",
     "editor.fontLigatures": true,
+    "[slang]": {
+        "editor.defaultFormatter": "shader-slang.slang-language-extension",
+        "editor.formatOnSave": true
+    },
     "cmake.useCMakePresets": "always",
     "cmake.generator": "Ninja",
     "cmake.configureSettings": {

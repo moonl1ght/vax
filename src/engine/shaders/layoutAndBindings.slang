@@ -1,5 +1,7 @@
 import uniforms;
+import utils.customAttributes;
 
+[DynamicOffset]
 [vk::binding(PerFrameDescriptorSetResourceIndex::FRAME_UNIFORM_BUFFER_INDEX, MainSetIndices::PER_FRAME_SET_INDEX)]
 ConstantBuffer<UniformBufferObject> ubo;
 
