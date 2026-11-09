@@ -63,7 +63,7 @@ constexpr std::vector<DescriptorSetInfo> allDescriptorSets() {
     };
 }
 
-constexpr std::string_view getSetLayoutName(const DescriptorSetLayoutName& setLayoutName) {
+constexpr std::string getSetLayoutName(const DescriptorSetLayoutName& setLayoutName) {
     switch (setLayoutName) {
     case DescriptorSetLayoutName::GLOBAL:
         return "global";
@@ -84,7 +84,7 @@ constexpr std::string_view getSetLayoutName(const DescriptorSetLayoutName& setLa
     }
 }
 
-constexpr std::string_view getCommonDescriptorSetName(const CommonDescriptorSetName& commonDescriptorSetName) {
+constexpr std::string getCommonDescriptorSetName(const CommonDescriptorSetName& commonDescriptorSetName) {
     switch (commonDescriptorSetName) {
     case CommonDescriptorSetName::GLOBAL:
         return "global";
@@ -109,6 +109,7 @@ constexpr std::string_view getCommonDescriptorSetName(const CommonDescriptorSetN
     case CommonDescriptorSetName::JFA_MAIN_1:
         return "jfa_main_1";
     }
+    return "unknown_descriptor_set";
 }
 
 constexpr std::vector<DescriptorLayoutResourceInfo>

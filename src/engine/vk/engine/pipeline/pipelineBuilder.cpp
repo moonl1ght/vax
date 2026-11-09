@@ -2,15 +2,18 @@
 
 using namespace vax::vk;
 
-// MARK: - PipelineLayoutBuilder
-
-VkPipelineLayout PipelineLayoutBuilder::build(std::string name) {
+VkPipelineLayout PipelineLayoutBuilder::build(std::string name) noexcept {
+    std::vector<VkDescriptorSetLayout> descriptorSetLayoutsVk;
+    descriptorSetLayoutsVk.reserve(_descriptorSetLayouts.size());
+    for (const auto descriptorSetLayout : _descriptorSetLayouts) {
+        descriptorSetLayoutsVk.push_back(descriptorSetLayout->getVkDescriptorSetLayout());
+    }
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-        .setLayoutCount = static_cast<uint32_t>(_descriptorSetLayouts.size()),
-        .pSetLayouts = _descriptorSetLayouts.data(),
-        .pushConstantRangeCount = 1,
-        .pPushConstantRanges = &_pushConstantRange
+        .setLayoutCount = static_cast<uint32_t>(descriptorSetLayoutsVk.size()),
+        .pSetLayouts = descriptorSetLayoutsVk.data(),
+        .pushConstantRangeCount = _pushConstantRange ? 1u : 0u,
+        .pPushConstantRanges = _pushConstantRange ? &*_pushConstantRange : nullptr,
     };
     VkPipelineLayout pipelineLayout;
     auto result = vkCreatePipelineLayout(_device.get().vkDevice, &pipelineLayoutInfo, nullptr, &pipelineLayout);
@@ -31,7 +34,7 @@ VkPipelineLayout PipelineLayoutBuilder::build(std::string name) {
 
 // MARK: - ComputePipelineBuilder
 
-std::optional<vax::vk::Pipeline> ComputePipelineBuilder::build(std::string name) {
+std::optional<vax::vk::PipelineV2> ComputePipelineBuilder::build(std::string name) noexcept {
     if (_shaderStageInfo.stage != VK_SHADER_STAGE_COMPUTE_BIT) {
         _logger.error("Compute pipeline requires compute shader stage!");
         return std::nullopt;
@@ -53,44 +56,21 @@ std::optional<vax::vk::Pipeline> ComputePipelineBuilder::build(std::string name)
         return std::nullopt;
     }
 
-    _isPipelineLayoutTransferred = true;
-    return vax::vk::Pipeline(
-        _device.get(), name, vax::vk::PipelineType::COMPUTE, _pipelineLayout, pipeline
-    );
+    return vax::vk::PipelineV2{
+        .vkPipelineLayout = _pipelineLayout,
+        .vkPipeline = pipeline,
+    };
 }
 
-bool ComputePipelineBuilder::setPipelineLayout(VkPipelineLayoutCreateInfo pipelineLayoutInfo) {
-    if (_pipelineLayout != VK_NULL_HANDLE) {
-        _logger.warning("Pipeline layout already set!");
-        return false;
-    }
-    auto pipelineLayoutResult =
-        vkCreatePipelineLayout(_device.get().vkDevice, &pipelineLayoutInfo, nullptr, &_pipelineLayout);
-    if (!VK_CHECK(pipelineLayoutResult)) {
-        _logger.error("Failed to create pipeline layout!");
-        return false;
-    }
-    return true;
+void ComputePipelineBuilder::setPipelineLayout(const VkPipelineLayout& pipelineLayout) noexcept {
+    _pipelineLayout = pipelineLayout;
 }
 
-bool ComputePipelineBuilder::updatePipelineLayout(VkPipelineLayoutCreateInfo pipelineLayoutInfo) {
-    if (_pipelineLayout != VK_NULL_HANDLE) {
-        vkDestroyPipelineLayout(_device.get().vkDevice, _pipelineLayout, nullptr);
-    }
-    auto pipelineLayoutResult =
-        vkCreatePipelineLayout(_device.get().vkDevice, &pipelineLayoutInfo, nullptr, &_pipelineLayout);
-    if (!VK_CHECK(pipelineLayoutResult)) {
-        _logger.error("Failed to create pipeline layout!");
-        return false;
-    }
-    return true;
-}
-
-void ComputePipelineBuilder::setShaderStage(VkShaderStageFlagBits stage, VkShaderModule module, const char* name) {
+void ComputePipelineBuilder::setShaderModule(const ShaderModule& module, const char* name) noexcept {
     VkPipelineShaderStageCreateInfo shaderStageInfo{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-        .stage = stage,
-        .module = module,
+        .stage = VK_SHADER_STAGE_COMPUTE_BIT,
+        .module = module.vkModule,
         .pName = name,
     };
     _shaderStageInfo = shaderStageInfo;
@@ -161,9 +141,7 @@ std::optional<vax::vk::Pipeline> GraphicsPipelineBuilder::build(std::string name
         .colorWriteMask =
             VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
     };
-    std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments(
-        _colorAttachmentCount, colorBlendAttachment
-    );
+    std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments(_colorAttachmentCount, colorBlendAttachment);
     VkPipelineColorBlendStateCreateInfo colorBlending{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
         .logicOpEnable = VK_FALSE,

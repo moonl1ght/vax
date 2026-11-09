@@ -1,38 +1,40 @@
 #pragma once
 
+#include "hashUtils.h"
 #include "logger.h"
-#include "poolDescriptor.h"
+#include <optional>
 #include <slang.h>
+#include <string>
 #include <vector>
 #include <vulkan/vulkan.h>
 
 namespace vax::vk {
 
 struct ShaderReflectionData final {
-    std::vector<std::vector<VkDescriptorSetLayoutBinding>> bindings;
-    std::vector<bool> noUabSets;
-    std::vector<VkPushConstantRange> pushConstants;
+    struct SetReflectionData final {
+        std::vector<VkDescriptorSetLayoutBinding> bindings;
+        bool isUpdateAfterBind = true;
+        std::string name;
 
-    bool isUpdateAfterBindSet(size_t set) const noexcept {
-        return set < bindings.size() && !(set < noUabSets.size() && noUabSets[set]);
-    }
-
-    std::vector<VkDescriptorBindingFlags> bindingFlags(size_t set) const {
-        std::vector<VkDescriptorBindingFlags> flags;
-        if (set >= bindings.size()) {
-            return flags;
-        }
-        const bool uab = isUpdateAfterBindSet(set);
-        flags.reserve(bindings[set].size());
-        for (const VkDescriptorSetLayoutBinding& binding : bindings[set]) {
-            VkDescriptorBindingFlags f = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT;
-            if (uab && supportsUpdateAfterBind(binding.descriptorType)) {
-                f |= VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT;
+        bool operator==(const SetReflectionData& other) const noexcept {
+            if (isUpdateAfterBind != other.isUpdateAfterBind || bindings.size() != other.bindings.size()) {
+                return false;
             }
-            flags.push_back(f);
+            for (size_t i = 0; i < bindings.size(); ++i) {
+                const VkDescriptorSetLayoutBinding& a = bindings[i];
+                const VkDescriptorSetLayoutBinding& b = other.bindings[i];
+                if (a.binding != b.binding || a.descriptorType != b.descriptorType ||
+                    a.descriptorCount != b.descriptorCount || a.stageFlags != b.stageFlags ||
+                    a.pImmutableSamplers != b.pImmutableSamplers) {
+                    return false;
+                }
+            }
+            return true;
         }
-        return flags;
-    }
+    };
+
+    std::vector<SetReflectionData> sets;
+    std::optional<VkPushConstantRange> pushConstants;
 };
 
 class ReflectionProcessor final {
@@ -57,3 +59,18 @@ class ReflectionProcessor final {
 };
 
 } // namespace vax::vk
+
+template <> struct std::hash<vax::vk::ShaderReflectionData::SetReflectionData> {
+    size_t operator()(const vax::vk::ShaderReflectionData::SetReflectionData& set) const noexcept {
+        size_t seed = 0;
+        vax::hash_combine(seed, set.isUpdateAfterBind);
+        for (const VkDescriptorSetLayoutBinding& binding : set.bindings) {
+            vax::hash_combine(seed, binding.binding);
+            vax::hash_combine(seed, static_cast<uint32_t>(binding.descriptorType));
+            vax::hash_combine(seed, binding.descriptorCount);
+            vax::hash_combine(seed, static_cast<uint32_t>(binding.stageFlags));
+            vax::hash_combine(seed, binding.pImmutableSamplers);
+        }
+        return seed;
+    }
+};

@@ -95,9 +95,7 @@ bool vax::vk::Engine::setup() {
         descriptorSetManager = nullptr;
     });
 
-    shaderLibrary = std::make_unique<ShaderLibrary>();
-
-    pipelineManager = std::make_unique<PipelineManager>(*device, *descriptorSetManager, *shaderLibrary);
+    pipelineManager = std::make_unique<PipelineManager>(*device, *descriptorSetManager);
     deletionQueue.push_function([&]() {
         _logger.debug("Destroying pipeline manager...");
         pipelineManager = nullptr; // TODO: remove from destructor

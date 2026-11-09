@@ -1,4 +1,5 @@
 #include "reflectionProcessor.h"
+#include <algorithm>
 #include <slang-com-ptr.h>
 
 using namespace vax::vk;
@@ -94,10 +95,10 @@ void addBinding(
     bool noUab
 ) {
     if (noUab) {
-        if (location.set >= data.noUabSets.size()) {
-            data.noUabSets.resize(location.set + 1, false);
+        if (location.set >= data.sets.size()) {
+            data.sets.resize(location.set + 1);
         }
-        data.noUabSets[location.set] = true;
+        data.sets[location.set].isUpdateAfterBind = false;
     }
 
     bool isUsed = false;
@@ -108,12 +109,12 @@ void addBinding(
         return;
     }
 
-    auto& bindings = data.bindings;
-    if (location.set >= bindings.size()) {
-        bindings.resize(location.set + 1);
+    auto& sets = data.sets;
+    if (location.set >= sets.size()) {
+        sets.resize(location.set + 1);
     }
 
-    auto& setBindings = bindings[location.set];
+    auto& setBindings = sets[location.set].bindings;
     for (VkDescriptorSetLayoutBinding& existing : setBindings) {
         if (existing.binding != location.binding) {
             continue;
@@ -135,12 +136,12 @@ void addBinding(
 }
 
 void addPushConstantRange(ShaderReflectionData& data, uint32_t offset, uint32_t size, VkShaderStageFlags stageFlags) {
-    if (data.pushConstants.empty()) {
-        data.pushConstants.push_back({stageFlags, offset, size});
+    if (!data.pushConstants) {
+        data.pushConstants = VkPushConstantRange{stageFlags, offset, size};
         return;
     }
 
-    auto& range = data.pushConstants.front();
+    VkPushConstantRange& range = *data.pushConstants;
     const uint32_t end = std::max(range.offset + range.size, offset + size);
     range.offset = std::min(range.offset, offset);
     range.size = end - range.offset;
@@ -190,6 +191,14 @@ void collectParameter(
             );
         }
         collectParameter(typeLayout->getElementVarLayout(), location, context, data, noUab);
+
+        if (typeLayout->getKind() == slang::TypeReflection::Kind::ParameterBlock) {
+            const uint32_t blockSet = accumulateLocation(container, location).set;
+            const char* typeName = typeLayout->getElementTypeLayout()->getName();
+            if (blockSet < data.sets.size() && data.sets[blockSet].name.empty() && typeName) {
+                data.sets[blockSet].name = typeName;
+            }
+        }
         return;
     }
     default:
@@ -232,6 +241,12 @@ ShaderReflectionData ReflectionProcessor::process(ReflectionContext& context) co
         }
 
         collectParameter(param, entryPointBase, context, data);
+    }
+
+    for (ShaderReflectionData::SetReflectionData& set : data.sets) {
+        std::sort(set.bindings.begin(), set.bindings.end(), [](const auto& a, const auto& b) {
+            return a.binding < b.binding;
+        });
     }
     return data;
 }

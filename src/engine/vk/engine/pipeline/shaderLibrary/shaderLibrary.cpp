@@ -30,30 +30,78 @@ void ShaderLibrary::startSession(const std::string& shaderDirectory, Profile pro
     _globalSession->createSession(sessionDesc, _session.writeRef());
 }
 
-void ShaderLibrary::endSession() noexcept {
-    _session = nullptr;
-}
+void ShaderLibrary::endSession() noexcept { _session = nullptr; }
 
-void ShaderLibrary::loadModule(const ShaderModuleDescriptor& descriptor) noexcept {
-    auto module = _session->loadModule(descriptor.name.c_str());
+std::optional<ShaderLibrary::GraphicsModule>
+ShaderLibrary::loadGraphicsModule(const ShaderModuleDescriptor& descriptor) noexcept {
+    Slang::ComPtr<slang::IBlob> diagnostics;
+    auto module = _session->loadModule(descriptor.name.c_str(), diagnostics.writeRef());
     if (module == nullptr) {
-        _logger.error("Failed to load module: ", descriptor.name);
-        return;
+        _logger.error(
+            "Failed to load module: ",
+            descriptor.name,
+            "\n",
+            diagnostics ? static_cast<const char*>(diagnostics->getBufferPointer()) : ""
+        );
+        return std::nullopt;
     }
 
+    GraphicsModule graphicsModule{descriptor.name};
     for (const EntryPointDescriptor& entryPoint : descriptor.entryPoints) {
         auto result = _loadEntryPoint(module, entryPoint.name, entryPoint.stageFlags);
         if (result == std::nullopt) {
             _logger.error("Failed to load entry point: ", entryPoint.name);
-            return;
+            return std::nullopt;
+        }
+        switch (entryPoint.stageFlags) {
+        case VK_SHADER_STAGE_VERTEX_BIT:
+            graphicsModule.vertexFunction = result.value();
+            break;
+        case VK_SHADER_STAGE_FRAGMENT_BIT:
+            graphicsModule.fragmentFunction = result.value();
+            break;
+        default:
+            _logger.error("Unsupported stage flags: ", entryPoint.stageFlags);
+            return std::nullopt;
         }
     }
+
+    return std::make_optional(graphicsModule);
 }
 
-std::optional<ShaderLibrary::CompilationResult> ShaderLibrary::_loadEntryPoint(
+std::optional<ShaderLibrary::ComputeModule>
+ShaderLibrary::loadComputeModule(const ShaderModuleDescriptor& descriptor) noexcept {
+    Slang::ComPtr<slang::IBlob> diagnostics;
+    auto module = _session->loadModule(descriptor.name.c_str(), diagnostics.writeRef());
+    if (module == nullptr) {
+        _logger.error(
+            "Failed to load module: ",
+            descriptor.name,
+            "\n",
+            diagnostics ? static_cast<const char*>(diagnostics->getBufferPointer()) : ""
+        );
+        return std::nullopt;
+    }
+
+    ComputeModule computeModule{descriptor.name};
+    if (descriptor.entryPoints.size() != 1) {
+        _logger.error("Compute module must have exactly one entry point: ", descriptor.name);
+        return std::nullopt;
+    }
+    auto result = _loadEntryPoint(module, descriptor.entryPoints[0].name, descriptor.entryPoints[0].stageFlags);
+    if (result == std::nullopt) {
+        _logger.error("Failed to load entry point: ", descriptor.entryPoints[0].name);
+        return std::nullopt;
+    }
+    computeModule.computeFunction = result.value();
+
+    return std::make_optional(computeModule);
+}
+
+std::optional<ShaderLibrary::ShaderFunction> ShaderLibrary::_loadEntryPoint(
     slang::IModule* module, const std::string& name, VkShaderStageFlags stageFlags
 ) noexcept {
-    CompilationResult compilationResult;
+    ShaderFunction shaderFunction;
 
     Slang::ComPtr<slang::IEntryPoint> entryPoint;
     SlangResult result;
@@ -101,7 +149,7 @@ std::optional<ShaderLibrary::CompilationResult> ShaderLibrary::_loadEntryPoint(
 
     const uint32_t* spirvData = static_cast<const uint32_t*>(spirvBlob->getBufferPointer());
     size_t spirvSize = spirvBlob->getBufferSize() / sizeof(uint32_t);
-    compilationResult.spirv.assign(spirvData, spirvData + spirvSize);
+    shaderFunction.spirv.assign(spirvData, spirvData + spirvSize);
 
     slang::ShaderReflection* reflection = linkedProgram->getLayout();
 
@@ -114,7 +162,8 @@ std::optional<ShaderLibrary::CompilationResult> ShaderLibrary::_loadEntryPoint(
 
     ReflectionProcessor::ReflectionContext context{reflection, _globalSession, stageFlags, metadata, _logger};
 
-    compilationResult.reflectionData = _reflectionProcessor->process(context);
+    shaderFunction.reflectionData = _reflectionProcessor->process(context);
+    shaderFunction.name = name;
 
-    return compilationResult;
+    return shaderFunction;
 }

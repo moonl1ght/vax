@@ -2,12 +2,12 @@
 
 #include "descriptorSetLayout.h"
 #include "device.h"
-#include "luna.h"
+#include "logger.h"
 
 namespace vax::vk {
 class DescriptorSetLayoutBuilder final {
   public:
-    explicit DescriptorSetLayoutBuilder(const vax::vk::Device& device, std::string_view name)
+    explicit DescriptorSetLayoutBuilder(const vax::vk::Device& device, std::string name)
         : _device(device)
         , _name(name) {}
 
@@ -18,9 +18,7 @@ class DescriptorSetLayoutBuilder final {
     DescriptorSetLayoutBuilder(DescriptorSetLayoutBuilder&& other) = delete;
     DescriptorSetLayoutBuilder& operator=(DescriptorSetLayoutBuilder&& other) = delete;
 
-    void addBinding(uint32_t binding, VkDescriptorType type, VkShaderStageFlags stageFlags, uint32_t descriptorCount);
-
-    void clear();
+    void addBinding(const VkDescriptorSetLayoutBinding& binding) noexcept;
 
     std::optional<DescriptorSetLayout>
     build(VkDescriptorSetLayoutCreateFlags flags = 0);
@@ -29,6 +27,6 @@ class DescriptorSetLayoutBuilder final {
     vax::Logger _logger = vax::Logger("DescriptorSetLayoutBuilder");
     std::reference_wrapper<const vax::vk::Device> _device;
     std::vector<VkDescriptorSetLayoutBinding> _bindings;
-    std::string_view _name;
+    std::string _name;
 };
 } // namespace vax::vk

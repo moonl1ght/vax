@@ -1,8 +1,11 @@
 #pragma once
 
+#include "descriptorSetLayout.h"
 #include "device.h"
-#include "luna.h"
 #include "pipeline.h"
+#include "pipelinev2.h"
+#include "shaderModule.h"
+#include <optional>
 #include <vulkan/vulkan_core.h>
 
 namespace vax::vk {
@@ -19,12 +22,14 @@ struct DepthStencilState {
 
 class PipelineLayoutBuilder final {
   public:
-    explicit PipelineLayoutBuilder(const vax::vk::Device& device)
+    explicit PipelineLayoutBuilder(const vax::vk::Device& device) noexcept
         : _device(device) {};
 
-    VkPipelineLayout build(std::string name);
+    ~PipelineLayoutBuilder() = default;
 
-    void setDescriptorSetLayouts(const std::vector<VkDescriptorSetLayout>& descriptorSetLayouts) noexcept {
+    VkPipelineLayout build(std::string name) noexcept;
+
+    void setDescriptorSetLayouts(const std::vector<DescriptorSetLayout*>& descriptorSetLayouts) noexcept {
         _descriptorSetLayouts = descriptorSetLayouts;
     }
 
@@ -33,38 +38,30 @@ class PipelineLayoutBuilder final {
     }
 
   private:
-    vax::Logger _logger = vax::Logger("GraphicsPipelineBuilder");
+    vax::Logger _logger = vax::Logger("PipelineLayoutBuilder");
     std::reference_wrapper<const vax::vk::Device> _device;
-    std::vector<VkDescriptorSetLayout> _descriptorSetLayouts;
-    VkPushConstantRange _pushConstantRange = {};
+    std::vector<DescriptorSetLayout*> _descriptorSetLayouts;
+    std::optional<VkPushConstantRange> _pushConstantRange;
 };
 
 class ComputePipelineBuilder final {
   public:
-    explicit ComputePipelineBuilder(const vax::vk::Device& device)
+    explicit ComputePipelineBuilder(const vax::vk::Device& device) noexcept
         : _device(device) {};
 
-    ~ComputePipelineBuilder() {
-        if (_pipelineLayout != VK_NULL_HANDLE && !_isPipelineLayoutTransferred) {
-            vkDestroyPipelineLayout(_device.get().vkDevice, _pipelineLayout, nullptr);
-        }
-    };
+    ~ComputePipelineBuilder() = default;
 
-    std::optional<vax::vk::Pipeline> build(std::string name);
+    std::optional<vax::vk::PipelineV2> build(std::string name) noexcept;
 
-    bool setPipelineLayout(VkPipelineLayoutCreateInfo pipelineLayoutInfo);
+    void setPipelineLayout(const VkPipelineLayout& pipelineLayout) noexcept;
 
-    bool updatePipelineLayout(VkPipelineLayoutCreateInfo pipelineLayoutInfo);
-
-    /// Replace the current shader stage with the new one.
-    void setShaderStage(VkShaderStageFlagBits stage, VkShaderModule module, const char* name);
+    void setShaderModule(const ShaderModule& module, const char* name) noexcept;
 
   private:
     vax::Logger _logger = vax::Logger("ComputePipelineBuilder");
     std::reference_wrapper<const vax::vk::Device> _device;
     VkPipelineLayout _pipelineLayout = VK_NULL_HANDLE;
     VkPipelineShaderStageCreateInfo _shaderStageInfo = {};
-    bool _isPipelineLayoutTransferred = false;
 };
 
 // MARK: - GraphicsPipelineBuilder

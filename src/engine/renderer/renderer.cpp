@@ -12,6 +12,7 @@ using namespace vax;
 using namespace vax::vk;
 
 void Renderer::load() {
+    _vkEngine.get().pipelineManager->load(SRC_PATH("engine/shaders/"));
     auto swapchain = _getSwapchain(0);
     _renderPassGraphManager->setupRenderPassDescriptors(swapchain->swapchainImageFormat);
     auto swapchainRenderPassDescriptor = _renderPassGraphManager->getRenderPassDescriptor("swapchain");
@@ -20,6 +21,7 @@ void Renderer::load() {
     _renderPassGraphManager->setupRenderDestinations(
         *_vkEngine.get().commandManager, *_vkEngine.get().queueManager, *swapchain
     );
+    _vkEngine.get().pipelineManager->prebuildPipelines(vax::vk::defaultPipelines());
 }
 
 void Renderer::setup(Scene* scene) {

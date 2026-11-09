@@ -2,13 +2,13 @@
 
 #include "logger.h"
 #include "reflectionProcessor.h"
+#include "shaderModuleDescriptor.h"
 #include <optional>
 #include <slang-com-ptr.h>
 #include <slang.h>
 #include <string>
 #include <vector>
 #include <vulkan/vulkan.h>
-#include "shaderModuleDescriptor.h"
 
 namespace vax::vk {
 
@@ -20,9 +20,22 @@ class ShaderLibrary final {
         sm_6_6,
     };
 
-    struct CompilationResult {
+    struct ShaderFunction final {
+        std::string name;
+        VkShaderStageFlags stageFlags;
         std::vector<uint32_t> spirv;
         ShaderReflectionData reflectionData;
+    };
+
+    struct GraphicsModule final {
+        std::string name;
+        std::optional<ShaderFunction> vertexFunction;
+        std::optional<ShaderFunction> fragmentFunction;
+    };
+
+    struct ComputeModule final {
+        std::string name;
+        std::optional<ShaderFunction> computeFunction;
     };
 
     ShaderLibrary() noexcept { slang::createGlobalSession(_globalSession.writeRef()); };
@@ -41,7 +54,9 @@ class ShaderLibrary final {
 
     void endSession() noexcept;
 
-    void loadModule(const ShaderModuleDescriptor& descriptor) noexcept;
+    std::optional<GraphicsModule> loadGraphicsModule(const ShaderModuleDescriptor& descriptor) noexcept;
+
+    std::optional<ComputeModule> loadComputeModule(const ShaderModuleDescriptor& descriptor) noexcept;
 
   private:
     vax::Logger _logger = vax::Logger("ShaderLibrary");
@@ -52,7 +67,7 @@ class ShaderLibrary final {
 
     Slang::ComPtr<slang::ISession> _session;
 
-    std::optional<CompilationResult>
+    std::optional<ShaderFunction>
     _loadEntryPoint(slang::IModule* module, const std::string& name, VkShaderStageFlags stageFlags) noexcept;
 };
 

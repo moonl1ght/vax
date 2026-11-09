@@ -5,7 +5,7 @@
 #include <string>
 
 namespace vax::vk {
-struct PipelineDescriptor {
+struct PipelineDescriptor final {
     enum class Type {
         GRAPHICS,
         COMPUTE,
@@ -14,6 +14,16 @@ struct PipelineDescriptor {
     Type type;
     std::string name;
     ShaderModuleDescriptor shaderModuleDescriptor;
-    std::optional<RenderPassDescriptor> renderPassDescriptor;
 };
+
+constexpr std::vector<PipelineDescriptor> defaultPipelines() {
+    return {
+        PipelineDescriptor{
+        PipelineDescriptor::Type::COMPUTE, "jfa_init", ShaderModuleDescriptor::Compute("jfa/jfa", "jfa_init")
+        },
+        PipelineDescriptor{
+        PipelineDescriptor::Type::COMPUTE, "jfa_main", ShaderModuleDescriptor::Compute("jfa/jfa", "jfa_main")
+        },
+    };
+}
 } // namespace vax::vk

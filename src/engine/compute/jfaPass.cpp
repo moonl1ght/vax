@@ -2,7 +2,7 @@
 #include "descriptorSetLayoutBuilder.h"
 #include "jfa.h"
 #include "pipelineBuilder.h"
-#include "shaderModuleBuilder.h"
+#include "shaderModule.h"
 #include "textureFactory.h"
 #include <vulkan/vulkan_core.h>
 
@@ -44,15 +44,15 @@ void JFAPass::setup(std::weak_ptr<vax::vk::RenderDestination> inputRenderDestina
     };
 
     ComputePipelineBuilder pipelineBuilder(_device);
-    pipelineBuilder.setPipelineLayout(initPipelineLayoutInfo);
+    // pipelineBuilder.setPipelineLayout(initPipelineLayoutInfo);
     ShaderModuleBuilder shaderModuleBuilder(_device);
     auto initShaderModule = shaderModuleBuilder.build(SRC_PATH("engine/shaders/out/jfa_init.comp.spv"));
     if (!initShaderModule) {
         _logger.error("Failed to create init JFA shader module!");
         return;
     }
-    pipelineBuilder.setShaderStage(VK_SHADER_STAGE_COMPUTE_BIT, initShaderModule.value(), "main");
-    _initPipeline = pipelineBuilder.build("init_jfa");
+    // pipelineBuilder.setShaderStage(VK_SHADER_STAGE_COMPUTE_BIT, initShaderModule.value(), "main");
+    // _initPipeline = pipelineBuilder.build("init_jfa");
     if (!_initPipeline) {
         _logger.error("Failed to create init JFA pipeline!");
         return;
@@ -76,14 +76,14 @@ void JFAPass::setup(std::weak_ptr<vax::vk::RenderDestination> inputRenderDestina
     };
 
     ComputePipelineBuilder jfaPipelineBuilder(_device);
-    jfaPipelineBuilder.setPipelineLayout(jfaPipelineLayoutInfo);
+    // jfaPipelineBuilder.setPipelineLayout(jfaPipelineLayoutInfo);
     auto jfaShaderModule = shaderModuleBuilder.build(SRC_PATH("engine/shaders/out/jfa.comp.spv"));
     if (!jfaShaderModule) {
         _logger.error("Failed to create JFA shader module!");
         return;
     }
-    jfaPipelineBuilder.setShaderStage(VK_SHADER_STAGE_COMPUTE_BIT, jfaShaderModule.value(), "main");
-    _jfaPipeline = jfaPipelineBuilder.build("jfa");
+    // jfaPipelineBuilder.setShaderStage(VK_SHADER_STAGE_COMPUTE_BIT, jfaShaderModule.value(), "main");
+    // _jfaPipeline = jfaPipelineBuilder.build("jfa");
     if (!_jfaPipeline) {
         _logger.error("Failed to create JFA pipeline!");
         return;

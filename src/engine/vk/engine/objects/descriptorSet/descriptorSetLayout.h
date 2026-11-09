@@ -1,8 +1,6 @@
 #pragma once
 
 #include "device.h"
-#include "luna.h"
-#include <variant>
 
 namespace vax::vk {
 class DescriptorSetLayout final {
@@ -33,8 +31,13 @@ class DescriptorSetLayout final {
 
     VkDescriptorSetLayout getVkDescriptorSetLayout() const { return _vkDescriptorSetLayout; }
 
+    void addEntryPointName(const std::string& entryPointName) { _entryPointNames.push_back(entryPointName); }
+
+    const std::vector<std::string>& getEntryPointNames() const { return _entryPointNames; }
+
   private:
     std::reference_wrapper<const vax::vk::Device> _device;
+    std::vector<std::string> _entryPointNames;
     VkDescriptorSetLayout _vkDescriptorSetLayout = VK_NULL_HANDLE;
 };
 } // namespace vax::vk

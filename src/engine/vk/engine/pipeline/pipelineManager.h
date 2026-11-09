@@ -6,20 +6,21 @@
 #include "pipeline.h"
 #include "pipelineBuilder.h"
 #include "pipelineDescriptor.h"
+#include "pipelinev2.h"
 #include "renderPassDescriptor.h"
 #include "shaderLibrary.h"
-#include "shaderModuleBuilder.h"
+#include "shaderModule.h"
+#include <vector>
 
 namespace vax::vk {
 class PipelineManager final {
   public:
-    PipelineManager(
-        const Device& device, const DescriptorSetManager& descriptorSetManager, ShaderLibrary& shaderLibrary
-    )
+    PipelineManager(const Device& device, const DescriptorSetManager& descriptorSetManager)
         : _device(device)
         , _descriptorSetManager(descriptorSetManager)
-        , _shaderLibrary(shaderLibrary)
-        , _shaderModuleBuilder(device) {};
+        , _shaderModuleBuilder(device) {
+        _descriptorSetManagerV2 = std::make_unique<DescriptorSetManager>(device, MAX_FRAMES_IN_FLIGHT);
+    };
 
     ~PipelineManager() {
         for (auto& [name, pipelineLayout] : _pipelineLayouts) {
@@ -32,11 +33,13 @@ class PipelineManager final {
     PipelineManager(PipelineManager&& other) = delete;
     PipelineManager& operator=(PipelineManager&& other) = delete;
 
-    void loadShaderLibrary(const std::string& shaderDirectory);
+    void load(const std::string& shaderDirectory) noexcept;
 
-    void unloadShaderLibrary();
+    void unload() noexcept;
 
-    void prebuildPipelines(const std::vector<PipelineDescriptor>& pipelineDescriptors);
+    void prebuildPipelines(const std::vector<PipelineDescriptor>& pipelineDescriptors) noexcept;
+
+    const PipelineV2* getPipeline(const std::string& pipelineName) const noexcept;
 
     // Legacy
 
@@ -53,20 +56,16 @@ class PipelineManager final {
   private:
     vax::Logger _logger = vax::Logger("PipelineManager");
 
-    std::reference_wrapper<ShaderLibrary> _shaderLibrary;
+    bool _isLoaded = false;
 
+    std::unique_ptr<ShaderLibrary> _shaderLibrary = std::make_unique<ShaderLibrary>();
     std::unique_ptr<DescriptorSetManager> _descriptorSetManagerV2 = nullptr;
 
-    std::unordered_map<std::string, VkPipeline> _pipelinesV2;
-    std::unordered_map<std::string, VkPipelineLayout> _pipelineLayouts;
+    std::unordered_map<std::string, PipelineV2> _pipelinesV2;
 
-    bool _createComputePipelineLayout(
-        PipelineDescriptor& pipelineDescriptor, ShaderLibrary::CompilationResult compilationResult
-    );
+    void _buildComputePipeline(const PipelineDescriptor& pipelineDescriptor);
 
-    bool _createGraphicsPipelineLayout(
-        PipelineDescriptor& pipelineDescriptor, ShaderLibrary::CompilationResult compilationResult
-    );
+    void _buildGraphicsPipeline(const PipelineDescriptor& pipelineDescriptor);
 
     // LEGACY:
     std::reference_wrapper<const Device> _device;
@@ -75,6 +74,7 @@ class PipelineManager final {
     ShaderModuleBuilder _shaderModuleBuilder;
 
     std::unordered_map<std::string, Pipeline> _pipelines;
+    std::unordered_map<std::string, VkPipelineLayout> _pipelineLayouts;
 
     bool _createBackgroundPipelineLayout(PipelineLayoutName pipelineLayoutName);
     bool _createBasePipelineLayout(PipelineLayoutName pipelineLayoutName);

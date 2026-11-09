@@ -1,6 +1,6 @@
 #include "pipelineManager.h"
 #include "descriptorSetManager.h"
-#include "shaderModuleBuilder.h"
+#include "pipelineBuilder.h"
 #include "shaderUniforms.h"
 #include "vertex.h"
 #include "vkEngine.h"
@@ -9,46 +9,90 @@
 using namespace vax::vk;
 using namespace vax;
 
-void PipelineManager::loadShaderLibrary(const std::string& shaderDirectory) {
-    _shaderLibrary.get().startSession(shaderDirectory);
+void PipelineManager::load(const std::string& shaderDirectory) noexcept {
+    if (_isLoaded) {
+        _logger.error("Pipeline manager already loaded!");
+        return;
+    }
+    _shaderLibrary->startSession(shaderDirectory);
+    _descriptorSetManagerV2->setup();
+    _isLoaded = true;
 }
 
-void PipelineManager::unloadShaderLibrary() { _shaderLibrary.get().endSession(); }
+void PipelineManager::unload() noexcept {
+    _shaderLibrary->endSession();
+    _isLoaded = false;
+}
 
-void PipelineManager::prebuildPipelines(const std::vector<PipelineDescriptor>& pipelineDescriptors) {
+void PipelineManager::prebuildPipelines(const std::vector<PipelineDescriptor>& pipelineDescriptors) noexcept {
+    if (!_isLoaded) {
+        _logger.error("Pipeline manager not loaded!");
+        return;
+    }
     for (const PipelineDescriptor& pipelineDescriptor : pipelineDescriptors) {
-        _shaderLibrary.get().loadModule(pipelineDescriptor.shaderModuleDescriptor);
+        switch (pipelineDescriptor.type) {
+        case PipelineDescriptor::Type::COMPUTE:
+            _buildComputePipeline(pipelineDescriptor);
+            break;
+        case PipelineDescriptor::Type::GRAPHICS:
+            _buildGraphicsPipeline(pipelineDescriptor);
+            break;
+        }
     }
 }
 
-bool vax::vk::PipelineManager::_createComputePipelineLayout(
-    PipelineDescriptor& pipelineDescriptor, ShaderLibrary::CompilationResult compilationResult
-) {
+void PipelineManager::_buildComputePipeline(const PipelineDescriptor& pipelineDescriptor) {
+    auto computeModule = _shaderLibrary->loadComputeModule(pipelineDescriptor.shaderModuleDescriptor);
+    if (!computeModule || !computeModule->computeFunction) [[unlikely]] {
+        _logger.error("Failed to load compute module: ", pipelineDescriptor.shaderModuleDescriptor.name);
+        return;
+    }
+    auto descriptorSetLayouts = _descriptorSetManagerV2->addComputeModuleLayouts(computeModule.value());
     auto pipelineLayoutBuilder = vax::vk::PipelineLayoutBuilder(_device.get());
-    // pipelineLayoutBuilder.setDescriptorSetLayouts(compilationResult.reflectionData.bindings);
-    // pipelineLayoutBuilder.setPushConstantRange(compilationResult.reflectionData.pushConstants);
+    pipelineLayoutBuilder.setDescriptorSetLayouts(descriptorSetLayouts.computeLayouts);
+    if (computeModule.value().computeFunction.value().reflectionData.pushConstants) {
+        pipelineLayoutBuilder.setPushConstantRange(
+            computeModule.value().computeFunction.value().reflectionData.pushConstants.value()
+        );
+    }
     auto pipelineLayout = pipelineLayoutBuilder.build(pipelineDescriptor.name);
     if (!pipelineLayout) {
         _logger.error("Failed to create compute pipeline layout!");
-        return false;
+        return;
     }
-    _pipelineLayouts.emplace(pipelineDescriptor.name, pipelineLayout);
-    return true;
+    ComputePipelineBuilder pipelineBuilder(_device.get());
+    ShaderModuleBuilder shaderModuleBuilder(_device.get());
+    pipelineBuilder.setPipelineLayout(pipelineLayout);
+    auto shaderModule = shaderModuleBuilder.build(computeModule->computeFunction.value().spirv);
+    if (!shaderModule) {
+        _logger.error("Failed to create compute shader module!");
+        return;
+    }
+    pipelineBuilder.setShaderModule(shaderModule.value(), "main");
+    auto pipeline = pipelineBuilder.build(pipelineDescriptor.name);
+    if (!pipeline) {
+        _logger.error("Failed to create compute pipeline!");
+        return;
+    }
+    _pipelinesV2.emplace(pipelineDescriptor.name, std::move(pipeline.value()));
 }
 
-bool vax::vk::PipelineManager::_createGraphicsPipelineLayout(
-    PipelineDescriptor& pipelineDescriptor, ShaderLibrary::CompilationResult compilationResult
-) {
-    // auto pipelineBuilder = vax::vk::GraphicsPipelineBuilder(_device.get());
-    // auto name = vax::vk::Pipeline::pipelineLayoutNameToString(pipelineLayoutName);
-    // auto pipelineLayout = pipelineBuilder.buildPipelineLayout(name);
-    // if (!pipelineLayout) {
-    //     _logger.error("Failed to create background pipeline layout!");
-    //     return false;
-    // }
-    // _pipelineLayouts.emplace(name, pipelineLayout);
-    return true;
-}   
+void PipelineManager::_buildGraphicsPipeline(const PipelineDescriptor& pipelineDescriptor) {
+    auto graphicsModule = _shaderLibrary->loadGraphicsModule(pipelineDescriptor.shaderModuleDescriptor);
+    if (!graphicsModule) [[unlikely]] {
+        _logger.error("Failed to load graphics module: ", pipelineDescriptor.shaderModuleDescriptor.name);
+        return;
+    }
+}
+
+const PipelineV2* PipelineManager::getPipeline(const std::string& pipelineName) const noexcept {
+    auto it = _pipelinesV2.find(pipelineName);
+    if (it == _pipelinesV2.end()) {
+        _logger.error("Pipeline not found! ", pipelineName);
+        return nullptr;
+    }
+    return &it->second;
+}
 
 // Legacy
 

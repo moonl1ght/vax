@@ -1,6 +1,20 @@
-#include "shaderModuleBuilder.h"
+#include "shaderModule.h"
 
 using namespace vax::vk;
+
+std::optional<ShaderModule> ShaderModuleBuilder::build(const std::vector<uint32_t>& spirv) {
+    VkShaderModuleCreateInfo createInfo{
+        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+        .codeSize = spirv.size() * sizeof(uint32_t),
+        .pCode = spirv.data(),
+    };
+    VkShaderModule shaderModule;
+    if (!VK_CHECK(vkCreateShaderModule(_device.get().vkDevice, &createInfo, nullptr, &shaderModule))) {
+        _logger.error("Failed to build shader module!");
+        return std::nullopt;
+    }
+    return ShaderModule(_device.get(), shaderModule);
+}
 
 std::optional<VkShaderModule> ShaderModuleBuilder::build(const std::string& filename) {
     auto code = _readFile(filename);

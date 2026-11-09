@@ -15,7 +15,7 @@ void DescriptorSetManager::setup() noexcept {
     _createDescriptorPool(uabPoolDescriptor);
 }
 
-void DescriptorSetManager::_createDescriptorPool(const PoolDescriptor& poolDescriptor) {
+void DescriptorSetManager::_createDescriptorPool(const PoolDescriptor& poolDescriptor) noexcept {
     VkDescriptorPoolCreateFlags flags = 0;
     bool isUAB = false;
     if (poolDescriptor.type == PoolType::UAB && poolDescriptor.poolSupportsUpdateAfterBind()) {
@@ -39,6 +39,113 @@ void DescriptorSetManager::_createDescriptorPool(const PoolDescriptor& poolDescr
     } else {
         _descriptorPools.push_back(descriptorPool);
     }
+}
+
+void DescriptorSetManager::cleanupV2() noexcept {
+    for (VkDescriptorPool pool : _descriptorPools) {
+        vkDestroyDescriptorPool(_device.get().vkDevice, pool, nullptr);
+    }
+    for (VkDescriptorPool pool : _uabDescriptorPools) {
+        vkDestroyDescriptorPool(_device.get().vkDevice, pool, nullptr);
+    }
+}
+
+DescriptorSetManager::GraphicsModuleLayouts
+DescriptorSetManager::addGraphicsModuleLayouts(const ShaderLibrary::GraphicsModule& graphicsModule) noexcept {
+    GraphicsModuleLayouts layouts;
+    layouts.vertexLayouts = _addLayoutsForFunction(*graphicsModule.vertexFunction);
+    layouts.fragmentLayouts = _addLayoutsForFunction(*graphicsModule.fragmentFunction);
+    return layouts;
+}
+
+DescriptorSetManager::ComputeModuleLayouts
+DescriptorSetManager::addComputeModuleLayouts(const ShaderLibrary::ComputeModule& computeModule) noexcept {
+    ComputeModuleLayouts layouts;
+    layouts.computeLayouts = _addLayoutsForFunction(*computeModule.computeFunction);
+    return layouts;
+}
+
+std::vector<DescriptorSetLayout*>
+DescriptorSetManager::_addLayoutsForFunction(const ShaderLibrary::ShaderFunction& function) noexcept {
+    std::vector<DescriptorSetLayout*> descriptorSetLayouts;
+    for (const auto& set : function.reflectionData.sets) {
+        auto it = _descriptorSetLayoutsV2.find(set);
+        if (it == _descriptorSetLayoutsV2.end()) {
+            auto layoutBuilder = DescriptorSetLayoutBuilder(_device.get(), set.name);
+            for (const auto& binding : set.bindings) {
+                layoutBuilder.addBinding(binding);
+            }
+            auto layout = layoutBuilder.build();
+            if (!layout) {
+                _logger.error("Failed to create descriptor set layout!");
+                continue;
+            }
+            _descriptorSetLayoutsV2.insert({set, std::move(layout.value())});
+            _descriptorSetNameLayoutReflectionDataMap.insert({set.name, set});
+            descriptorSetLayouts.push_back(&_descriptorSetLayoutsV2.at(set));
+        } else {
+            it->second.addEntryPointName(function.name);
+            descriptorSetLayouts.push_back(&it->second);
+        }
+    }
+    return descriptorSetLayouts;
+}
+
+std::optional<DescriptorSetWriter>
+DescriptorSetManager::getDescriptorSetWriter(const std::string& name, uint32_t frameIndex) noexcept {
+    auto descriptorSets = _createOrFindDescriptorSets(name);
+    if (descriptorSets.empty()) {
+        return std::nullopt;
+    }
+    return std::make_optional<DescriptorSetWriter>(_device.get(), descriptorSets[frameIndex]);
+}
+
+std::optional<DescriptorSetHandler>
+DescriptorSetManager::getDescriptorSetHandler(const std::string& name, uint32_t frameIndex) noexcept {
+    auto descriptorSets = _createOrFindDescriptorSets(name);
+    if (descriptorSets.empty()) {
+        return std::nullopt;
+    }
+    return std::make_optional<DescriptorSetHandler>(descriptorSets[frameIndex]);
+}
+
+std::vector<VkDescriptorSet> DescriptorSetManager::_createOrFindDescriptorSets(const std::string& name) noexcept {
+    auto it = _descriptorSets.find(name);
+    if (it == _descriptorSets.end()) {
+        return _createDescriptorSets(name);
+    }
+    return it->second;
+}
+
+std::vector<VkDescriptorSet> DescriptorSetManager::_createDescriptorSets(const std::string& name) noexcept {
+    std::vector<VkDescriptorSet> descriptorSets;
+    auto layoutKey = _descriptorSetNameLayoutReflectionDataMap.find(name);
+    if (layoutKey == _descriptorSetNameLayoutReflectionDataMap.end()) {
+        return {};
+    }
+    auto setLayout = _descriptorSetLayoutsV2.find(layoutKey->second);
+    if (setLayout == _descriptorSetLayoutsV2.end()) {
+        return {};
+    }
+    std::vector<VkDescriptorSetLayout> layouts(
+        static_cast<size_t>(_maxFramesInFlight), setLayout->second.getVkDescriptorSetLayout()
+    );
+    VkDescriptorPool descriptorPool =
+        layoutKey->second.isUpdateAfterBind ? _uabDescriptorPools.back() : _descriptorPools.back();
+    VkDescriptorSetAllocateInfo allocInfo{
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+        .descriptorPool = descriptorPool,
+        .descriptorSetCount = static_cast<uint32_t>(_maxFramesInFlight),
+        .pSetLayouts = layouts.data(),
+    };
+    descriptorSets.resize(_maxFramesInFlight, VK_NULL_HANDLE);
+    auto result = vkAllocateDescriptorSets(_device.get().vkDevice, &allocInfo, descriptorSets.data());
+    if (result != VK_SUCCESS) {
+        // TODO: Handle new pool creation
+        _logger.error("Failed to allocate descriptor set!");
+        return {};
+    }
+    return descriptorSets;
 }
 
 // LEGACY
@@ -126,12 +233,14 @@ bool DescriptorSetManager::_createDescriptorSetLayouts(const std::vector<Descrip
         auto descriptorSetLayoutName = getSetLayoutName(descriptorSetInfo.layoutName);
         DescriptorSetLayoutBuilder builder(_device.get(), descriptorSetLayoutName);
         for (const auto& descriptorLayoutResourceInfo : descriptorSetLayoutInfo) {
-            builder.addBinding(
-                descriptorLayoutResourceInfo.binding,
-                descriptorLayoutResourceInfo.type,
-                descriptorLayoutResourceInfo.stageFlags,
-                descriptorLayoutResourceInfo.descriptorCount
-            );
+            VkDescriptorSetLayoutBinding binding{
+                .binding = descriptorLayoutResourceInfo.binding,
+                .descriptorType = descriptorLayoutResourceInfo.type,
+                .descriptorCount = descriptorLayoutResourceInfo.descriptorCount,
+                .stageFlags = descriptorLayoutResourceInfo.stageFlags,
+                .pImmutableSamplers = nullptr,
+            };
+            builder.addBinding(binding);
         }
         auto layout =
             builder.build(descriptorSetInfo.isUABPool ? VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT : 0);
