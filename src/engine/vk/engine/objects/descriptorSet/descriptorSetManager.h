@@ -6,6 +6,7 @@
 #include "descriptorSetWriter.h"
 #include "device.h"
 #include "luna.h"
+#include "poolDescriptor.h"
 #include <unordered_map>
 
 namespace vax::vk {
@@ -22,6 +23,10 @@ class DescriptorSetManager final {
     DescriptorSetManager(DescriptorSetManager&& other) = delete;
     DescriptorSetManager& operator=(DescriptorSetManager&& other) = delete;
 
+    void setup() noexcept;
+
+    // LEGACY
+
     bool setup(std::vector<DescriptorSetInfo> descriptorSetInfos);
 
     void cleanup();
@@ -37,6 +42,13 @@ class DescriptorSetManager final {
   private:
     vax::Logger _logger = vax::Logger("DescriptorSetManager");
     std::reference_wrapper<const vax::vk::Device> _device;
+
+    std::vector<VkDescriptorPool> _uabDescriptorPools;
+    std::vector<VkDescriptorPool> _descriptorPools;
+
+    void _createDescriptorPool(const PoolDescriptor& poolDescriptor);
+
+    // LEGACY
     const int32_t _maxFramesInFlight;
 
     std::unordered_map<std::string_view, DescriptorSetInfo> _descriptorSetInfos;
@@ -50,7 +62,6 @@ class DescriptorSetManager final {
 
     bool _createDescriptorSetLayouts(const std::vector<DescriptorSetInfo>& descriptorSetInfos);
 
-    std::vector<VkDescriptorSet>
-    _createDescriptorSets(const CommonDescriptorSetName& setName);
+    std::vector<VkDescriptorSet> _createDescriptorSets(const CommonDescriptorSetName& setName);
 };
 } // namespace vax::vk

@@ -71,6 +71,11 @@ struct BindingLocation final {
     uint32_t binding = 0;
 };
 
+bool hasNoUabAttribute(slang::VariableLayoutReflection* var, ReflectionProcessor::ReflectionContext& context) {
+    slang::VariableReflection* variable = var->getVariable();
+    return variable && variable->findUserAttributeByName(context.globalSession, "NoUAB");
+}
+
 BindingLocation accumulateLocation(slang::VariableLayoutReflection* var, BindingLocation base) {
     constexpr auto slot = slang::ParameterCategory::DescriptorTableSlot;
     return {
@@ -85,8 +90,16 @@ void addBinding(
     ShaderReflectionData& data,
     BindingLocation location,
     VkDescriptorType type,
-    uint32_t count
+    uint32_t count,
+    bool noUab
 ) {
+    if (noUab) {
+        if (location.set >= data.noUabSets.size()) {
+            data.noUabSets.resize(location.set + 1, false);
+        }
+        data.noUabSets[location.set] = true;
+    }
+
     bool isUsed = false;
     context.metadata->isParameterLocationUsed(
         SLANG_PARAMETER_CATEGORY_DESCRIPTOR_TABLE_SLOT, location.set, location.binding, isUsed
@@ -100,7 +113,8 @@ void addBinding(
         bindings.resize(location.set + 1);
     }
 
-    for (VkDescriptorSetLayoutBinding& existing : bindings[location.set]) {
+    auto& setBindings = bindings[location.set];
+    for (VkDescriptorSetLayoutBinding& existing : setBindings) {
         if (existing.binding != location.binding) {
             continue;
         }
@@ -117,7 +131,7 @@ void addBinding(
     binding.descriptorType = type;
     binding.descriptorCount = count;
     binding.stageFlags = context.stageFlags;
-    bindings[location.set].push_back(binding);
+    setBindings.push_back(binding);
 }
 
 void addPushConstantRange(ShaderReflectionData& data, uint32_t offset, uint32_t size, VkShaderStageFlags stageFlags) {
@@ -143,15 +157,17 @@ void collectParameter(
     slang::VariableLayoutReflection* var,
     BindingLocation base,
     ReflectionProcessor::ReflectionContext& context,
-    ShaderReflectionData& data
+    ShaderReflectionData& data,
+    bool noUab = false
 ) {
     const BindingLocation location = accumulateLocation(var, base);
+    noUab = noUab || hasNoUabAttribute(var, context);
     slang::TypeLayoutReflection* typeLayout = var->getTypeLayout();
 
     switch (typeLayout->getKind()) {
     case slang::TypeReflection::Kind::Struct:
         for (unsigned int i = 0; i < typeLayout->getFieldCount(); ++i) {
-            collectParameter(typeLayout->getFieldByIndex(i), location, context, data);
+            collectParameter(typeLayout->getFieldByIndex(i), location, context, data, noUab);
         }
         return;
     case slang::TypeReflection::Kind::ConstantBuffer:
@@ -165,10 +181,15 @@ void collectParameter(
         slang::VariableLayoutReflection* container = typeLayout->getContainerVarLayout();
         if (container->getTypeLayout()->getSize(slang::ParameterCategory::DescriptorTableSlot) > 0) {
             addBinding(
-                context, data, accumulateLocation(container, location), resolveConstantBufferType(var, context), 1
+                context,
+                data,
+                accumulateLocation(container, location),
+                resolveConstantBufferType(var, context),
+                1,
+                noUab
             );
         }
-        collectParameter(typeLayout->getElementVarLayout(), location, context, data);
+        collectParameter(typeLayout->getElementVarLayout(), location, context, data, noUab);
         return;
     }
     default:
@@ -185,7 +206,7 @@ void collectParameter(
         context.logger.warning("Unsupported descriptor type of shader parameter: ", name ? name : "<unnamed>");
         return;
     }
-    addBinding(context, data, location, bindingInfo.type, bindingInfo.count);
+    addBinding(context, data, location, bindingInfo.type, bindingInfo.count, noUab);
 }
 
 ShaderReflectionData ReflectionProcessor::process(ReflectionContext& context) const noexcept {

@@ -1,4 +1,5 @@
 import uniforms;
+import utils.customAttributes;
 
 struct JFAPushConstants {
     uint step;
@@ -111,10 +112,12 @@ struct JFAStep {
 
 [shader("compute")]
 [numthreads(16, 16, 1)]
-void jfa_init(uint3 dtid: SV_DispatchThreadID, uniform ParameterBlock<JFAInit> block) { block.execute(dtid); }
+void jfa_init(uint3 dtid: SV_DispatchThreadID, [NoUAB] uniform ParameterBlock<JFAInit> block) { block.execute(dtid); }
 
 [shader("compute")]
 [numthreads(16, 16, 1)]
-void jfa_main(uint3 dtid: SV_DispatchThreadID, uniform JFAPushConstants pc, uniform ParameterBlock<JFAStep> block) {
+void jfa_main(uint3 dtid: SV_DispatchThreadID, uniform JFAPushConstants pc, [
+    NoUAB
+] uniform ParameterBlock<JFAStep> block) {
     block.execute(dtid, pc);
 }
