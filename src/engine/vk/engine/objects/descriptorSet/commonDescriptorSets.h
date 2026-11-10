@@ -16,10 +16,6 @@ enum class CommonDescriptorSetName {
     MAIN_FB_INPUT_MASK_0,
     MAIN_FB_INPUT_MASK_1,
     AGENT_CAMERA_FB,
-
-    JFA_INIT,
-    JFA_MAIN_0,
-    JFA_MAIN_1,
 };
 
 enum class DescriptorSetLayoutName {
@@ -28,7 +24,6 @@ enum class DescriptorSetLayoutName {
     FINAL_BLEND,
     FINAL_BLEND_SIMPLE,
     SINGLE_STORAGE_IMAGE,
-    JFA,
     PER_DRAW,
 };
 
@@ -56,10 +51,6 @@ constexpr std::vector<DescriptorSetInfo> allDescriptorSets() {
         {CommonDescriptorSetName::MAIN_FB_INPUT_MASK_0, DescriptorSetLayoutName::SINGLE_STORAGE_IMAGE, false},
         {CommonDescriptorSetName::MAIN_FB_INPUT_MASK_1, DescriptorSetLayoutName::SINGLE_STORAGE_IMAGE, false},
         {CommonDescriptorSetName::AGENT_CAMERA_FB, DescriptorSetLayoutName::FINAL_BLEND_SIMPLE, false},
-
-        {CommonDescriptorSetName::JFA_INIT, DescriptorSetLayoutName::JFA, false},
-        {CommonDescriptorSetName::JFA_MAIN_0, DescriptorSetLayoutName::JFA, false},
-        {CommonDescriptorSetName::JFA_MAIN_1, DescriptorSetLayoutName::JFA, false},
     };
 }
 
@@ -77,8 +68,6 @@ constexpr std::string getSetLayoutName(const DescriptorSetLayoutName& setLayoutN
         return "single_storage_image";
     case DescriptorSetLayoutName::PER_DRAW:
         return "per_draw";
-    case DescriptorSetLayoutName::JFA:
-        return "jfa";
     default:
         return "unknown_descriptor_set_layout";
     }
@@ -102,12 +91,6 @@ constexpr std::string getCommonDescriptorSetName(const CommonDescriptorSetName& 
         return "main_fb_input_mask_1";
     case CommonDescriptorSetName::AGENT_CAMERA_FB:
         return "agent_camera_fb";
-    case CommonDescriptorSetName::JFA_INIT:
-        return "jfa_init";
-    case CommonDescriptorSetName::JFA_MAIN_0:
-        return "jfa_main_0";
-    case CommonDescriptorSetName::JFA_MAIN_1:
-        return "jfa_main_1";
     }
     return "unknown_descriptor_set";
 }
@@ -217,28 +200,6 @@ getDescriptorLayoutResources(const DescriptorSetLayoutName& setLayoutName) {
             .descriptorCount = 1,
             },
         };
-    case DescriptorSetLayoutName::JFA: {
-        return {
-            {
-            .binding = 0,
-            .type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-            .descriptorCount = 1,
-            },
-            {
-            .binding = 1,
-            .type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-            .descriptorCount = 1,
-            },
-            {
-            .binding = 2,
-            .type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-            .descriptorCount = 1,
-            },
-        };
-    }
     default:
         return {};
     }
@@ -275,10 +236,6 @@ getDescriptorLayoutPoolRequirements(const DescriptorSetLayoutName& setLayoutName
     case DescriptorSetLayoutName::PER_DRAW:
         return {
             {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1},
-        };
-    case DescriptorSetLayoutName::JFA:
-        return {
-            {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 3},
         };
     default:
         return {};

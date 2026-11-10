@@ -78,13 +78,11 @@ DescriptorSetManager::_addLayoutsForFunction(const ShaderLibrary::ShaderFunction
     std::vector<DescriptorSetLayout*> descriptorSetLayouts;
     descriptorSetLayouts.reserve(sets.size());
     for (const auto& set : sets) {
-        if (set.set != descriptorSetLayouts.size()) {
-            _logger.error("Set ", set.set, " is not in the correct position for ", function.name);
-            return std::nullopt;
-        }
         DescriptorSetLayout* layout = _getOrCreateSetLayout(set);
         if (!layout) {
-            _logger.error("Failed to create descriptor set layout for set ", set.set, " in ", function.name);
+            _logger.error(
+                "Failed to create descriptor set layout for set ", descriptorSetLayouts.size(), " in ", function.name
+            );
             return std::nullopt;
         }
         descriptorSetLayouts.push_back(layout);

@@ -94,14 +94,6 @@ void addBinding(
     uint32_t count,
     bool noUab
 ) {
-    bool isUsed = false;
-    context.metadata->isParameterLocationUsed(
-        SLANG_PARAMETER_CATEGORY_DESCRIPTOR_TABLE_SLOT, location.set, location.binding, isUsed
-    );
-    if (!isUsed) {
-        return;
-    }
-
     auto& sets = data.sets;
     if (location.set >= sets.size()) {
         sets.resize(location.set + 1);
@@ -127,7 +119,7 @@ void addBinding(
     binding.binding = location.binding;
     binding.descriptorType = type;
     binding.descriptorCount = count;
-    binding.stageFlags = context.stageFlags;
+    binding.stageFlags = VK_SHADER_STAGE_ALL;
     setBindings.push_back(binding);
 }
 
@@ -239,13 +231,10 @@ ShaderReflectionData ReflectionProcessor::process(ReflectionContext& context) co
         collectParameter(param, entryPointBase, context, data);
     }
 
-    for (size_t i = 0; i < data.sets.size(); ++i) {
-        ShaderReflectionData::SetReflectionData& set = data.sets[i];
-        set.set = static_cast<uint32_t>(i);
+    for (ShaderReflectionData::SetReflectionData& set : data.sets) {
         std::sort(set.bindings.begin(), set.bindings.end(), [](const auto& a, const auto& b) {
             return a.binding < b.binding;
         });
     }
-    std::erase_if(data.sets, [](const auto& set) { return set.bindings.empty(); });
     return data;
 }
