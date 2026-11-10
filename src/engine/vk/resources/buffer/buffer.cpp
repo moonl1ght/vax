@@ -208,7 +208,6 @@ template <typename T> std::optional<T*> Buffer<T>::mappedMemory() const {
 template class vax::vk::Buffer<void>;
 template class vax::vk::Buffer<uint32_t>;
 template class vax::vk::Buffer<vax::vk::Vertex>;
-template class vax::vk::Buffer<vax::vk::VertexPUV>;
 template class vax::vk::Buffer<PBRMaterial>;
 template class vax::vk::Buffer<InstanceData>;
 template class vax::vk::Buffer<EnvironmentMapData>;

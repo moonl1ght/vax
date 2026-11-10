@@ -10,7 +10,6 @@ namespace vax::vk {
 class MeshManager final {
   public:
     using VertexBuffer = Buffer<Vertex>;
-    using VertexPUVBuffer = Buffer<VertexPUV>;
     using IndexBuffer = Buffer<uint32_t>;
     using MeshResource = std::pair<MeshHandle, Mesh*>;
 
@@ -37,9 +36,9 @@ class MeshManager final {
 
     std::optional<MeshResource> find(MeshHandle handle);
 
-    VkBuffer globalVertexBuffer(size_t bufferIndex) const { return _globalVertexBuffers[bufferIndex]->vkBuffer(); }
+    const VertexBuffer& globalVertexBuffer(size_t bufferIndex) const { return *_globalVertexBuffers[bufferIndex]; }
 
-    VkBuffer globalIndexBuffer(size_t bufferIndex) const { return _globalIndexBuffers[bufferIndex]->vkBuffer(); }
+    const IndexBuffer& globalIndexBuffer(size_t bufferIndex) const { return *_globalIndexBuffers[bufferIndex]; }
 
     // TODO: implement mesh deletion with freeing memory
     // bool deleteMesh(MeshHandle handle);

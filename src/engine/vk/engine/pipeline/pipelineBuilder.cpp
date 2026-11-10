@@ -168,10 +168,10 @@ std::optional<vax::vk::Pipeline> GraphicsPipelineBuilder::build(std::string name
     };
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-        .vertexBindingDescriptionCount = 1,
-        .pVertexBindingDescriptions = &_bindingDescription,
-        .vertexAttributeDescriptionCount = static_cast<uint32_t>(_attributeDescriptions.size()),
-        .pVertexAttributeDescriptions = _attributeDescriptions.data(),
+        .vertexBindingDescriptionCount = 0,
+        .pVertexBindingDescriptions = nullptr,
+        .vertexAttributeDescriptionCount = 0,
+        .pVertexAttributeDescriptions = nullptr,
     };
     VkGraphicsPipelineCreateInfo pipelineInfo{
         .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -217,14 +217,6 @@ void GraphicsPipelineBuilder::addShaderStage(VkShaderStageFlagBits stage, VkShad
         .pName = name,
     };
     _shaderStages.push_back(shaderStageInfo);
-}
-
-void GraphicsPipelineBuilder::addVertexInputInfo(
-    VkVertexInputBindingDescription bindingDescription,
-    std::vector<VkVertexInputAttributeDescription> attributeDescriptions
-) {
-    _bindingDescription = bindingDescription;
-    _attributeDescriptions = std::move(attributeDescriptions);
 }
 
 void GraphicsPipelineBuilder::addDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout) {

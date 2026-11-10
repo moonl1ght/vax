@@ -128,5 +128,4 @@ template <typename VertexType> class MeshObject final {
 };
 
 using Mesh = MeshObject<Vertex>;
-using MeshPUV = MeshObject<VertexPUV>;
 } // namespace vax::vk

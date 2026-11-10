@@ -6,9 +6,10 @@ struct Coordinates {
 };
 
 [shader("vertex")]
-Coordinates vertMain(VertexInput input) {
+Coordinates vertMain(uint vertexIndex: SV_VulkanVertexID) {
     Coordinates output;
-    output.position = float4(input.position, 1.0);
-    output.uv = input.uv;
+    float2 uv = float2((vertexIndex << 1) & 2, vertexIndex & 2);
+    output.position = float4(uv * 2.0 - 1.0, 0.0, 1.0);
+    output.uv = uv;
     return output;
 }

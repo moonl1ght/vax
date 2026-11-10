@@ -223,12 +223,6 @@ bool PipelineManager::_createBackgroundPipeline(const RenderPassDescriptor& rend
                 .depthWriteEnable = false,
                 .depthCompareOp = VK_COMPARE_OP_GREATER_OR_EQUAL,
             });
-            auto bindingDescription = Vertex::getBindingDescription();
-            auto attributeDescriptions = Vertex::getAttributeDescriptions();
-            auto attributeDescriptionsVector = std::vector<VkVertexInputAttributeDescription>(
-                attributeDescriptions.begin(), attributeDescriptions.end()
-            );
-            pipelineBuilder.addVertexInputInfo(bindingDescription, attributeDescriptionsVector);
         }
     );
 }
@@ -241,12 +235,6 @@ bool PipelineManager::_createShadowPipeline(const RenderPassDescriptor& renderPa
         PipelineName::SHADOW,
         PipelineLayoutName::BASE,
         [](GraphicsPipelineBuilder& pipelineBuilder) {
-            auto bindingDescription = Vertex::getBindingDescription();
-            auto attributeDescriptions = Vertex::getAttributeDescriptions();
-            auto attributeDescriptionsVector = std::vector<VkVertexInputAttributeDescription>(
-                attributeDescriptions.begin(), attributeDescriptions.end()
-            );
-            pipelineBuilder.addVertexInputInfo(bindingDescription, attributeDescriptionsVector);
         }
     );
 }
@@ -259,12 +247,6 @@ bool PipelineManager::_createFinalBlendPipeline(const RenderPassDescriptor& rend
         PipelineName::FINAL_BLEND,
         PipelineLayoutName::FINAL_BLEND,
         [](GraphicsPipelineBuilder& pipelineBuilder) {
-            auto bindingDescription = Vertex::getBindingDescription();
-            auto attributeDescriptions = Vertex::getAttributeDescriptions();
-            auto attributeDescriptionsVector = std::vector<VkVertexInputAttributeDescription>(
-                attributeDescriptions.begin(), attributeDescriptions.end()
-            );
-            pipelineBuilder.addVertexInputInfo(bindingDescription, attributeDescriptionsVector);
             pipelineBuilder.setDepthStencilState({
                 .depthWriteEnable = false,
                 .depthCompareOp = VK_COMPARE_OP_GREATER_OR_EQUAL,
@@ -281,12 +263,6 @@ bool PipelineManager::_createAgentCameraFBPipeline(const RenderPassDescriptor& r
         PipelineName::AGENT_CAMERA_FB,
         PipelineLayoutName::AGENT_CAMERA_FB,
         [](GraphicsPipelineBuilder& pipelineBuilder) {
-            auto bindingDescription = Vertex::getBindingDescription();
-            auto attributeDescriptions = Vertex::getAttributeDescriptions();
-            auto attributeDescriptionsVector = std::vector<VkVertexInputAttributeDescription>(
-                attributeDescriptions.begin(), attributeDescriptions.end()
-            );
-            pipelineBuilder.addVertexInputInfo(bindingDescription, attributeDescriptionsVector);
             pipelineBuilder.setDepthStencilState({
                 .depthWriteEnable = false,
                 .depthCompareOp = VK_COMPARE_OP_GREATER_OR_EQUAL,
@@ -303,12 +279,6 @@ bool PipelineManager::_createPBRPipeline(const RenderPassDescriptor& renderPassD
         PipelineName::PBR,
         PipelineLayoutName::BASE,
         [](GraphicsPipelineBuilder& pipelineBuilder) {
-            auto bindingDescription = Vertex::getBindingDescription();
-            auto attributeDescriptions = Vertex::getAttributeDescriptions();
-            auto attributeDescriptionsVector = std::vector<VkVertexInputAttributeDescription>(
-                attributeDescriptions.begin(), attributeDescriptions.end()
-            );
-            pipelineBuilder.addVertexInputInfo(bindingDescription, attributeDescriptionsVector);
         }
     );
 }
@@ -321,12 +291,6 @@ bool PipelineManager::_createAgentCameraPipeline(const RenderPassDescriptor& ren
         PipelineName::AGENT_CAMERA,
         PipelineLayoutName::BASE,
         [](GraphicsPipelineBuilder& pipelineBuilder) {
-            auto bindingDescription = Vertex::getBindingDescription();
-            auto attributeDescriptions = Vertex::getAttributeDescriptions();
-            auto attributeDescriptionsVector = std::vector<VkVertexInputAttributeDescription>(
-                attributeDescriptions.begin(), attributeDescriptions.end()
-            );
-            pipelineBuilder.addVertexInputInfo(bindingDescription, attributeDescriptionsVector);
         }
     );
 }
@@ -339,12 +303,6 @@ bool PipelineManager::_createBasePipeline(const RenderPassDescriptor& renderPass
         PipelineName::BASE,
         PipelineLayoutName::BASE,
         [](GraphicsPipelineBuilder& pipelineBuilder) {
-            auto bindingDescription = Vertex::getBindingDescription();
-            auto attributeDescriptions = Vertex::getAttributeDescriptions();
-            auto attributeDescriptionsVector = std::vector<VkVertexInputAttributeDescription>(
-                attributeDescriptions.begin(), attributeDescriptions.end()
-            );
-            pipelineBuilder.addVertexInputInfo(bindingDescription, attributeDescriptionsVector);
         }
     );
 }

@@ -33,32 +33,23 @@ TextureCube globalCubeTextures[MAX_CUBE_MAP_TEXTURES];
 Texture2D globalShadowTextures[MAX_SHADOW_TEXTURES];
 
 struct VertexInput {
-    [vk::location(VertexInputIndices::VERTEX_INPUT_POSITION_INDEX)]
     float3 position;
 
-    [vk::location(VertexInputIndices::VERTEX_INPUT_PACKED_COLOR_INDEX)]
     uint packedColor;
 
-    [vk::location(VertexInputIndices::VERTEX_INPUT_TANGENT_INDEX)]
     float4 tangent;
 
-    [vk::location(VertexInputIndices::VERTEX_INPUT_NORMAL_INDEX)]
     float3 normal;
 
-    [vk::location(VertexInputIndices::VERTEX_INPUT_UV_INDEX)]
+    uint padding;
+
     float2 uv;
 
-    [vk::location(VertexInputIndices::VERTEX_INPUT_UV_2_INDEX)]
     float2 uv2;
 };
 
-struct VertexInputPUV {
-    [vk::location(VertexInputIndicesPUV::VERTEX_INPUT_PUV_POSITION_INDEX)]
-    float3 position;
-
-    [vk::location(VertexInputIndicesPUV::VERTEX_INPUT_PUV_UV_INDEX)]
-    float2 uv;
-};
+[vk::binding(GlobalDescriptorSetResourceIndex::GLOBAL_VERTEX_BUFFER_INDEX, MainSetIndices::GLOBAL_SET_INDEX)]
+StructuredBuffer<VertexInput> vertices;
 
 struct VertexOutput {
     float4 position : SV_Position;

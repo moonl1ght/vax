@@ -76,10 +76,6 @@ class GraphicsPipelineBuilder final {
     VkPipelineLayout buildPipelineLayout(std::string name);
 
     void addShaderStage(VkShaderStageFlagBits stage, VkShaderModule module, const char* name);
-    void addVertexInputInfo(
-        VkVertexInputBindingDescription bindingDescription,
-        std::vector<VkVertexInputAttributeDescription> attributeDescriptions
-    );
     void setInputAssembly(VkPrimitiveTopology topology) { _topology = topology; }
     void addDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout);
     void setPushConstantRange(VkPushConstantRange pushConstantRange) { _pushConstantRange = pushConstantRange; }
@@ -91,8 +87,6 @@ class GraphicsPipelineBuilder final {
     vax::Logger _logger = vax::Logger("GraphicsPipelineBuilder");
     std::reference_wrapper<const vax::vk::Device> _device;
     std::vector<VkPipelineShaderStageCreateInfo> _shaderStages;
-    VkVertexInputBindingDescription _bindingDescription = {};
-    std::vector<VkVertexInputAttributeDescription> _attributeDescriptions;
     std::vector<VkDescriptorSetLayout> _descriptorSetLayouts;
     VkPrimitiveTopology _topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     VkPushConstantRange _pushConstantRange = {};

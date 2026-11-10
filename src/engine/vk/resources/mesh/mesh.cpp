@@ -83,4 +83,3 @@ template <typename VertexType> bool vax::vk::MeshObject<VertexType>::flushToGPU(
 }
 
 template class vax::vk::MeshObject<vax::vk::Vertex>;
-template class vax::vk::MeshObject<vax::vk::VertexPUV>;

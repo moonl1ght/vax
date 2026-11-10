@@ -1,8 +1,8 @@
 #include "scene.h"
 #include "camera.h"
+#include "components.h"
 #include "profiler.h"
 #include "swapchain.h"
-#include "components.h"
 
 using namespace vax;
 using namespace vax::vk;
@@ -177,6 +177,12 @@ bool Scene::writeGlobalDescriptorSet(vax::vk::DescriptorSetWriter& descriptorWri
         return false;
     }
     descriptorWriter.writeBuffer(
+        _resourceManager->meshManager().globalVertexBuffer(0),
+        GlobalDescriptorSetResourceIndex::GLOBAL_VERTEX_BUFFER_INDEX,
+        0,
+        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+    );
+    descriptorWriter.writeBuffer(
         _resourceManager->materialManager().materialBuffer(),
         GlobalDescriptorSetResourceIndex::GLOBAL_MATERIAL_BUFFER_INDEX,
         0,
@@ -242,12 +248,11 @@ bool Scene::writeFrameDescriptorSet(
 }
 
 void Scene::draw(const DrawContext& drawContext) {
-    VkBuffer vertexBuffers[] = {_resourceManager->meshManager().globalVertexBuffer(0)};
+    VkBuffer vertexBuffers[] = {_resourceManager->meshManager().globalVertexBuffer(0).vkBuffer()};
     VkDeviceSize offsets[] = {0};
-    vkCmdBindVertexBuffers(drawContext.commandBuffer.vkCommandBuffer, 0, 1, vertexBuffers, offsets);
     vkCmdBindIndexBuffer(
         drawContext.commandBuffer.vkCommandBuffer,
-        _resourceManager->meshManager().globalIndexBuffer(0),
+        _resourceManager->meshManager().globalIndexBuffer(0).vkBuffer(),
         0,
         VK_INDEX_TYPE_UINT32
     );
@@ -278,27 +283,17 @@ void Scene::draw(const DrawContext& drawContext) {
 }
 
 void Scene::drawBackground(const DrawContext& drawContext) {
-    VkBuffer vertexBuffers[] = {_resourceManager->meshManager().globalVertexBuffer(0)};
-    VkDeviceSize offsets[] = {0};
-    vkCmdBindVertexBuffers(drawContext.commandBuffer.vkCommandBuffer, 0, 1, vertexBuffers, offsets);
-    vkCmdBindIndexBuffer(
-        drawContext.commandBuffer.vkCommandBuffer,
-        _resourceManager->meshManager().globalIndexBuffer(0),
-        0,
-        VK_INDEX_TYPE_UINT32
-    );
-    _indirectDrawController->drawRange(drawContext.commandBuffer, drawContext.currentFrame, "background");
+    vkCmdDraw(drawContext.commandBuffer.vkCommandBuffer, 3, 1, 0, 0);
 }
 
 void Scene::drawGizmo(const DrawContext& drawContext) {
     if (!_descriptor->shouldDrawGizmo)
         return;
-    VkBuffer vertexBuffers[] = {_resourceManager->meshManager().globalVertexBuffer(0)};
+    VkBuffer vertexBuffers[] = {_resourceManager->meshManager().globalVertexBuffer(0).vkBuffer()};
     VkDeviceSize offsets[] = {0};
-    vkCmdBindVertexBuffers(drawContext.commandBuffer.vkCommandBuffer, 0, 1, vertexBuffers, offsets);
     vkCmdBindIndexBuffer(
         drawContext.commandBuffer.vkCommandBuffer,
-        _resourceManager->meshManager().globalIndexBuffer(0),
+        _resourceManager->meshManager().globalIndexBuffer(0).vkBuffer(),
         0,
         VK_INDEX_TYPE_UINT32
     );
@@ -345,8 +340,7 @@ void Scene::beginDrawing(CommandBuffer& commandBuffer, uint32_t frameIndex) {
 
     uint32_t instanceCursor = 0;
     _indirectDrawController->addDrawScope("scene", [&]() {
-        instanceCursor =
-            _sceneComposer->compose(*_world, *_indirectDrawController, frameIndex, instanceCursor);
+        instanceCursor = _sceneComposer->compose(*_world, *_indirectDrawController, frameIndex, instanceCursor);
     });
 
     if (_descriptor->shouldDrawGizmo) {
@@ -355,11 +349,6 @@ void Scene::beginDrawing(CommandBuffer& commandBuffer, uint32_t frameIndex) {
                 _sceneComposer->compose(*_gizmoWorld, *_indirectDrawController, frameIndex, instanceCursor);
         });
     }
-
-    _indirectDrawController->addDrawScope("background", [&]() {
-        instanceCursor =
-            _sceneComposer->compose(*_backgroundWorld, *_indirectDrawController, frameIndex, instanceCursor);
-    });
 
     _indirectDrawController->submitCommands(frameIndex);
 }

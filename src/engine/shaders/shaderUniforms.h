@@ -43,6 +43,7 @@ enum GlobalDescriptorSetResourceIndex {
     GLOBAL_SAMPLER_INDEX = 2,
     GLOBAL_TEXTURE_INDEX = 3,
     GLOBAL_SHADOW_TEXTURE_INDEX = 4,
+    GLOBAL_VERTEX_BUFFER_INDEX = 5,
 };
 
 enum VertexInputIndicesPUV {

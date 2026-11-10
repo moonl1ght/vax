@@ -130,6 +130,12 @@ getDescriptorLayoutResources(const DescriptorSetLayoutName& setLayoutName) {
             .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
             .descriptorCount = MAX_SHADOW_TEXTURES,
             },
+            {
+            .binding = GlobalDescriptorSetResourceIndex::GLOBAL_VERTEX_BUFFER_INDEX,
+            .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+            .descriptorCount = 1,
+            },
         };
     case DescriptorSetLayoutName::PER_FRAME:
         return {

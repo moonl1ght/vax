@@ -15,7 +15,7 @@ void MeshManager::loadGlobalBuffers(size_t size) {
         _device.get(),
         "global_vertex_buffer",
         alignedBufferSize,
-        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
         VMA_MEMORY_USAGE_CPU_TO_GPU,
         VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT
     );
@@ -28,7 +28,7 @@ void MeshManager::loadGlobalBuffers(size_t size) {
         _device.get(),
         "global_index_buffer",
         indexBufferSize,
-        VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+        VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
         VMA_MEMORY_USAGE_CPU_TO_GPU,
         VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT
     );
@@ -166,5 +166,3 @@ void MeshManager::_commitMemory(
 
 template std::optional<MeshManager::BindMemoryResult>
 MeshManager::_tryToBindMemory<Vertex>(const MeshObject<Vertex>&, bool);
-template std::optional<MeshManager::BindMemoryResult>
-MeshManager::_tryToBindMemory<VertexPUV>(const MeshObject<VertexPUV>&, bool);
