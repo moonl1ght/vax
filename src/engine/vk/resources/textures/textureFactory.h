@@ -1,7 +1,11 @@
 #pragma once
 
 #include "device.h"
-#include "luna.h"
+#include "vulkanCommon.h"
+#include "logger.h"
+#include <cstdint>
+#include <optional>
+#include <string>
 #include "texture.h"
 #include "textureManager.h"
 

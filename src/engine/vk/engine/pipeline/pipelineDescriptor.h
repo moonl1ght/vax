@@ -1,6 +1,5 @@
 #pragma once
 
-#include "renderPassDescriptor.h"
 #include "shaderModuleDescriptor.h"
 #include <string>
 
@@ -23,6 +22,9 @@ constexpr std::vector<PipelineDescriptor> defaultPipelines() {
         },
         PipelineDescriptor{
         PipelineDescriptor::Type::COMPUTE, "jfa_main", ShaderModuleDescriptor::Compute("jfa/jfa", "jfa_main")
+        },
+        PipelineDescriptor{
+        PipelineDescriptor::Type::GRAPHICS, "background", ShaderModuleDescriptor::GraphicsVF("background")
         },
     };
 }

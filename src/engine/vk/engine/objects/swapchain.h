@@ -1,7 +1,9 @@
 #pragma once
 
 #include "device.h"
-#include "luna.h"
+#include "vulkanCommon.h"
+#include "logger.h"
+#include <vector>
 #include "size.h"
 #include "vkUtils.h"
 

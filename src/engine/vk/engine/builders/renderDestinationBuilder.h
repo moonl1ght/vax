@@ -2,7 +2,9 @@
 
 #include "commandManager.h"
 #include "device.h"
-#include "luna.h"
+#include "vulkanCommon.h"
+#include "logger.h"
+#include <optional>
 #include "renderDestination.h"
 #include "renderPassDescriptor.h"
 #include "swapchain.h"

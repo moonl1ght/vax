@@ -1,6 +1,8 @@
 #pragma once
 
-#include "luna.h"
+#include "vulkanCommon.h"
+#include "logger.h"
+#include <cstdint>
 #include "vkUtils.h"
 
 namespace vax::vk {

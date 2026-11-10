@@ -1,6 +1,12 @@
 #pragma once
 
-#include "luna.h"
+#include "vulkanCommon.h"
+#include "logger.h"
+#include <cstdint>
+#include <optional>
+#include <string>
+#include <utility>
+#include <vector>
 #include "sampler.h"
 #include "vaxMath.h"
 #include "buffer.h"

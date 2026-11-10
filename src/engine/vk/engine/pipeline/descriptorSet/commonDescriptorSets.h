@@ -1,6 +1,8 @@
 #pragma once
 
-#include "luna.h"
+#include "vulkanCommon.h"
+#include <string>
+#include <vector>
 #include "shaderUniforms.h"
 #include "vkUtils.h"
 #include <cstdint>

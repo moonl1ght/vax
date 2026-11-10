@@ -1,4 +1,5 @@
 #include "gridWorldView.h"
+#include "paths.h"
 #include "fileSystem.h"
 #include "gridWorldSceneBuilder.h"
 #include "imgui.h"

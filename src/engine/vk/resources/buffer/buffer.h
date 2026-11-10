@@ -1,7 +1,10 @@
 #pragma once
 
 #include "device.h"
-#include "luna.h"
+#include "vulkanCommon.h"
+#include "logger.h"
+#include <optional>
+#include <string>
 #include "resourceUtils.h"
 
 namespace vax::vk {

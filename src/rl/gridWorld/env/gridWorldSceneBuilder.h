@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gwAgent.h"
+#include "paths.h"
 #include "sceneDescriptor.h"
 #include "tensor.h"
 #include "vaxMath.h"

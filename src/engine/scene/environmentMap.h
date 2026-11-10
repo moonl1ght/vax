@@ -1,7 +1,11 @@
 #pragma once
 
 #include "buffer.h"
-#include "luna.h"
+#include "logger.h"
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 #include "shaderUniforms.h"
 #include "textureLoader.h"
 #include "resourceManager.h"

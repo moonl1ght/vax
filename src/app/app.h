@@ -2,7 +2,8 @@
 
 #include "inputController.h"
 #include "logger.h"
-#include "luna.h"
+#include "vulkanCommon.h"
+#include <memory>
 #include "renderer.h"
 #include "uiEngine.h"
 #include "vkEngine.h"

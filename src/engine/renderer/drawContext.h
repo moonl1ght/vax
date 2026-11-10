@@ -1,6 +1,7 @@
 #pragma once
 
-#include "luna.h"
+#include "vulkanCommon.h"
+#include <cstdint>
 #include "indirectDrawController.h"
 
 namespace vax::engine {

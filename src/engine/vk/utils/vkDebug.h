@@ -1,6 +1,7 @@
 #pragma once
 
-#include "luna.h"
+#include "vulkanCommon.h"
+#include "logger.h"
 
 namespace vax::vk {
 VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(

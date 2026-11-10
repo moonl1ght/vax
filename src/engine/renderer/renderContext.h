@@ -1,6 +1,6 @@
 #pragma once
 
-#include "luna.h"
+#include <cstdint>
 
 namespace vax::engine {
 struct RenderCallContext {

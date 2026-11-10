@@ -1,4 +1,6 @@
 #include "gwTrainingManager.h"
+#include <fstream>
+#include "paths.h"
 #include "fileSystem.h"
 #include "timeManager.h"
 #include "nlohmann/json.hpp"

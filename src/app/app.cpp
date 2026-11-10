@@ -1,4 +1,5 @@
 #include "app.h"
+#include <SDL3/SDL_vulkan.h>
 #include "notificationCenter.h"
 #include "physicsEngine.h"
 #include "profiler.h"

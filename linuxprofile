@@ -1,6 +1,7 @@
 [conf]
 tools.system.package_manager:mode=install
 tools.system.package_manager:sudo=True
+tools.cmake.cmaketoolchain:generator=Ninja
 
 [settings]
 arch=x86_64

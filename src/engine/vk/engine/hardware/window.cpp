@@ -1,4 +1,5 @@
 #include "window.h"
+#include <SDL3/SDL_vulkan.h>
 
 using namespace vax::vk;
 using namespace vax;
@@ -76,7 +77,6 @@ void vax::vk::Window::hide() {
         }
     }
 }
-
 
 void vax::vk::Window::bringToFront() {
     if (window != nullptr) {

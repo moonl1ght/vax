@@ -6,7 +6,8 @@
 #include <dlfcn.h>
 #endif
 
-#include "luna.h"
+#include "paths.h"
+#include <string>
 #include "renderdoc_app.h"
 
 namespace vax {

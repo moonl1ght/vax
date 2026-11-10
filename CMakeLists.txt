@@ -180,9 +180,35 @@ target_include_directories(Luna PRIVATE ${CUDA_PATH}/include)
 if(EXISTS ${CUDA_PATH}/include/cccl)
     target_include_directories(Luna PRIVATE ${CUDA_PATH}/include/cccl)
 endif()
-set_target_properties(Luna PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+
+set_target_properties(Luna PROPERTIES CUDA_SEPARABLE_COMPILATION OFF)
+
+if(NOT WIN32)
+    find_program(MOLD_LINKER mold)
+    if(MOLD_LINKER)
+        message(STATUS "Using mold linker: ${MOLD_LINKER}")
+        target_link_options(Luna PRIVATE -fuse-ld=mold)
+    endif()
+endif()
 add_dependencies(Luna Shaders)
 target_compile_options(Luna PRIVATE -mavx2)
+
+target_compile_definitions(Luna PRIVATE
+    GLM_FORCE_DEPTH_ZERO_TO_ONE
+    GLM_FORCE_RADIANS
+    GLM_ENABLE_EXPERIMENTAL
+    SDL_MAIN_HANDLED
+    $<$<PLATFORM_ID:Darwin>:VK_USE_PLATFORM_METAL_EXT>
+    $<$<PLATFORM_ID:Windows>:VK_USE_PLATFORM_WIN32_KHR>
+)
+
+target_precompile_headers(Luna PRIVATE
+    "$<$<COMPILE_LANGUAGE:CXX>:${PROJECT_SOURCE_DIR}/src/pch.h>"
+)
+set_source_files_properties(
+    "${PROJECT_SOURCE_DIR}/src/deps/vma.cpp"
+    PROPERTIES SKIP_PRECOMPILE_HEADERS ON
+)
 
 set(all_CUH ${all_SRCS})
 list(FILTER all_CUH INCLUDE REGEX "\\.cuh$")

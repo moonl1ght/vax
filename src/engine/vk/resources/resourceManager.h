@@ -1,7 +1,8 @@
 #pragma once
 
 #include "bufferManager.h"
-#include "luna.h"
+#include "logger.h"
+#include <cstdint>
 #include "materialManager.h"
 #include "meshManager.h"
 #include "ssboManager.h"

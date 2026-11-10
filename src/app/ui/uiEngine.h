@@ -1,6 +1,7 @@
 #pragma once
 
-#include "luna.h"
+#include "vulkanCommon.h"
+#include <SDL3/SDL.h>
 #include "vkEngine.h"
 #include "window.h"
 #undef Status

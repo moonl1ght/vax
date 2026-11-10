@@ -1,8 +1,8 @@
 #include "pipelineManager.h"
+#include "paths.h"
 #include "descriptorSetManager.h"
 #include "pipelineBuilder.h"
 #include "shaderUniforms.h"
-#include "vertex.h"
 #include "vkEngine.h"
 #include <optional>
 
@@ -114,11 +114,28 @@ void PipelineManager::_buildComputePipeline(const PipelineDescriptor& pipelineDe
 }
 
 void PipelineManager::_buildGraphicsPipeline(const PipelineDescriptor& pipelineDescriptor) {
+    if (_pipelinesV2.contains(pipelineDescriptor.name)) {
+        _logger.warning("Pipeline already built, skipping: ", pipelineDescriptor.name);
+        return;
+    }
     auto graphicsModule = _shaderLibrary->loadGraphicsModule(pipelineDescriptor.shaderModuleDescriptor);
     if (!graphicsModule) [[unlikely]] {
         _logger.error("Failed to load graphics module: ", pipelineDescriptor.shaderModuleDescriptor.name);
         return;
     }
+    auto descriptorSetLayouts = _descriptorSetManagerV2->addGraphicsModuleLayouts(graphicsModule.value());
+    if (!descriptorSetLayouts) {
+        _logger.error("Failed to create descriptor set layouts for graphics pipeline: ", pipelineDescriptor.name);
+        return;
+    }
+
+    PipelineLayoutKey layoutKey{};
+    // layoutKey.descriptorSetNames.reserve(descriptorSetLayouts->graphicsLayouts.size());
+    // layoutKey.setLayouts.reserve(descriptorSetLayouts->graphicsLayouts.size());
+    // for (size_t i = 0; i < descriptorSetLayouts->graphicsLayouts.size(); ++i) {
+    //     layoutKey.descriptorSetNames.push_back(descriptorSetLayouts->graphicsLayouts[i]->getName());
+    //     layoutKey.setLayouts.push_back(descriptorSetLayouts->graphicsLayouts[i]->getVkDescriptorSetLayout());
+    // }
 }
 
 std::optional<PipelineHandle> PipelineManager::getPipeline(const std::string& pipelineName) const noexcept {
@@ -234,8 +251,7 @@ bool PipelineManager::_createShadowPipeline(const RenderPassDescriptor& renderPa
         "",
         PipelineName::SHADOW,
         PipelineLayoutName::BASE,
-        [](GraphicsPipelineBuilder& pipelineBuilder) {
-        }
+        [](GraphicsPipelineBuilder& pipelineBuilder) {}
     );
 }
 
@@ -278,8 +294,7 @@ bool PipelineManager::_createPBRPipeline(const RenderPassDescriptor& renderPassD
         SRC_PATH("engine/shaders/out/pbr.frag.spv"),
         PipelineName::PBR,
         PipelineLayoutName::BASE,
-        [](GraphicsPipelineBuilder& pipelineBuilder) {
-        }
+        [](GraphicsPipelineBuilder& pipelineBuilder) {}
     );
 }
 
@@ -290,8 +305,7 @@ bool PipelineManager::_createAgentCameraPipeline(const RenderPassDescriptor& ren
         SRC_PATH("engine/shaders/out/pbr.frag.spv"),
         PipelineName::AGENT_CAMERA,
         PipelineLayoutName::BASE,
-        [](GraphicsPipelineBuilder& pipelineBuilder) {
-        }
+        [](GraphicsPipelineBuilder& pipelineBuilder) {}
     );
 }
 
@@ -302,8 +316,7 @@ bool PipelineManager::_createBasePipeline(const RenderPassDescriptor& renderPass
         SRC_PATH("engine/shaders/out/base.frag.spv"),
         PipelineName::BASE,
         PipelineLayoutName::BASE,
-        [](GraphicsPipelineBuilder& pipelineBuilder) {
-        }
+        [](GraphicsPipelineBuilder& pipelineBuilder) {}
     );
 }
 

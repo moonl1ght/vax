@@ -1,6 +1,7 @@
 #pragma once
 
-#include "luna.h"
+#include <array>
+#include <glm/glm.hpp>
 #include <cstdint>
 
 namespace vax::engine {

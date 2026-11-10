@@ -1,7 +1,10 @@
 #pragma once
 
 #include "device.h"
-#include "luna.h"
+#include "vulkanCommon.h"
+#include "logger.h"
+#include <optional>
+#include <string>
 
 namespace vax::vk {
 class Sampler final {

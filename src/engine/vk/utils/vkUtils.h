@@ -1,6 +1,10 @@
 #pragma once
 
-#include "luna.h"
+#include "vulkanCommon.h"
+#include "logger.h"
+#include <cstdint>
+#include <optional>
+#include <vector>
 #include "shaderUniforms.h"
 
 namespace vax::vk {

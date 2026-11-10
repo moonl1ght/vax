@@ -1,5 +1,6 @@
 #include "notificationCenter.h"
-#include "luna.h"
+#include <SDL3/SDL.h>
+#include <cstring>
 
 using namespace vax;
 

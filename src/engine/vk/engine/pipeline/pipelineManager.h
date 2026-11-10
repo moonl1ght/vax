@@ -2,7 +2,6 @@
 
 #include "descriptorSetManager.h"
 #include "device.h"
-#include "luna.h"
 #include "pipeline.h"
 #include "pipelineBuilder.h"
 #include "pipelineDescriptor.h"

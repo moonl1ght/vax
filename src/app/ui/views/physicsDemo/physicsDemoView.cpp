@@ -1,4 +1,5 @@
 #include "physicsDemoView.h"
+#include "paths.h"
 #include "sceneLoader.h"
 #include "viewManager.h"
 

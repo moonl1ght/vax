@@ -1,7 +1,11 @@
 #pragma once
 
 #include "keyCode.h"
-#include "luna.h"
+#include <SDL3/SDL.h>
+#include <cstdint>
+#include <glm/glm.hpp>
+#include <set>
+#include <vector>
 
 namespace vax {
 struct MouseMoveValue {

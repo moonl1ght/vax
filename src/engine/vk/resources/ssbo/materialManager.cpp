@@ -1,4 +1,5 @@
 #include "materialManager.h"
+#include <cstring>
 #include <numeric>
 
 using namespace vax::vk;

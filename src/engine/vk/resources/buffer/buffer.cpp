@@ -1,4 +1,5 @@
 #include "buffer.h"
+#include <cstring>
 #include "commandBuffer.h"
 #include "shaderUniforms.h"
 #include "vertex.h"

@@ -1,7 +1,11 @@
 #pragma once
 
 #include "device.h"
-#include "luna.h"
+#include "logger.h"
+#include <cstdint>
+#include <optional>
+#include <utility>
+#include <vector>
 #include "resourceHandle.h"
 #include "texture.h"
 #include <unordered_map>

@@ -5,7 +5,12 @@
 #include "descriptorSetWriter.h"
 #include "device.h"
 #include "logger.h"
-#include "luna.h"
+#include "vulkanCommon.h"
+#include <cstdint>
+#include <memory>
+#include <optional>
+#include <string>
+#include <vector>
 #include "shaderUniforms.h"
 #include <unordered_map>
 

@@ -4,7 +4,11 @@
 #include "deletionQueue.h"
 #include "descriptorSetManager.h"
 #include "device.h"
-#include "luna.h"
+#include "vulkanCommon.h"
+#include "logger.h"
+#include <cstdint>
+#include <memory>
+#include <vector>
 #include "pipelineManager.h"
 #include "queueManager.h"
 #include "syncObjectsManager.h"

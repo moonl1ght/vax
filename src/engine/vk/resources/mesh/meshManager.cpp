@@ -1,5 +1,10 @@
 #include "meshManager.h"
-#include "luna.h"
+#include "vulkanCommon.h"
+#include <cstdint>
+#include <memory>
+#include <optional>
+#include <utility>
+#include <vector>
 
 using namespace vax::vk;
 

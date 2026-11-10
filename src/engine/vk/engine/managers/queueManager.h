@@ -1,7 +1,8 @@
 #pragma once
 
 #include "device.h"
-#include "luna.h"
+#include "vulkanCommon.h"
+#include "logger.h"
 
 namespace vax::vk {
 class QueueManager final {

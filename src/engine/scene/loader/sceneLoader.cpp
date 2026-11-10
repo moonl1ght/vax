@@ -1,4 +1,5 @@
 #include "sceneLoader.h"
+#include "paths.h"
 #include "environmentMap.h"
 #include "physicsComponents.h"
 #include "prefabSpawner.h"

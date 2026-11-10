@@ -1,7 +1,10 @@
 #pragma once
 
 #include "device.h"
-#include "luna.h"
+#include "vulkanCommon.h"
+#include "logger.h"
+#include <cstdint>
+#include <string>
 
 namespace vax::vk {
 enum class PipelineLayoutName : uint32_t {

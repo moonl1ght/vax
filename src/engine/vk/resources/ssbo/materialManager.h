@@ -2,7 +2,10 @@
 
 #include "buffer.h"
 #include "device.h"
-#include "luna.h"
+#include "logger.h"
+#include <memory>
+#include <optional>
+#include <vector>
 #include "resourceUtils.h"
 #include "shaderUniforms.h"
 

@@ -1,9 +1,9 @@
 #pragma once
-#include "luna.h"
+#include <cstdint>
+#include <glm/glm.hpp>
 #include "shaderUniforms.h"
 #include <array>
 
-#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 
 namespace vax::vk {

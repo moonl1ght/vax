@@ -1,6 +1,9 @@
 #pragma once
 
-#include "luna.h"
+#include "vulkanCommon.h"
+#include <cstdint>
+#include <optional>
+#include <utility>
 
 namespace vax::vk {
 class CommandBuffer;

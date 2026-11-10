@@ -2,7 +2,11 @@
 
 #include "buffer.h"
 #include "device.h"
-#include "luna.h"
+#include "vulkanCommon.h"
+#include "logger.h"
+#include <optional>
+#include <string>
+#include <utility>
 #include "resourceHandle.h"
 #include <unordered_map>
 

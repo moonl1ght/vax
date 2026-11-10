@@ -1,4 +1,5 @@
 #include "gwAgent.h"
+#include "paths.h"
 #include "gridWorld.h"
 #include "gwenv.h"
 #include "randomGenerator.h"

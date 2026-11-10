@@ -1,6 +1,8 @@
 #pragma once
 
-#include "luna.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <iostream>
 
 namespace vax::math {
 using Degree = float;

@@ -1,4 +1,5 @@
 #include "renderer.h"
+#include "paths.h"
 #include "descriptorSetManager.h"
 #include "imageUtils.h"
 #include "jfaPass.h"

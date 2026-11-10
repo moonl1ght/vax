@@ -32,9 +32,7 @@ float4 sampleNormalMap(PBRMaterial material, float2 uv) {
     uint normalMapTextureSamplerIndex = material.normalMapTextureSamplerIndex;
     if (normalMapTextureIndex == NO_TEXTURE_FLAG)
         return float4(0.5f, 0.5f, 1.0f, 1.0f);
-    return globalTextures[normalMapTextureIndex].Sample(
-        globalSamplers[normalMapTextureSamplerIndex], uv
-    );
+    return globalTextures[normalMapTextureIndex].Sample(globalSamplers[normalMapTextureSamplerIndex], uv);
 }
 
 float4 sampleEmissive(PBRMaterial material, float2 uv) {
@@ -42,9 +40,7 @@ float4 sampleEmissive(PBRMaterial material, float2 uv) {
     uint emissiveTextureSamplerIndex = material.emissiveTextureSamplerIndex;
     if (emissiveTextureIndex == NO_TEXTURE_FLAG)
         return float4(0.0f, 0.0f, 0.0f, 1.0f);
-    return globalTextures[emissiveTextureIndex].Sample(
-        globalSamplers[emissiveTextureSamplerIndex], uv
-    );
+    return globalTextures[emissiveTextureIndex].Sample(globalSamplers[emissiveTextureSamplerIndex], uv);
 }
 
 int sampleEnvMapQueryLevels(EnvironmentMapData environmentMapData) {

@@ -1,7 +1,13 @@
 #pragma once
 
 #include "deletionQueue.h"
-#include "luna.h"
+#include "vulkanCommon.h"
+#include "logger.h"
+#include <SDL3/SDL_vulkan.h>
+#include <cstdint>
+#include <cstring>
+#include <optional>
+#include <vector>
 #include "vkUtils.h"
 #include "vkDebug.h"
 #include "deletionQueue.h"

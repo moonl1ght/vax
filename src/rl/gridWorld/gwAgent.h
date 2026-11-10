@@ -4,7 +4,8 @@
 #include "gwenv.h"
 #include "prefabDescriptor.h"
 #include "logger.h"
-#include "luna.h"
+#include <memory>
+#include <utility>
 #include "qlConfig.h"
 #include "vaxMath.h"
 #include "tensor.h"

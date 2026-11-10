@@ -1,7 +1,10 @@
 #pragma once
 
 #include "indirectDrawController.h"
-#include "luna.h"
+#include "logger.h"
+#include <cstdint>
+#include <utility>
+#include <vector>
 #include "mesh.h"
 #include "resourceHandle.h"
 #include "submesh.h"

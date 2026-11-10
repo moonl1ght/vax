@@ -248,7 +248,6 @@ bool Scene::writeFrameDescriptorSet(
 }
 
 void Scene::draw(const DrawContext& drawContext) {
-    VkBuffer vertexBuffers[] = {_resourceManager->meshManager().globalVertexBuffer(0).vkBuffer()};
     VkDeviceSize offsets[] = {0};
     vkCmdBindIndexBuffer(
         drawContext.commandBuffer.vkCommandBuffer,
@@ -289,7 +288,6 @@ void Scene::drawBackground(const DrawContext& drawContext) {
 void Scene::drawGizmo(const DrawContext& drawContext) {
     if (!_descriptor->shouldDrawGizmo)
         return;
-    VkBuffer vertexBuffers[] = {_resourceManager->meshManager().globalVertexBuffer(0).vkBuffer()};
     VkDeviceSize offsets[] = {0};
     vkCmdBindIndexBuffer(
         drawContext.commandBuffer.vkCommandBuffer,
