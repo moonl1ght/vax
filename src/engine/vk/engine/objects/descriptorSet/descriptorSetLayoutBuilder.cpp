@@ -8,7 +8,8 @@ void DescriptorSetLayoutBuilder::addBinding(const VkDescriptorSetLayoutBinding& 
     _bindings.push_back(binding);
 }
 
-std::optional<DescriptorSetLayout> DescriptorSetLayoutBuilder::build(VkDescriptorSetLayoutCreateFlags flags) {
+std::optional<VkDescriptorSetLayout>
+DescriptorSetLayoutBuilder::build(VkDescriptorSetLayoutCreateFlags flags) noexcept {
     uint32_t bindingCount = static_cast<uint32_t>(_bindings.size());
     std::vector<VkDescriptorBindingFlags> bindingFlags(bindingCount, VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT);
     VkDescriptorSetLayoutBindingFlagsCreateInfo bindingFlagsInfo{
@@ -39,9 +40,5 @@ std::optional<DescriptorSetLayout> DescriptorSetLayoutBuilder::build(VkDescripto
         };
         vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice, &nameInfo);
     }
-    auto layout = std::make_optional<DescriptorSetLayout>(_device, descriptorSetLayout);
-    if (layout) {
-        layout->addEntryPointName(_name);
-    }
-    return layout;
+    return std::make_optional<VkDescriptorSetLayout>(descriptorSetLayout);
 }

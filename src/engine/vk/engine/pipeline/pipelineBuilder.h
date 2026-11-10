@@ -53,13 +53,14 @@ class ComputePipelineBuilder final {
 
     std::optional<vax::vk::PipelineV2> build(std::string name) noexcept;
 
-    void setPipelineLayout(const VkPipelineLayout& pipelineLayout) noexcept;
+    void setPipelineLayout(const PipelineLayoutKey& pipelineLayoutKey, const VkPipelineLayout& pipelineLayout) noexcept;
 
     void setShaderModule(const ShaderModule& module, const char* name) noexcept;
 
   private:
     vax::Logger _logger = vax::Logger("ComputePipelineBuilder");
     std::reference_wrapper<const vax::vk::Device> _device;
+    PipelineLayoutKey _pipelineLayoutKey;
     VkPipelineLayout _pipelineLayout = VK_NULL_HANDLE;
     VkPipelineShaderStageCreateInfo _shaderStageInfo = {};
 };

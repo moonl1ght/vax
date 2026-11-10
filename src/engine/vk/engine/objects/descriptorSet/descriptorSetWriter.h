@@ -2,13 +2,12 @@
 
 #include "buffer.h"
 #include "device.h"
-#include "luna.h"
 #include "sampler.h"
 #include "texture.h"
 #include <deque>
 
 namespace vax::vk {
-struct DescriptorSetWriter {
+struct DescriptorSetWriter final {
   public:
     explicit DescriptorSetWriter(const vax::vk::Device& device, VkDescriptorSet descriptorSet)
         : _device(device)
@@ -20,8 +19,8 @@ struct DescriptorSetWriter {
 
     DescriptorSetWriter(const DescriptorSetWriter&) = delete;
     DescriptorSetWriter& operator=(const DescriptorSetWriter&) = delete;
-    DescriptorSetWriter(DescriptorSetWriter&& other) noexcept = delete;
-    DescriptorSetWriter& operator=(DescriptorSetWriter&& other) noexcept = delete;
+    DescriptorSetWriter(DescriptorSetWriter&& other) noexcept = default;
+    DescriptorSetWriter& operator=(DescriptorSetWriter&& other) noexcept = default;
 
     template <typename T>
     void writeBuffer(
@@ -48,9 +47,11 @@ struct DescriptorSetWriter {
         _writes.push_back(write);
     }
 
-    void writeTexture(const Texture& texture, uint32_t binding, uint32_t arrayElement = 0, bool withSampler = false);
+    bool writeTexture(const Texture& texture, uint32_t binding, uint32_t arrayElement = 0, bool withSampler = false);
 
-    void writeTextures(const std::vector<const Texture*>& textures, uint32_t binding, bool withSampler = false);
+    bool writeStorageTexture(const Texture& texture, uint32_t binding, uint32_t arrayElement = 0);
+
+    bool writeTextures(const std::vector<const Texture*>& textures, uint32_t binding, bool withSampler = false);
 
     void writeSampler(const Sampler& sampler, uint32_t binding, uint32_t arrayElement = 0);
 
@@ -70,7 +71,6 @@ struct DescriptorSetWriter {
     );
 
   private:
-    vax::Logger _logger = vax::Logger("DescriptorSetWriter");
     std::reference_wrapper<const vax::vk::Device> _device;
     VkDescriptorSet _descriptorSet;
     std::vector<VkWriteDescriptorSet> _writes;

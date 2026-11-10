@@ -9,86 +9,9 @@
 using namespace vax::engine;
 using namespace vax::vk;
 
-void JFAPass::cleanup() {
-    if (_initPipeline) {
-        vkDestroyPipelineLayout(_device.get().vkDevice, _initPipeline->vkPipelineLayout, nullptr);
-        _initPipeline->vkPipelineLayout = VK_NULL_HANDLE;
-    }
-
-    if (_jfaPipeline) {
-        vkDestroyPipelineLayout(_device.get().vkDevice, _jfaPipeline->vkPipelineLayout, nullptr);
-        _jfaPipeline->vkPipelineLayout = VK_NULL_HANDLE;
-    }
-}
-
 void JFAPass::setup(std::weak_ptr<vax::vk::RenderDestination> inputRenderDestination) {
-    auto initDescriptorSetLayout = _descriptorSetManager.get().getDescriptorSetLayout(DescriptorSetLayoutName::JFA);
-    if (!initDescriptorSetLayout) {
-        _logger.error("Failed to get init JFA descriptor set layout!");
-        return;
-    }
-
-    auto descriptorSetLayout = _descriptorSetManager.get().getDescriptorSetLayout(DescriptorSetLayoutName::JFA);
-    if (!descriptorSetLayout) {
-        _logger.error("Failed to get init JFA descriptor set layout!");
-        return;
-    }
-    VkDescriptorSetLayout initLayouts[] = {initDescriptorSetLayout->getVkDescriptorSetLayout()};
-
-    VkPipelineLayoutCreateInfo initPipelineLayoutInfo{
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-        .setLayoutCount = 1,
-        .pSetLayouts = initLayouts,
-        .pushConstantRangeCount = 0,
-        .pPushConstantRanges = nullptr,
-    };
-
-    ComputePipelineBuilder pipelineBuilder(_device);
-    // pipelineBuilder.setPipelineLayout(initPipelineLayoutInfo);
-    ShaderModuleBuilder shaderModuleBuilder(_device);
-    auto initShaderModule = shaderModuleBuilder.build(SRC_PATH("engine/shaders/out/jfa_init.comp.spv"));
-    if (!initShaderModule) {
-        _logger.error("Failed to create init JFA shader module!");
-        return;
-    }
-    // pipelineBuilder.setShaderStage(VK_SHADER_STAGE_COMPUTE_BIT, initShaderModule.value(), "main");
-    // _initPipeline = pipelineBuilder.build("init_jfa");
-    if (!_initPipeline) {
-        _logger.error("Failed to create init JFA pipeline!");
-        return;
-    }
-    vkDestroyShaderModule(_device.get().vkDevice, initShaderModule.value(), nullptr);
-
-    VkPushConstantRange pushConstantRange{
-        .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-        .offset = 0,
-        .size = sizeof(JFAPushConstants),
-    };
-
-    VkDescriptorSetLayout layouts[] = {descriptorSetLayout->getVkDescriptorSetLayout()};
-
-    VkPipelineLayoutCreateInfo jfaPipelineLayoutInfo{
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-        .setLayoutCount = 1,
-        .pSetLayouts = layouts,
-        .pushConstantRangeCount = 1,
-        .pPushConstantRanges = &pushConstantRange,
-    };
-
-    ComputePipelineBuilder jfaPipelineBuilder(_device);
-    // jfaPipelineBuilder.setPipelineLayout(jfaPipelineLayoutInfo);
-    auto jfaShaderModule = shaderModuleBuilder.build(SRC_PATH("engine/shaders/out/jfa.comp.spv"));
-    if (!jfaShaderModule) {
-        _logger.error("Failed to create JFA shader module!");
-        return;
-    }
-    // jfaPipelineBuilder.setShaderStage(VK_SHADER_STAGE_COMPUTE_BIT, jfaShaderModule.value(), "main");
-    // _jfaPipeline = jfaPipelineBuilder.build("jfa");
-    if (!_jfaPipeline) {
-        _logger.error("Failed to create JFA pipeline!");
-        return;
-    }
-    vkDestroyShaderModule(_device.get().vkDevice, jfaShaderModule.value(), nullptr);
+    _initPipeline = _pipelineManager.get().getPipeline("jfa_init");
+    _jfaPipeline = _pipelineManager.get().getPipeline("jfa_main");
 
     update(inputRenderDestination);
 }
@@ -105,19 +28,11 @@ void JFAPass::_writeTextures(const std::vector<vax::vk::Texture>& maskTextures, 
     _jfaTexturesB.clear();
     auto textureFactory = TextureFactory(_device.get());
     for (int i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
-        auto initDescriptorSetWriter =
-            _descriptorSetManager.get().getDescriptorSetWriter(CommonDescriptorSetName::JFA_INIT, i);
-        auto jfaDescriptorSetWriter0 =
-            _descriptorSetManager.get().getDescriptorSetWriter(CommonDescriptorSetName::JFA_MAIN_0, i);
-        auto jfaDescriptorSetWriter1 =
-            _descriptorSetManager.get().getDescriptorSetWriter(CommonDescriptorSetName::JFA_MAIN_1, i);
-        if (!initDescriptorSetWriter || !jfaDescriptorSetWriter0 || !jfaDescriptorSetWriter1) {
-            _logger.error("Failed to get JFA descriptor set writers!");
-            return;
-        }
+        auto& initDescriptorSetWriter = _initPipeline->descriptorSetWriters["JFAInit"][i];
+        auto& jfaDescriptorSetWriter = _jfaPipeline->descriptorSetWriters["JFAStep"][i];
 
-        initDescriptorSetWriter->writeTexture(maskTextures[i], 0);
-        initDescriptorSetWriter->writeTexture(depthTexture, 1);
+        initDescriptorSetWriter.writeTexture(maskTextures[i], 0);
+        initDescriptorSetWriter.writeTexture(depthTexture, 1);
 
         auto inputTextureSize = maskTextures[i].size();
         auto textureA = textureFactory.makeTextureDetached(
@@ -136,9 +51,7 @@ void JFAPass::_writeTextures(const std::vector<vax::vk::Texture>& maskTextures, 
         }
         textureA->loadImageView(VK_IMAGE_VIEW_TYPE_2D, 1, 1);
         _jfaTexturesA.push_back(std::move(*textureA));
-        initDescriptorSetWriter->writeTexture(_jfaTexturesA[i], 2);
-        jfaDescriptorSetWriter0->writeTexture(_jfaTexturesA[i], 0);
-        jfaDescriptorSetWriter1->writeTexture(_jfaTexturesA[i], 1);
+        initDescriptorSetWriter.writeStorageTexture(_jfaTexturesA[i], 2);
 
         auto textureB = textureFactory.makeTextureDetached(
             TextureFactory::TextureCreateInfo{
@@ -151,22 +64,22 @@ void JFAPass::_writeTextures(const std::vector<vax::vk::Texture>& maskTextures, 
             }
         );
         if (!textureB) {
-            _logger.error("Failed to create JFA texture A!");
+            _logger.error("Failed to create JFA texture B!");
             return;
         }
         textureB->loadImageView(VK_IMAGE_VIEW_TYPE_2D, 1, 1);
         _jfaTexturesB.push_back(std::move(*textureB));
-        jfaDescriptorSetWriter0->writeTexture(_jfaTexturesB[i], 1);
-        jfaDescriptorSetWriter1->writeTexture(_jfaTexturesB[i], 0);
 
-        jfaDescriptorSetWriter0->update();
-        jfaDescriptorSetWriter1->update();
-        initDescriptorSetWriter->update();
+        jfaDescriptorSetWriter.writeStorageTexture(_jfaTexturesA[i], 0);
+        jfaDescriptorSetWriter.writeStorageTexture(_jfaTexturesB[i], 1);
+
+        jfaDescriptorSetWriter.update();
+        initDescriptorSetWriter.update();
     }
 }
 
 void JFAPass::runPass(RunPassInfo& runPassInfo) {
-    if (!_initPipeline.has_value() && !_jfaPipeline.has_value()) {
+    if (!_initPipeline.has_value() || !_jfaPipeline.has_value()) {
         _logger.error("JFA pipelines are not initialized!");
         return;
     }
@@ -193,17 +106,12 @@ void JFAPass::runPass(RunPassInfo& runPassInfo) {
     vkCmdPipelineBarrier2(runPassInfo.commandBuffer.vkCommandBuffer, &dependencyInfo);
 
     vkCmdBindPipeline(
-        runPassInfo.commandBuffer.vkCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _initPipeline->vkPipeline
+        runPassInfo.commandBuffer.vkCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _initPipeline->pipeline->vkPipeline
     );
 
-    auto descriptorSetHandler =
-        _descriptorSetManager.get().getDescriptorSetHandler(CommonDescriptorSetName::JFA_INIT, runPassInfo.frameIndex);
-    if (!descriptorSetHandler) {
-        _logger.error("Failed to get init JFA descriptor set handler!");
-        return;
-    }
-    descriptorSetHandler->bind(
-        runPassInfo.commandBuffer.vkCommandBuffer, _initPipeline->vkPipelineLayout, 0, VK_PIPELINE_BIND_POINT_COMPUTE
+    auto& initDescriptorSetHandler = _initPipeline->descriptorSetHandlers["JFAInit"][runPassInfo.frameIndex];
+    initDescriptorSetHandler.bind(
+        runPassInfo.commandBuffer.vkCommandBuffer, _initPipeline->pipelineLayout, 0, VK_PIPELINE_BIND_POINT_COMPUTE
     );
 
     uint32_t width = _jfaTexturesA[runPassInfo.frameIndex].width();
@@ -246,36 +154,28 @@ void JFAPass::runPass(RunPassInfo& runPassInfo) {
     vkCmdPipelineBarrier2(runPassInfo.commandBuffer.vkCommandBuffer, &prepareDependency);
 
     vkCmdBindPipeline(
-        runPassInfo.commandBuffer.vkCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _jfaPipeline->vkPipeline
+        runPassInfo.commandBuffer.vkCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _jfaPipeline->pipeline->vkPipeline
     );
 
     bool isTextureAInput = true;
     uint32_t maxDim = std::max(width, height);
 
-    auto jfaDescriptorSetHandler_0 =
-        _descriptorSetManager.get().getDescriptorSetWriter(CommonDescriptorSetName::JFA_MAIN_0, runPassInfo.frameIndex);
-    auto jfaDescriptorSetHandler_1 =
-        _descriptorSetManager.get().getDescriptorSetWriter(CommonDescriptorSetName::JFA_MAIN_1, runPassInfo.frameIndex);
+    auto& jfaDescriptorSetHandler = _jfaPipeline->descriptorSetHandlers["JFAStep"][runPassInfo.frameIndex];
 
-    if (!jfaDescriptorSetHandler_0 || !jfaDescriptorSetHandler_1) {
-        _logger.error("Failed to get main JFA descriptor set writers!");
-        return;
-    }
+    jfaDescriptorSetHandler.bind(
+        runPassInfo.commandBuffer.vkCommandBuffer, _jfaPipeline->pipelineLayout, 0, VK_PIPELINE_BIND_POINT_COMPUTE
+    );
+
     for (uint32_t step = maxDim / 2; step > 0; step /= 2) {
-        JFAPushConstants pushConstants{step};
+        JFAPushConstants pushConstants{.step = step, .swapInputAndOutput = isTextureAInput ? 0u : 1u};
 
         vkCmdPushConstants(
             runPassInfo.commandBuffer.vkCommandBuffer,
-            _jfaPipeline->vkPipelineLayout,
+            _jfaPipeline->pipelineLayout,
             VK_SHADER_STAGE_COMPUTE_BIT,
             0,
             sizeof(pushConstants),
             &pushConstants
-        );
-
-        auto& jfaDescriptorSetHandler = isTextureAInput ? jfaDescriptorSetHandler_0 : jfaDescriptorSetHandler_1;
-        jfaDescriptorSetHandler->bind(
-            runPassInfo.commandBuffer.vkCommandBuffer, _jfaPipeline->vkPipelineLayout, 0, VK_PIPELINE_BIND_POINT_COMPUTE
         );
 
         vkCmdDispatch(runPassInfo.commandBuffer.vkCommandBuffer, groupCountX, groupCountY, 1);

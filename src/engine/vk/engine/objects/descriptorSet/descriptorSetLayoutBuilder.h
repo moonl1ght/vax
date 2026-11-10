@@ -1,6 +1,5 @@
 #pragma once
 
-#include "descriptorSetLayout.h"
 #include "device.h"
 #include "logger.h"
 
@@ -20,8 +19,7 @@ class DescriptorSetLayoutBuilder final {
 
     void addBinding(const VkDescriptorSetLayoutBinding& binding) noexcept;
 
-    std::optional<DescriptorSetLayout>
-    build(VkDescriptorSetLayoutCreateFlags flags = 0);
+    std::optional<VkDescriptorSetLayout> build(VkDescriptorSetLayoutCreateFlags flags = 0) noexcept;
 
   private:
     vax::Logger _logger = vax::Logger("DescriptorSetLayoutBuilder");

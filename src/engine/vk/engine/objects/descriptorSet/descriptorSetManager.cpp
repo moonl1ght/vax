@@ -50,69 +50,100 @@ void DescriptorSetManager::cleanupV2() noexcept {
     }
 }
 
-DescriptorSetManager::GraphicsModuleLayouts
+std::optional<DescriptorSetManager::GraphicsModuleLayouts>
 DescriptorSetManager::addGraphicsModuleLayouts(const ShaderLibrary::GraphicsModule& graphicsModule) noexcept {
-    GraphicsModuleLayouts layouts;
-    layouts.vertexLayouts = _addLayoutsForFunction(*graphicsModule.vertexFunction);
-    layouts.fragmentLayouts = _addLayoutsForFunction(*graphicsModule.fragmentFunction);
-    return layouts;
+    auto vertexLayouts = _addLayoutsForFunction(*graphicsModule.vertexFunction);
+    auto fragmentLayouts = _addLayoutsForFunction(*graphicsModule.fragmentFunction);
+    if (!vertexLayouts || !fragmentLayouts) {
+        return std::nullopt;
+    }
+    return GraphicsModuleLayouts{
+        .vertexLayouts = std::move(*vertexLayouts),
+        .fragmentLayouts = std::move(*fragmentLayouts),
+    };
 }
 
-DescriptorSetManager::ComputeModuleLayouts
+std::optional<DescriptorSetManager::ComputeModuleLayouts>
 DescriptorSetManager::addComputeModuleLayouts(const ShaderLibrary::ComputeModule& computeModule) noexcept {
-    ComputeModuleLayouts layouts;
-    layouts.computeLayouts = _addLayoutsForFunction(*computeModule.computeFunction);
-    return layouts;
+    auto computeLayouts = _addLayoutsForFunction(*computeModule.computeFunction);
+    if (!computeLayouts) {
+        return std::nullopt;
+    }
+    return ComputeModuleLayouts{.computeLayouts = std::move(*computeLayouts)};
 }
 
-std::vector<DescriptorSetLayout*>
+std::optional<std::vector<DescriptorSetLayout*>>
 DescriptorSetManager::_addLayoutsForFunction(const ShaderLibrary::ShaderFunction& function) noexcept {
+    const auto& sets = function.reflectionData.sets;
     std::vector<DescriptorSetLayout*> descriptorSetLayouts;
-    for (const auto& set : function.reflectionData.sets) {
-        auto it = _descriptorSetLayoutsV2.find(set);
-        if (it == _descriptorSetLayoutsV2.end()) {
-            auto layoutBuilder = DescriptorSetLayoutBuilder(_device.get(), set.name);
-            for (const auto& binding : set.bindings) {
-                layoutBuilder.addBinding(binding);
-            }
-            auto layout = layoutBuilder.build();
-            if (!layout) {
-                _logger.error("Failed to create descriptor set layout!");
-                continue;
-            }
-            _descriptorSetLayoutsV2.insert({set, std::move(layout.value())});
-            _descriptorSetNameLayoutReflectionDataMap.insert({set.name, set});
-            descriptorSetLayouts.push_back(&_descriptorSetLayoutsV2.at(set));
-        } else {
-            it->second.addEntryPointName(function.name);
-            descriptorSetLayouts.push_back(&it->second);
+    descriptorSetLayouts.reserve(sets.size());
+    for (const auto& set : sets) {
+        if (set.set != descriptorSetLayouts.size()) {
+            _logger.error("Set ", set.set, " is not in the correct position for ", function.name);
+            return std::nullopt;
         }
+        DescriptorSetLayout* layout = _getOrCreateSetLayout(set);
+        if (!layout) {
+            _logger.error("Failed to create descriptor set layout for set ", set.set, " in ", function.name);
+            return std::nullopt;
+        }
+        descriptorSetLayouts.push_back(layout);
     }
     return descriptorSetLayouts;
 }
 
-std::optional<DescriptorSetWriter>
-DescriptorSetManager::getDescriptorSetWriter(const std::string& name, uint32_t frameIndex) noexcept {
-    auto descriptorSets = _createOrFindDescriptorSets(name);
-    if (descriptorSets.empty()) {
-        return std::nullopt;
+DescriptorSetLayout*
+DescriptorSetManager::_getOrCreateSetLayout(const ShaderReflectionData::SetReflectionData& set) noexcept {
+    if (auto it = _descriptorSetLayoutsV2.find(set); it != _descriptorSetLayoutsV2.end()) {
+        return &it->second;
     }
-    return std::make_optional<DescriptorSetWriter>(_device.get(), descriptorSets[frameIndex]);
+    auto layoutBuilder = DescriptorSetLayoutBuilder(_device.get(), set.name);
+    for (const auto& binding : set.bindings) {
+        layoutBuilder.addBinding(binding);
+    }
+    auto layout = layoutBuilder.build();
+    if (!layout) {
+        return nullptr;
+    }
+    auto [it, inserted] = _descriptorSetLayoutsV2.try_emplace(set, _device.get(), layout.value(), set.name);
+    _descriptorSetNameLayoutReflectionDataMap.insert({set.name, set});
+    return &it->second;
 }
 
-std::optional<DescriptorSetHandler>
-DescriptorSetManager::getDescriptorSetHandler(const std::string& name, uint32_t frameIndex) noexcept {
+std::vector<DescriptorSetWriter> DescriptorSetManager::getDescriptorSetWriters(const std::string& name) noexcept {
     auto descriptorSets = _createOrFindDescriptorSets(name);
     if (descriptorSets.empty()) {
-        return std::nullopt;
+        return {};
     }
-    return std::make_optional<DescriptorSetHandler>(descriptorSets[frameIndex]);
+    std::vector<DescriptorSetWriter> descriptorSetWriters;
+    descriptorSetWriters.reserve(static_cast<size_t>(_maxFramesInFlight));
+    for (const auto& descriptorSet : descriptorSets) {
+        descriptorSetWriters.emplace_back(_device.get(), descriptorSet);
+    }
+    return descriptorSetWriters;
+}
+
+std::vector<DescriptorSetHandler> DescriptorSetManager::getDescriptorSetHandlers(const std::string& name) noexcept {
+    auto descriptorSets = _createOrFindDescriptorSets(name);
+    if (descriptorSets.empty()) {
+        return {};
+    }
+    std::vector<DescriptorSetHandler> descriptorSetHandlers;
+    descriptorSetHandlers.reserve(descriptorSets.size());
+    for (const auto& descriptorSet : descriptorSets) {
+        descriptorSetHandlers.emplace_back(DescriptorSetHandler(descriptorSet));
+    }
+    return descriptorSetHandlers;
 }
 
 std::vector<VkDescriptorSet> DescriptorSetManager::_createOrFindDescriptorSets(const std::string& name) noexcept {
     auto it = _descriptorSets.find(name);
     if (it == _descriptorSets.end()) {
-        return _createDescriptorSets(name);
+        auto descriptorSets = _createDescriptorSets(name);
+        if (descriptorSets.empty()) {
+            return {};
+        }
+        it = _descriptorSets.emplace(name, std::move(descriptorSets)).first;
     }
     return it->second;
 }
@@ -248,7 +279,9 @@ bool DescriptorSetManager::_createDescriptorSetLayouts(const std::vector<Descrip
             _logger.error("Failed to create descriptor set layout!");
             return false;
         }
-        _descriptorSetLayouts.insert({descriptorSetLayoutName, std::move(layout.value())});
+        _descriptorSetLayouts.try_emplace(
+            descriptorSetLayoutName, _device.get(), layout.value(), descriptorSetLayoutName
+        );
     }
     return true;
 }

@@ -94,13 +94,6 @@ void addBinding(
     uint32_t count,
     bool noUab
 ) {
-    if (noUab) {
-        if (location.set >= data.sets.size()) {
-            data.sets.resize(location.set + 1);
-        }
-        data.sets[location.set].isUpdateAfterBind = false;
-    }
-
     bool isUsed = false;
     context.metadata->isParameterLocationUsed(
         SLANG_PARAMETER_CATEGORY_DESCRIPTOR_TABLE_SLOT, location.set, location.binding, isUsed
@@ -112,6 +105,9 @@ void addBinding(
     auto& sets = data.sets;
     if (location.set >= sets.size()) {
         sets.resize(location.set + 1);
+    }
+    if (noUab) {
+        sets[location.set].isUpdateAfterBind = false;
     }
 
     auto& setBindings = sets[location.set].bindings;
@@ -243,10 +239,13 @@ ShaderReflectionData ReflectionProcessor::process(ReflectionContext& context) co
         collectParameter(param, entryPointBase, context, data);
     }
 
-    for (ShaderReflectionData::SetReflectionData& set : data.sets) {
+    for (size_t i = 0; i < data.sets.size(); ++i) {
+        ShaderReflectionData::SetReflectionData& set = data.sets[i];
+        set.set = static_cast<uint32_t>(i);
         std::sort(set.bindings.begin(), set.bindings.end(), [](const auto& a, const auto& b) {
             return a.binding < b.binding;
         });
     }
+    std::erase_if(data.sets, [](const auto& set) { return set.bindings.empty(); });
     return data;
 }

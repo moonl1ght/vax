@@ -15,6 +15,7 @@ using vec4 = glm::vec4;
 
 struct JFAPushConstants {
     uint step;
+    uint swapInputAndOutput;
 };
 
 static constexpr uint MAX_UINT = 60000;

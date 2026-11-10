@@ -5,13 +5,12 @@
 using namespace vax::vk;
 using namespace vax;
 
-void DescriptorSetWriter::writeTexture(
+bool DescriptorSetWriter::writeTexture(
     const Texture& texture, uint32_t binding, uint32_t arrayElement, bool withSampler
 ) {
     auto imageInfoOpt = withSampler ? texture.descriptorImageInfoWithSampler() : texture.descriptorImageInfoNoSampler();
     if (!imageInfoOpt) {
-        _logger.error("Failed to write descriptor image info");
-        return;
+        return false;
     }
 
     VkDescriptorImageInfo& imageInfo = _imageInfos.emplace_back(imageInfoOpt.value());
@@ -27,9 +26,32 @@ void DescriptorSetWriter::writeTexture(
     };
 
     _writes.push_back(write);
+    return true;
 }
 
-void DescriptorSetWriter::writeTextures(
+bool DescriptorSetWriter::writeStorageTexture(const Texture& texture, uint32_t binding, uint32_t arrayElement) {
+    auto imageInfoOpt = texture.descriptorImageInfoNoSampler();
+    if (!imageInfoOpt) {
+        return false;
+    }
+    VkDescriptorImageInfo& imageInfo = _imageInfos.emplace_back(imageInfoOpt.value());
+    imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+    _writes.push_back(
+        VkWriteDescriptorSet{
+        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        .dstSet = _descriptorSet,
+        .dstBinding = binding,
+        .dstArrayElement = arrayElement,
+        .descriptorCount = 1,
+        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+        .pImageInfo = &imageInfo,
+        }
+    );
+    return true;
+}
+
+bool DescriptorSetWriter::writeTextures(
     const std::vector<const Texture*>& textures, uint32_t binding, bool withSampler
 ) {
     std::vector<VkDescriptorImageInfo> imageInfos;
@@ -38,8 +60,7 @@ void DescriptorSetWriter::writeTextures(
         auto imageInfoOpt =
             withSampler ? texture->descriptorImageInfoWithSampler() : texture->descriptorImageInfoNoSampler();
         if (!imageInfoOpt) {
-            _logger.error("Failed to write descriptor image info");
-            return;
+            return false;
         }
         imageInfos.push_back(*imageInfoOpt);
     }
@@ -56,6 +77,7 @@ void DescriptorSetWriter::writeTextures(
     };
 
     _writes.push_back(write);
+    return true;
 }
 
 void DescriptorSetWriter::writeSampler(const Sampler& sampler, uint32_t binding, uint32_t arrayElement) {

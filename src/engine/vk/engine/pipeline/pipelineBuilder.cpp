@@ -56,13 +56,23 @@ std::optional<vax::vk::PipelineV2> ComputePipelineBuilder::build(std::string nam
         return std::nullopt;
     }
 
+    std::vector<std::string> descriptorSetNames;
+    descriptorSetNames.reserve(_pipelineLayoutKey.setLayouts.size());
+    for (size_t i = 0; i < _pipelineLayoutKey.setLayouts.size(); i++) {
+        descriptorSetNames.push_back(_pipelineLayoutKey.descriptorSetNames[i]);
+    }
+
     return vax::vk::PipelineV2{
-        .vkPipelineLayout = _pipelineLayout,
+        .pipelineLayoutKey = _pipelineLayoutKey,
         .vkPipeline = pipeline,
+        .descriptorSetNames = descriptorSetNames,
     };
 }
 
-void ComputePipelineBuilder::setPipelineLayout(const VkPipelineLayout& pipelineLayout) noexcept {
+void ComputePipelineBuilder::setPipelineLayout(
+    const PipelineLayoutKey& pipelineLayoutKey, const VkPipelineLayout& pipelineLayout
+) noexcept {
+    _pipelineLayoutKey = pipelineLayoutKey;
     _pipelineLayout = pipelineLayout;
 }
 

@@ -1,20 +1,20 @@
 #pragma once
-#include "descriptorSetManager.h"
-#include "pipeline.h"
+
+#include "commonDescriptorSets.h"
+#include "pipelineManager.h"
 #include "renderDestination.h"
 #include "renderPassNode.h"
 #include "texture.h"
-#include "commonDescriptorSets.h"
 
 namespace vax::engine {
 class JFAPass final : public RenderPassNode {
   public:
-    JFAPass(std::string_view id, const vax::vk::Device& device, vax::vk::DescriptorSetManager& descriptorSetManager)
+    JFAPass(std::string_view id, const vax::vk::Device& device, vax::vk::PipelineManager& pipelineManager) noexcept
         : RenderPassNode(id)
         , _device(device)
-        , _descriptorSetManager(descriptorSetManager) {};
+        , _pipelineManager(pipelineManager) {};
 
-    ~JFAPass() { cleanup(); }
+    ~JFAPass() = default;
 
     JFAPass(const JFAPass& other) = delete;
     JFAPass& operator=(const JFAPass& other) = delete;
@@ -24,8 +24,6 @@ class JFAPass final : public RenderPassNode {
     void setup(std::weak_ptr<vax::vk::RenderDestination> inputRenderDestination);
 
     void update(std::weak_ptr<vax::vk::RenderDestination> inputRenderDestination);
-
-    void cleanup();
 
     const std::vector<vax::vk::Texture>& outputATextures() const;
 
@@ -44,9 +42,9 @@ class JFAPass final : public RenderPassNode {
   private:
     vax::Logger _logger = vax::Logger("JFAPass");
     std::reference_wrapper<const vax::vk::Device> _device;
-    std::reference_wrapper<vax::vk::DescriptorSetManager> _descriptorSetManager;
-    std::optional<vax::vk::Pipeline> _initPipeline;
-    std::optional<vax::vk::Pipeline> _jfaPipeline;
+    std::reference_wrapper<const vax::vk::PipelineManager> _pipelineManager;
+    std::optional<vax::vk::PipelineHandle> _initPipeline;
+    std::optional<vax::vk::PipelineHandle> _jfaPipeline;
     std::vector<vax::vk::Texture> _jfaTexturesA;
     std::vector<vax::vk::Texture> _jfaTexturesB;
     std::weak_ptr<vax::vk::RenderDestination> _inputRenderDestination;

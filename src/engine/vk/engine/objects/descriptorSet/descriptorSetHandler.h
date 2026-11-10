@@ -1,20 +1,14 @@
 #pragma once
 
-#include "logger.h"
 #include "vulkan/vulkan_core.h"
 
 namespace vax::vk {
-struct DescriptorSetHandler {
+struct DescriptorSetHandler final {
   public:
     explicit DescriptorSetHandler(VkDescriptorSet descriptorSet)
         : _descriptorSet(descriptorSet) {}
 
     ~DescriptorSetHandler() {}
-
-    DescriptorSetHandler(const DescriptorSetHandler&) = delete;
-    DescriptorSetHandler& operator=(const DescriptorSetHandler&) = delete;
-    DescriptorSetHandler(DescriptorSetHandler&& other) noexcept = delete;
-    DescriptorSetHandler& operator=(DescriptorSetHandler&& other) noexcept = delete;
 
     void bind(
         VkCommandBuffer commandBuffer,
@@ -25,7 +19,6 @@ struct DescriptorSetHandler {
         const uint32_t* pDynamicOffsets = nullptr
     ) noexcept {
         if (!_descriptorSet) {
-            _logger.error("Descriptor set is not set!");
             return;
         }
         vkCmdBindDescriptorSets(
@@ -34,7 +27,6 @@ struct DescriptorSetHandler {
     }
 
   private:
-    vax::Logger _logger = vax::Logger("DescriptorSetHandler");
     VkDescriptorSet _descriptorSet;
 };
 } // namespace vax::vk

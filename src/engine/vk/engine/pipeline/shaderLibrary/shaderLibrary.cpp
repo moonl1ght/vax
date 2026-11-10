@@ -164,6 +164,7 @@ std::optional<ShaderLibrary::ShaderFunction> ShaderLibrary::_loadEntryPoint(
 
     shaderFunction.reflectionData = _reflectionProcessor->process(context);
     shaderFunction.name = name;
+    shaderFunction.stageFlags = stageFlags;
 
     return shaderFunction;
 }

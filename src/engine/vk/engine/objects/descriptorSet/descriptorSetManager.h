@@ -37,13 +37,15 @@ class DescriptorSetManager final {
 
     void cleanupV2() noexcept;
 
-    GraphicsModuleLayouts addGraphicsModuleLayouts(const ShaderLibrary::GraphicsModule& graphicsModule) noexcept;
+    std::optional<GraphicsModuleLayouts>
+    addGraphicsModuleLayouts(const ShaderLibrary::GraphicsModule& graphicsModule) noexcept;
 
-    ComputeModuleLayouts addComputeModuleLayouts(const ShaderLibrary::ComputeModule& computeModule) noexcept;
+    std::optional<ComputeModuleLayouts>
+    addComputeModuleLayouts(const ShaderLibrary::ComputeModule& computeModule) noexcept;
 
-    std::optional<DescriptorSetWriter> getDescriptorSetWriter(const std::string& name, uint32_t frameIndex) noexcept;
+    std::vector<DescriptorSetWriter> getDescriptorSetWriters(const std::string& name) noexcept;
 
-    std::optional<DescriptorSetHandler> getDescriptorSetHandler(const std::string& name, uint32_t frameIndex) noexcept;
+    std::vector<DescriptorSetHandler> getDescriptorSetHandlers(const std::string& name) noexcept;
 
     // LEGACY
 
@@ -72,7 +74,10 @@ class DescriptorSetManager final {
     std::unordered_map<std::string, std::vector<VkDescriptorSet>> _descriptorSets;
     std::unordered_map<std::string, ShaderReflectionData::SetReflectionData> _descriptorSetNameLayoutReflectionDataMap;
 
-    std::vector<DescriptorSetLayout*> _addLayoutsForFunction(const ShaderLibrary::ShaderFunction& function) noexcept;
+    std::optional<std::vector<DescriptorSetLayout*>>
+    _addLayoutsForFunction(const ShaderLibrary::ShaderFunction& function) noexcept;
+
+    DescriptorSetLayout* _getOrCreateSetLayout(const ShaderReflectionData::SetReflectionData& set) noexcept;
 
     void _createDescriptorPool(const PoolDescriptor& poolDescriptor) noexcept;
 
@@ -82,8 +87,8 @@ class DescriptorSetManager final {
 
     // LEGACY
 
-    std::unordered_map<std::string_view, DescriptorSetInfo> _descriptorSetInfos;
-    std::unordered_map<std::string_view, DescriptorSetLayout> _descriptorSetLayouts;
+    std::unordered_map<std::string, DescriptorSetInfo> _descriptorSetInfos;
+    std::unordered_map<std::string, DescriptorSetLayout> _descriptorSetLayouts;
 
     VkDescriptorPool _persistentDescriptorPool = VK_NULL_HANDLE;
     VkDescriptorPool _persistentUABDescriptorPool = VK_NULL_HANDLE;

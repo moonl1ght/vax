@@ -1,11 +1,7 @@
+#include "jfa.h"
+
 import uniforms;
 import utils.customAttributes;
-
-struct JFAPushConstants {
-    uint step;
-};
-
-static constexpr uint MAX_UINT = 60000;
 
 struct JFAInit {
     Texture2D<uint> inputMask;
@@ -76,7 +72,9 @@ struct JFAStep {
         uint2 pixelCoords = dtid.xy;
 
         uint width, height;
-        inputCoords.GetDimensions(width, height);
+        RWTexture2D<uint2> currentInputCoords = pc.swapInputAndOutput == 0u ? inputCoords : outputCoords;
+        RWTexture2D<uint2> currentOutputCoords = pc.swapInputAndOutput == 0u ? outputCoords : inputCoords;
+        currentInputCoords.GetDimensions(width, height);
 
         if (pixelCoords.x >= width || pixelCoords.y >= height)
             return;
@@ -90,7 +88,7 @@ struct JFAStep {
 
                 if (neighborCoords.x >= 0 && neighborCoords.x < int(width) && neighborCoords.y >= 0 &&
                     neighborCoords.y < int(height)) {
-                    uint2 seed = inputCoords[neighborCoords];
+                    uint2 seed = currentInputCoords[neighborCoords];
 
                     if (seed.x != MAX_UINT && seed.y != MAX_UINT) {
                         float2 diff = float2(pixelCoords) - float2(seed);
@@ -106,7 +104,7 @@ struct JFAStep {
             }
         }
 
-        outputCoords[pixelCoords] = bestSeed;
+        currentOutputCoords[pixelCoords] = bestSeed;
     }
 };
 

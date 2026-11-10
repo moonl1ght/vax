@@ -15,6 +15,7 @@ struct ShaderReflectionData final {
         std::vector<VkDescriptorSetLayoutBinding> bindings;
         bool isUpdateAfterBind = true;
         std::string name;
+        uint32_t set = 0;
 
         bool operator==(const SetReflectionData& other) const noexcept {
             if (isUpdateAfterBind != other.isUpdateAfterBind || bindings.size() != other.bindings.size()) {

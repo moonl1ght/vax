@@ -23,6 +23,8 @@ class PipelineManager final {
     };
 
     ~PipelineManager() {
+        _destroyPipelinesV2();
+        _destroyPipelineLayoutsV2();
         for (auto& [name, pipelineLayout] : _pipelineLayouts) {
             vkDestroyPipelineLayout(_device.get().vkDevice, pipelineLayout, nullptr);
         }
@@ -39,7 +41,7 @@ class PipelineManager final {
 
     void prebuildPipelines(const std::vector<PipelineDescriptor>& pipelineDescriptors) noexcept;
 
-    const PipelineV2* getPipeline(const std::string& pipelineName) const noexcept;
+    std::optional<PipelineHandle> getPipeline(const std::string& pipelineName) const noexcept;
 
     // Legacy
 
@@ -62,6 +64,11 @@ class PipelineManager final {
     std::unique_ptr<DescriptorSetManager> _descriptorSetManagerV2 = nullptr;
 
     std::unordered_map<std::string, PipelineV2> _pipelinesV2;
+    std::unordered_map<PipelineLayoutKey, VkPipelineLayout> _pipelineLayoutsV2;
+
+    void _destroyPipelinesV2() noexcept;
+
+    void _destroyPipelineLayoutsV2() noexcept;
 
     void _buildComputePipeline(const PipelineDescriptor& pipelineDescriptor);
 
