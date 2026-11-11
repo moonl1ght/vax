@@ -99,6 +99,9 @@ bool vax::vk::Engine::setup() {
     });
 
     pipelineManager = std::make_unique<PipelineManager>(*device, *descriptorSetManager);
+    if (!pipelineManager->setup()) {
+        return false;
+    }
     deletionQueue.push_function([&]() {
         _logger.debug("Destroying pipeline manager...");
         pipelineManager = nullptr; // TODO: remove from destructor

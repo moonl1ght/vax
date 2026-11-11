@@ -4,18 +4,20 @@
 using namespace vax::vk;
 using namespace vax;
 
-void DescriptorSetLayoutBuilder::addBinding(const VkDescriptorSetLayoutBinding& binding) noexcept {
+void DescriptorSetLayoutBuilder::addBinding(
+    const VkDescriptorSetLayoutBinding& binding, VkDescriptorBindingFlags bindingFlags
+) noexcept {
     _bindings.push_back(binding);
+    _bindingFlags.push_back(bindingFlags);
 }
 
 std::optional<VkDescriptorSetLayout>
 DescriptorSetLayoutBuilder::build(VkDescriptorSetLayoutCreateFlags flags) noexcept {
     uint32_t bindingCount = static_cast<uint32_t>(_bindings.size());
-    std::vector<VkDescriptorBindingFlags> bindingFlags(bindingCount, VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT);
     VkDescriptorSetLayoutBindingFlagsCreateInfo bindingFlagsInfo{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO,
         .bindingCount = bindingCount,
-        .pBindingFlags = bindingFlags.data(),
+        .pBindingFlags = _bindingFlags.data(),
     };
     VkDescriptorSetLayoutCreateInfo layoutInfo = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,

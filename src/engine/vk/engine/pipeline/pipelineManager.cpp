@@ -9,6 +9,16 @@
 using namespace vax::vk;
 using namespace vax;
 
+bool PipelineManager::setup() noexcept {
+    _shaderLibrary = std::make_unique<ShaderLibrary>();
+    _descriptorSetManagerV2 = std::make_unique<DescriptorSetManager>(_device.get(), MAX_FRAMES_IN_FLIGHT);
+    _descriptorManager = std::make_unique<DescriptorManager>(_device.get());
+    if (!_descriptorManager->setup()) {
+        return false;
+    }
+    return true;
+}
+
 void PipelineManager::load(const std::string& shaderDirectory) noexcept {
     if (_isLoaded) {
         _logger.error("Pipeline manager already loaded!");

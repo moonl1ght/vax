@@ -2,8 +2,19 @@
 
 #include <vector>
 #include <vulkan/vulkan.h>
+#include <vulkan/vulkan_core.h>
 
 namespace vax::vk {
+
+struct PoolLimits final {
+    uint32_t maxSampledImages = 500;
+    uint32_t maxStorageImages = 500;
+
+    PoolLimits(VkPhysicalDeviceProperties properties) {
+        maxSampledImages = properties.limits.maxDescriptorSetSampledImages;
+        maxStorageImages = properties.limits.maxDescriptorSetStorageImages;
+    }
+};
 
 constexpr bool supportsUpdateAfterBind(VkDescriptorType type) noexcept {
     switch (type) {
@@ -22,10 +33,28 @@ enum class PoolType {
 };
 
 struct PoolDescriptor final {
+    static PoolDescriptor bindlessPoolDescriptor(const PoolLimits& limits) {
+        return {
+            {
+            {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, limits.maxSampledImages},
+            {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, limits.maxStorageImages},
+            },
+            1
+        };
+    };
+
+    static std::vector<VkDescriptorSetLayoutBinding> bindlessBindings() {
+        return {
+            {0, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 500, VK_SHADER_STAGE_ALL},
+            {1, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 500, VK_SHADER_STAGE_ALL},
+        };
+    }
+
     static PoolDescriptor defaultPoolDescriptor() {
         return {
             {
             {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 500},
+            {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 500},
             },
             500
         };

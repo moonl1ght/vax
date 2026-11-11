@@ -76,6 +76,7 @@ enum {
     MAX_GLOBAL_SAMPLERS = MAX_SAMPLERS,
     MAX_UBO_LIGHTS = 16
 };
+
 static constexpr uint32_t NO_TEXTURE_FLAG = 0xFFFFFFFF;
 static constexpr uint32_t NO_MATERIAL_INDEX = 0xFFFFFFFF;
 static constexpr uint32_t NO_ENVIRONMENT_MAP_INDEX = 0xFFFFFFFF;

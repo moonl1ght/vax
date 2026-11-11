@@ -17,14 +17,18 @@ class DescriptorSetLayoutBuilder final {
     DescriptorSetLayoutBuilder(DescriptorSetLayoutBuilder&& other) = delete;
     DescriptorSetLayoutBuilder& operator=(DescriptorSetLayoutBuilder&& other) = delete;
 
-    void addBinding(const VkDescriptorSetLayoutBinding& binding) noexcept;
+    void addBinding(
+        const VkDescriptorSetLayoutBinding& binding,
+        VkDescriptorBindingFlags bindingFlags = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT
+    ) noexcept;
 
-    std::optional<VkDescriptorSetLayout> build(VkDescriptorSetLayoutCreateFlags flags = 0) noexcept;
+    std::optional<VkDescriptorSetLayout> build(VkDescriptorSetLayoutCreateFlags flags) noexcept;
 
   private:
     vax::Logger _logger = vax::Logger("DescriptorSetLayoutBuilder");
     std::reference_wrapper<const vax::vk::Device> _device;
     std::vector<VkDescriptorSetLayoutBinding> _bindings;
+    std::vector<VkDescriptorBindingFlags> _bindingFlags;
     std::string _name;
 };
 } // namespace vax::vk

@@ -76,7 +76,7 @@ DescriptorSetManager::_getOrCreateSetLayout(const ShaderReflectionData::SetRefle
     for (const auto& binding : set.bindings) {
         layoutBuilder.addBinding(binding);
     }
-    auto layout = layoutBuilder.build();
+    auto layout = layoutBuilder.build(VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT);
     if (!layout) {
         return nullptr;
     }

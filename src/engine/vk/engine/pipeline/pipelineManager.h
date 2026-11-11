@@ -1,5 +1,6 @@
 #pragma once
 
+#include "descriptorManager.h"
 #include "descriptorSetManager.h"
 #include "device.h"
 #include "pipeline.h"
@@ -17,9 +18,7 @@ class PipelineManager final {
     PipelineManager(const Device& device, const DescriptorSetManager& descriptorSetManager)
         : _device(device)
         , _descriptorSetManager(descriptorSetManager)
-        , _shaderModuleBuilder(device) {
-        _descriptorSetManagerV2 = std::make_unique<DescriptorSetManager>(device, MAX_FRAMES_IN_FLIGHT);
-    };
+        , _shaderModuleBuilder(device) {};
 
     ~PipelineManager() {
         _destroyPipelinesV2();
@@ -33,6 +32,8 @@ class PipelineManager final {
     PipelineManager& operator=(const PipelineManager&) = delete;
     PipelineManager(PipelineManager&& other) = delete;
     PipelineManager& operator=(PipelineManager&& other) = delete;
+
+    bool setup() noexcept;
 
     void load(const std::string& shaderDirectory) noexcept;
 
@@ -59,7 +60,8 @@ class PipelineManager final {
 
     bool _isLoaded = false;
 
-    std::unique_ptr<ShaderLibrary> _shaderLibrary = std::make_unique<ShaderLibrary>();
+    std::unique_ptr<ShaderLibrary> _shaderLibrary = nullptr;
+    std::unique_ptr<DescriptorManager> _descriptorManager = nullptr;
     std::unique_ptr<DescriptorSetManager> _descriptorSetManagerV2 = nullptr;
 
     std::unordered_map<std::string, PipelineV2> _pipelinesV2;

@@ -1,6 +1,10 @@
 import uniforms;
 import utils.customAttributes;
 
+struct BindlessDescriptorSet {
+    Texture2D textures[MAX_TEXTURES];
+};
+
 [DynamicOffset]
 [vk::binding(PerFrameDescriptorSetResourceIndex::FRAME_UNIFORM_BUFFER_INDEX, MainSetIndices::PER_FRAME_SET_INDEX)]
 ConstantBuffer<UniformBufferObject> ubo;
