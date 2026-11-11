@@ -69,9 +69,9 @@ class PipelineManager final {
 
     void _destroyPipelineLayoutsV2() noexcept;
 
-    void _buildComputePipeline(const PipelineDescriptor& pipelineDescriptor);
-
-    void _buildGraphicsPipeline(const PipelineDescriptor& pipelineDescriptor);
+    std::optional<std::pair<PipelineLayoutKey, VkPipelineLayout>> _getOrCreatePipelineLayout(
+        const DescriptorSetManager::PipelineSetLayouts& setLayouts, const std::string& name
+    ) noexcept;
 
     // LEGACY:
     std::reference_wrapper<const Device> _device;

@@ -32,139 +32,96 @@ void ShaderLibrary::startSession(const std::string& shaderDirectory, Profile pro
 
 void ShaderLibrary::endSession() noexcept { _session = nullptr; }
 
-std::optional<ShaderLibrary::GraphicsModule>
-ShaderLibrary::loadGraphicsModule(const ShaderModuleDescriptor& descriptor) noexcept {
+slang::IModule* ShaderLibrary::_loadModule(const std::string& name) noexcept {
     Slang::ComPtr<slang::IBlob> diagnostics;
-    auto module = _session->loadModule(descriptor.name.c_str(), diagnostics.writeRef());
+    slang::IModule* module = _session->loadModule(name.c_str(), diagnostics.writeRef());
     if (module == nullptr) {
         _logger.error(
             "Failed to load module: ",
-            descriptor.name,
+            name,
             "\n",
             diagnostics ? static_cast<const char*>(diagnostics->getBufferPointer()) : ""
         );
-        return std::nullopt;
     }
-
-    GraphicsModule graphicsModule{descriptor.name};
-    for (const EntryPointDescriptor& entryPoint : descriptor.entryPoints) {
-        auto result = _loadEntryPoint(module, entryPoint.name, entryPoint.stageFlags);
-        if (result == std::nullopt) {
-            _logger.error("Failed to load entry point: ", entryPoint.name);
-            return std::nullopt;
-        }
-        switch (entryPoint.stageFlags) {
-        case VK_SHADER_STAGE_VERTEX_BIT:
-            graphicsModule.vertexFunction = result.value();
-            break;
-        case VK_SHADER_STAGE_FRAGMENT_BIT:
-            graphicsModule.fragmentFunction = result.value();
-            break;
-        default:
-            _logger.error("Unsupported stage flags: ", entryPoint.stageFlags);
-            return std::nullopt;
-        }
-    }
-
-    return std::make_optional(graphicsModule);
+    return module;
 }
 
-std::optional<ShaderLibrary::ComputeModule>
-ShaderLibrary::loadComputeModule(const ShaderModuleDescriptor& descriptor) noexcept {
-    Slang::ComPtr<slang::IBlob> diagnostics;
-    auto module = _session->loadModule(descriptor.name.c_str(), diagnostics.writeRef());
-    if (module == nullptr) {
-        _logger.error(
-            "Failed to load module: ",
-            descriptor.name,
-            "\n",
-            diagnostics ? static_cast<const char*>(diagnostics->getBufferPointer()) : ""
-        );
-        return std::nullopt;
-    }
-
-    ComputeModule computeModule{descriptor.name};
+std::optional<ShaderLibrary::PipelineModule>
+ShaderLibrary::loadPipelineModule(const ShaderModuleDescriptor& descriptor) noexcept {
     if (descriptor.entryPoints.size() != 1) {
         _logger.error("Compute module must have exactly one entry point: ", descriptor.name);
         return std::nullopt;
     }
-    auto result = _loadEntryPoint(module, descriptor.entryPoints[0].name, descriptor.entryPoints[0].stageFlags);
-    if (result == std::nullopt) {
-        _logger.error("Failed to load entry point: ", descriptor.entryPoints[0].name);
+    slang::IModule* module = _loadModule(descriptor.name);
+    if (module == nullptr) {
         return std::nullopt;
     }
-    computeModule.computeFunction = result.value();
-
-    return std::make_optional(computeModule);
-}
-
-std::optional<ShaderLibrary::ShaderFunction> ShaderLibrary::_loadEntryPoint(
-    slang::IModule* module, const std::string& name, VkShaderStageFlags stageFlags
-) noexcept {
-    ShaderFunction shaderFunction;
-
-    Slang::ComPtr<slang::IEntryPoint> entryPoint;
-    SlangResult result;
-    result = module->findEntryPointByName(name.c_str(), entryPoint.writeRef());
-    if (SLANG_FAILED(result)) {
-        _logger.error("Failed to find entry point: ", name);
-        return std::nullopt;
+    std::vector<Slang::ComPtr<slang::IEntryPoint>> entryPoints(descriptor.entryPoints.size());
+    std::vector<slang::IComponentType*> components{module};
+    std::vector<VkShaderStageFlags> stages;
+    components.reserve(descriptor.entryPoints.size() + 1);
+    stages.reserve(descriptor.entryPoints.size());
+    for (size_t i = 0; i < descriptor.entryPoints.size(); ++i) {
+        const EntryPointDescriptor& entryPoint = descriptor.entryPoints[i];
+        if (SLANG_FAILED(module->findEntryPointByName(entryPoint.name.c_str(), entryPoints[i].writeRef()))) {
+            _logger.error("Failed to find entry point: ", entryPoint.name, " in ", descriptor.name);
+            return std::nullopt;
+        }
+        components.push_back(entryPoints[i]);
+        stages.push_back(entryPoint.stageFlags);
     }
 
-    slang::IComponentType* components[] = {module, entryPoint};
+    auto diagnosticText = [](slang::IBlob* blob) {
+        return blob ? static_cast<const char*>(blob->getBufferPointer()) : "unknown error";
+    };
+
     Slang::ComPtr<slang::IComponentType> program;
     Slang::ComPtr<slang::IBlob> diagnostics;
-
-    result = _session->createCompositeComponentType(components, 2, program.writeRef(), diagnostics.writeRef());
-    if (SLANG_FAILED(result)) {
-        if (diagnostics) {
-            _logger.error("Failed to create composite component type: ", (const char*)diagnostics->getBufferPointer());
-        } else {
-            _logger.error("Unknown linking error");
-        }
+    if (SLANG_FAILED(_session->createCompositeComponentType(
+            components.data(), static_cast<SlangInt>(components.size()), program.writeRef(), diagnostics.writeRef()
+        ))) {
+        _logger.error(
+            "Failed to create composite component type: ", descriptor.name, "\n", diagnosticText(diagnostics)
+        );
         return std::nullopt;
     }
 
     Slang::ComPtr<slang::IComponentType> linkedProgram;
-    result = program->link(linkedProgram.writeRef(), diagnostics.writeRef());
-    if (SLANG_FAILED(result)) {
-        if (diagnostics) {
-            _logger.error("Failed to link program: ", (const char*)diagnostics->getBufferPointer());
-        } else {
-            _logger.error("Unknown linking error");
+    if (SLANG_FAILED(program->link(linkedProgram.writeRef(), diagnostics.writeRef()))) {
+        _logger.error("Failed to link program: ", descriptor.name, "\n", diagnosticText(diagnostics));
+        return std::nullopt;
+    }
+
+    PipelineModule pipelineModule;
+    pipelineModule.name = descriptor.name;
+    pipelineModule.functions.reserve(descriptor.entryPoints.size());
+    for (size_t i = 0; i < descriptor.entryPoints.size(); ++i) {
+        Slang::ComPtr<slang::IBlob> spirvBlob;
+        if (SLANG_FAILED(linkedProgram->getEntryPointCode(
+                static_cast<SlangInt>(i), 0, spirvBlob.writeRef(), diagnostics.writeRef()
+            ))) {
+            _logger.error(
+                "Failed to get entry point code: ", descriptor.entryPoints[i].name, "\n", diagnosticText(diagnostics)
+            );
+            return std::nullopt;
         }
-        return std::nullopt;
+        const auto* spirvData = static_cast<const uint32_t*>(spirvBlob->getBufferPointer());
+        const size_t spirvSize = spirvBlob->getBufferSize() / sizeof(uint32_t);
+        pipelineModule.functions.push_back(
+            ShaderFunction{
+            .name = descriptor.entryPoints[i].name,
+            .stageFlags = descriptor.entryPoints[i].stageFlags,
+            .spirv = std::vector<uint32_t>(spirvData, spirvData + spirvSize),
+            }
+        );
     }
 
-    Slang::ComPtr<slang::IBlob> spirvBlob;
-    result = linkedProgram->getEntryPointCode(0, 0, spirvBlob.writeRef(), diagnostics.writeRef());
-    if (SLANG_FAILED(result)) {
-        if (diagnostics) {
-            _logger.error("Failed to get entry point code: ", (const char*)diagnostics->getBufferPointer());
-        } else {
-            _logger.error("Unknown error");
-        }
-        return std::nullopt;
-    }
-
-    const uint32_t* spirvData = static_cast<const uint32_t*>(spirvBlob->getBufferPointer());
-    size_t spirvSize = spirvBlob->getBufferSize() / sizeof(uint32_t);
-    shaderFunction.spirv.assign(spirvData, spirvData + spirvSize);
-
-    slang::ShaderReflection* reflection = linkedProgram->getLayout();
-
-    Slang::ComPtr<slang::IMetadata> metadata;
-    result = linkedProgram->getEntryPointMetadata(0, 0, metadata.writeRef(), diagnostics.writeRef());
-    if (SLANG_FAILED(result)) {
-        _logger.error("Failed to get entry point metadata: ", name);
-        return std::nullopt;
-    }
-
-    ReflectionProcessor::ReflectionContext context{reflection, _globalSession, stageFlags, metadata, _logger};
-
-    shaderFunction.reflectionData = _reflectionProcessor->process(context);
-    shaderFunction.name = name;
-    shaderFunction.stageFlags = stageFlags;
-
-    return shaderFunction;
+    ReflectionProcessor::ReflectionContext context{
+        .reflection = linkedProgram->getLayout(),
+        .globalSession = _globalSession,
+        .entryPointStages = stages,
+        .logger = _logger,
+    };
+    pipelineModule.reflectionData = _reflectionProcessor->process(context);
+    return pipelineModule;
 }

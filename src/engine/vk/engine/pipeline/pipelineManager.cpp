@@ -1,6 +1,6 @@
 #include "pipelineManager.h"
-#include "paths.h"
 #include "descriptorSetManager.h"
+#include "paths.h"
 #include "pipelineBuilder.h"
 #include "shaderUniforms.h"
 #include "vkEngine.h"
@@ -43,99 +43,95 @@ void PipelineManager::prebuildPipelines(const std::vector<PipelineDescriptor>& p
         _logger.error("Pipeline manager not loaded!");
         return;
     }
-    for (const PipelineDescriptor& pipelineDescriptor : pipelineDescriptors) {
-        switch (pipelineDescriptor.type) {
-        case PipelineDescriptor::Type::COMPUTE:
-            _buildComputePipeline(pipelineDescriptor);
-            break;
-        case PipelineDescriptor::Type::GRAPHICS:
-            _buildGraphicsPipeline(pipelineDescriptor);
-            break;
-        }
-    }
-}
 
-void PipelineManager::_buildComputePipeline(const PipelineDescriptor& pipelineDescriptor) {
-    if (_pipelinesV2.contains(pipelineDescriptor.name)) {
-        _logger.warning("Pipeline already built, skipping: ", pipelineDescriptor.name);
-        return;
-    }
-    auto computeModule = _shaderLibrary->loadComputeModule(pipelineDescriptor.shaderModuleDescriptor);
-    if (!computeModule || !computeModule->computeFunction) [[unlikely]] {
-        _logger.error("Failed to load compute module: ", pipelineDescriptor.shaderModuleDescriptor.name);
-        return;
-    }
-    auto descriptorSetLayouts = _descriptorSetManagerV2->addComputeModuleLayouts(computeModule.value());
-    if (!descriptorSetLayouts) {
-        _logger.error("Failed to create descriptor set layouts for compute pipeline: ", pipelineDescriptor.name);
-        return;
-    }
-    PipelineLayoutKey layoutKey{};
-    layoutKey.descriptorSetNames.reserve(descriptorSetLayouts->computeLayouts.size());
-    layoutKey.setLayouts.reserve(descriptorSetLayouts->computeLayouts.size());
-    for (size_t i = 0; i < descriptorSetLayouts->computeLayouts.size(); ++i) {
-        layoutKey.descriptorSetNames.push_back(descriptorSetLayouts->computeLayouts[i]->getName());
-        layoutKey.setLayouts.push_back(descriptorSetLayouts->computeLayouts[i]->getVkDescriptorSetLayout());
-    }
-    layoutKey.pushConstants = computeModule->computeFunction->reflectionData.pushConstants;
-
-    VkPipelineLayout layout;
-    if (auto it = _pipelineLayoutsV2.find(layoutKey); it != _pipelineLayoutsV2.end()) {
-        layout = it->second;
-    } else {
-        PipelineLayoutBuilder pipelineLayoutBuilder(_device.get());
-        pipelineLayoutBuilder.setDescriptorSetLayouts(descriptorSetLayouts->computeLayouts);
-        if (layoutKey.pushConstants) {
-            pipelineLayoutBuilder.setPushConstantRange(*layoutKey.pushConstants);
-        }
-        layout = pipelineLayoutBuilder.build(pipelineDescriptor.name);
-        if (layout == VK_NULL_HANDLE) {
-            _logger.error("Failed to create compute pipeline layout: ", pipelineDescriptor.name);
-            return;
-        }
-        _pipelineLayoutsV2.emplace(layoutKey, layout);
-    }
-
-    ComputePipelineBuilder pipelineBuilder(_device.get());
     ShaderModuleBuilder shaderModuleBuilder(_device.get());
-    pipelineBuilder.setPipelineLayout(layoutKey, layout);
-    auto shaderModule = shaderModuleBuilder.build(computeModule->computeFunction.value().spirv);
-    if (!shaderModule) {
-        _logger.error("Failed to create compute shader module!");
-        return;
+    for (const PipelineDescriptor& pipelineDescriptor : pipelineDescriptors) {
+        if (_pipelinesV2.contains(pipelineDescriptor.name)) {
+            _logger.warning("Pipeline already built, skipping: ", pipelineDescriptor.name);
+            break;
+        }
+        auto pipelineModule = _shaderLibrary->loadPipelineModule(pipelineDescriptor.shaderModuleDescriptor);
+        if (!pipelineModule || pipelineModule->functions.empty()) [[unlikely]] {
+            _logger.error("Failed to load pipeline module: ", pipelineDescriptor.shaderModuleDescriptor.name);
+            break;
+        }
+        auto descriptorSetLayouts = _descriptorSetManagerV2->addPipelineModuleLayouts(pipelineModule.value());
+        if (!descriptorSetLayouts) {
+            _logger.error("Failed to create descriptor set layouts for pipeline: ", pipelineDescriptor.name);
+            break;
+        }
+        auto pipelineLayout = _getOrCreatePipelineLayout(*descriptorSetLayouts, pipelineDescriptor.name);
+        if (!pipelineLayout) {
+            break;
+        }
+        const auto& [layoutKey, layout] = *pipelineLayout;
+        switch (pipelineDescriptor.type) {
+        case PipelineDescriptor::Type::COMPUTE: {
+            if (pipelineModule->functions.size() != 1) {
+                _logger.error("Compute pipeline must have exactly one function: ", pipelineDescriptor.name);
+                break;
+            }
+            ComputePipelineBuilder pipelineBuilder(_device.get());
+            pipelineBuilder.setPipelineLayout(layoutKey, layout);
+            auto shaderModule = shaderModuleBuilder.build(pipelineModule->functions[0].spirv);
+            if (!shaderModule) {
+                _logger.error("Failed to create compute shader module!");
+                break;
+            }
+            pipelineBuilder.setShaderModule(shaderModule.value(), "main");
+            auto pipeline = pipelineBuilder.build(pipelineDescriptor.name);
+            if (!pipeline) {
+                _logger.error("Failed to create compute pipeline!");
+                break;
+            }
+            _pipelinesV2.emplace(pipelineDescriptor.name, std::move(pipeline.value()));
+            break;
+        }
+        case PipelineDescriptor::Type::GRAPHICS: {
+            GraphicsPipelineBuilder pipelineBuilder(_device.get());
+            for (const auto& function : pipelineModule->functions) {
+                auto shaderModule = shaderModuleBuilder.build(function.spirv);
+                if (!shaderModule) {
+                    _logger.error("Failed to create shader module for function: ", function.name);
+                    break;
+                }
+                auto stageFlags = static_cast<VkShaderStageFlagBits>(function.stageFlags);
+                pipelineBuilder.addShaderStage(stageFlags, shaderModule.value().vkModule, "main");
+            }
+            break;
+        }
+        }
     }
-    pipelineBuilder.setShaderModule(shaderModule.value(), "main");
-    auto pipeline = pipelineBuilder.build(pipelineDescriptor.name);
-    if (!pipeline) {
-        _logger.error("Failed to create compute pipeline!");
-        return;
-    }
-    _pipelinesV2.emplace(pipelineDescriptor.name, std::move(pipeline.value()));
 }
 
-void PipelineManager::_buildGraphicsPipeline(const PipelineDescriptor& pipelineDescriptor) {
-    if (_pipelinesV2.contains(pipelineDescriptor.name)) {
-        _logger.warning("Pipeline already built, skipping: ", pipelineDescriptor.name);
-        return;
+std::optional<std::pair<PipelineLayoutKey, VkPipelineLayout>> PipelineManager::_getOrCreatePipelineLayout(
+    const DescriptorSetManager::PipelineSetLayouts& setLayouts, const std::string& name
+) noexcept {
+    PipelineLayoutKey layoutKey{};
+    layoutKey.descriptorSetNames.reserve(setLayouts.setLayouts.size());
+    layoutKey.setLayouts.reserve(setLayouts.setLayouts.size());
+    for (const DescriptorSetLayout* setLayout : setLayouts.setLayouts) {
+        layoutKey.descriptorSetNames.push_back(setLayout->getName());
+        layoutKey.setLayouts.push_back(setLayout->getVkDescriptorSetLayout());
     }
-    auto graphicsModule = _shaderLibrary->loadGraphicsModule(pipelineDescriptor.shaderModuleDescriptor);
-    if (!graphicsModule) [[unlikely]] {
-        _logger.error("Failed to load graphics module: ", pipelineDescriptor.shaderModuleDescriptor.name);
-        return;
-    }
-    auto descriptorSetLayouts = _descriptorSetManagerV2->addGraphicsModuleLayouts(graphicsModule.value());
-    if (!descriptorSetLayouts) {
-        _logger.error("Failed to create descriptor set layouts for graphics pipeline: ", pipelineDescriptor.name);
-        return;
+    layoutKey.pushConstants = setLayouts.pushConstants;
+
+    if (auto it = _pipelineLayoutsV2.find(layoutKey); it != _pipelineLayoutsV2.end()) {
+        return std::pair{std::move(layoutKey), it->second};
     }
 
-    PipelineLayoutKey layoutKey{};
-    // layoutKey.descriptorSetNames.reserve(descriptorSetLayouts->graphicsLayouts.size());
-    // layoutKey.setLayouts.reserve(descriptorSetLayouts->graphicsLayouts.size());
-    // for (size_t i = 0; i < descriptorSetLayouts->graphicsLayouts.size(); ++i) {
-    //     layoutKey.descriptorSetNames.push_back(descriptorSetLayouts->graphicsLayouts[i]->getName());
-    //     layoutKey.setLayouts.push_back(descriptorSetLayouts->graphicsLayouts[i]->getVkDescriptorSetLayout());
-    // }
+    PipelineLayoutBuilder pipelineLayoutBuilder(_device.get());
+    pipelineLayoutBuilder.setDescriptorSetLayouts(setLayouts.setLayouts);
+    if (layoutKey.pushConstants) {
+        pipelineLayoutBuilder.setPushConstantRange(*layoutKey.pushConstants);
+    }
+    VkPipelineLayout layout = pipelineLayoutBuilder.build(name);
+    if (layout == VK_NULL_HANDLE) {
+        _logger.error("Failed to create pipeline layout: ", name);
+        return std::nullopt;
+    }
+    _pipelineLayoutsV2.emplace(layoutKey, layout);
+    return std::pair{std::move(layoutKey), layout};
 }
 
 std::optional<PipelineHandle> PipelineManager::getPipeline(const std::string& pipelineName) const noexcept {

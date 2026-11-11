@@ -42,8 +42,8 @@ class ReflectionProcessor final {
     struct ReflectionContext final {
         slang::ShaderReflection* reflection;
         slang::IGlobalSession* globalSession;
-        VkShaderStageFlags stageFlags;
-        slang::IMetadata* metadata;
+        const std::vector<VkShaderStageFlags>& entryPointStages;
+        VkShaderStageFlags currentStage = 0;
         vax::Logger& logger;
     };
 

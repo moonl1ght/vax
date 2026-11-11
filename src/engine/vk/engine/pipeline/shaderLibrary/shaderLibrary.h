@@ -24,18 +24,12 @@ class ShaderLibrary final {
         std::string name;
         VkShaderStageFlags stageFlags;
         std::vector<uint32_t> spirv;
+    };
+
+    struct PipelineModule final {
+        std::string name;
+        std::vector<ShaderFunction> functions;
         ShaderReflectionData reflectionData;
-    };
-
-    struct GraphicsModule final {
-        std::string name;
-        std::optional<ShaderFunction> vertexFunction;
-        std::optional<ShaderFunction> fragmentFunction;
-    };
-
-    struct ComputeModule final {
-        std::string name;
-        std::optional<ShaderFunction> computeFunction;
     };
 
     ShaderLibrary() noexcept { slang::createGlobalSession(_globalSession.writeRef()); };
@@ -54,9 +48,7 @@ class ShaderLibrary final {
 
     void endSession() noexcept;
 
-    std::optional<GraphicsModule> loadGraphicsModule(const ShaderModuleDescriptor& descriptor) noexcept;
-
-    std::optional<ComputeModule> loadComputeModule(const ShaderModuleDescriptor& descriptor) noexcept;
+    std::optional<PipelineModule> loadPipelineModule(const ShaderModuleDescriptor& descriptor) noexcept;
 
   private:
     vax::Logger _logger = vax::Logger("ShaderLibrary");
@@ -67,8 +59,7 @@ class ShaderLibrary final {
 
     Slang::ComPtr<slang::ISession> _session;
 
-    std::optional<ShaderFunction>
-    _loadEntryPoint(slang::IModule* module, const std::string& name, VkShaderStageFlags stageFlags) noexcept;
+    slang::IModule* _loadModule(const std::string& name) noexcept;
 };
 
 } // namespace vax::vk

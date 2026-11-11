@@ -130,6 +130,7 @@ void addPushConstantRange(ShaderReflectionData& data, uint32_t offset, uint32_t 
     }
 
     VkPushConstantRange& range = *data.pushConstants;
+    range.stageFlags |= stageFlags;
     const uint32_t end = std::max(range.offset + range.size, offset + size);
     range.offset = std::min(range.offset, offset);
     range.size = end - range.offset;
@@ -163,7 +164,7 @@ void collectParameter(
     case slang::TypeReflection::Kind::ParameterBlock: {
         if (var->getCategory() == slang::ParameterCategory::PushConstantBuffer) {
             const size_t size = typeLayout->getElementTypeLayout()->getSize();
-            addPushConstantRange(data, 0, static_cast<uint32_t>(size), context.stageFlags);
+            addPushConstantRange(data, 0, static_cast<uint32_t>(size), context.currentStage);
             return;
         }
 
@@ -209,26 +210,35 @@ void collectParameter(
 ShaderReflectionData ReflectionProcessor::process(ReflectionContext& context) const noexcept {
     ShaderReflectionData data;
 
+    context.currentStage = 0;
+    for (VkShaderStageFlags stage : context.entryPointStages) {
+        context.currentStage |= stage;
+    }
     collectParameter(context.reflection->getGlobalParamsVarLayout(), {}, context, data);
 
-    slang::EntryPointReflection* entryPointReflection = context.reflection->getEntryPointByIndex(0);
-    const BindingLocation entryPointBase = accumulateLocation(entryPointReflection->getVarLayout(), {});
+    const SlangUInt entryPointCount = context.reflection->getEntryPointCount();
+    for (SlangUInt entryPointIndex = 0; entryPointIndex < entryPointCount; ++entryPointIndex) {
+        slang::EntryPointReflection* entryPointReflection = context.reflection->getEntryPointByIndex(entryPointIndex);
+        context.currentStage =
+            entryPointIndex < context.entryPointStages.size() ? context.entryPointStages[entryPointIndex] : 0;
+        const BindingLocation entryPointBase = accumulateLocation(entryPointReflection->getVarLayout(), {});
 
-    for (unsigned int i = 0; i < entryPointReflection->getParameterCount(); ++i) {
-        slang::VariableLayoutReflection* param = entryPointReflection->getParameterByIndex(i);
+        for (unsigned int i = 0; i < entryPointReflection->getParameterCount(); ++i) {
+            slang::VariableLayoutReflection* param = entryPointReflection->getParameterByIndex(i);
 
-        constexpr auto uniform = slang::ParameterCategory::Uniform;
-        const size_t uniformSize = param->getTypeLayout()->getSize(uniform);
-        if (uniformSize > 0) {
-            addPushConstantRange(
-                data,
-                static_cast<uint32_t>(param->getOffset(uniform)),
-                static_cast<uint32_t>(uniformSize),
-                context.stageFlags
-            );
+            constexpr auto uniform = slang::ParameterCategory::Uniform;
+            const size_t uniformSize = param->getTypeLayout()->getSize(uniform);
+            if (uniformSize > 0) {
+                addPushConstantRange(
+                    data,
+                    static_cast<uint32_t>(param->getOffset(uniform)),
+                    static_cast<uint32_t>(uniformSize),
+                    context.currentStage
+                );
+            }
+
+            collectParameter(param, entryPointBase, context, data);
         }
-
-        collectParameter(param, entryPointBase, context, data);
     }
 
     for (ShaderReflectionData::SetReflectionData& set : data.sets) {

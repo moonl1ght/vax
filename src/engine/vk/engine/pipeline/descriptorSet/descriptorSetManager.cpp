@@ -50,44 +50,21 @@ void DescriptorSetManager::cleanupV2() noexcept {
     }
 }
 
-std::optional<DescriptorSetManager::GraphicsModuleLayouts>
-DescriptorSetManager::addGraphicsModuleLayouts(const ShaderLibrary::GraphicsModule& graphicsModule) noexcept {
-    auto vertexLayouts = _addLayoutsForFunction(*graphicsModule.vertexFunction);
-    auto fragmentLayouts = _addLayoutsForFunction(*graphicsModule.fragmentFunction);
-    if (!vertexLayouts || !fragmentLayouts) {
-        return std::nullopt;
-    }
-    return GraphicsModuleLayouts{
-        .vertexLayouts = std::move(*vertexLayouts),
-        .fragmentLayouts = std::move(*fragmentLayouts),
-    };
-}
-
-std::optional<DescriptorSetManager::ComputeModuleLayouts>
-DescriptorSetManager::addComputeModuleLayouts(const ShaderLibrary::ComputeModule& computeModule) noexcept {
-    auto computeLayouts = _addLayoutsForFunction(*computeModule.computeFunction);
-    if (!computeLayouts) {
-        return std::nullopt;
-    }
-    return ComputeModuleLayouts{.computeLayouts = std::move(*computeLayouts)};
-}
-
-std::optional<std::vector<DescriptorSetLayout*>>
-DescriptorSetManager::_addLayoutsForFunction(const ShaderLibrary::ShaderFunction& function) noexcept {
-    const auto& sets = function.reflectionData.sets;
-    std::vector<DescriptorSetLayout*> descriptorSetLayouts;
-    descriptorSetLayouts.reserve(sets.size());
-    for (const auto& set : sets) {
+std::optional<DescriptorSetManager::PipelineSetLayouts>
+DescriptorSetManager::addPipelineModuleLayouts(const ShaderLibrary::PipelineModule& pipelineModule) noexcept {
+    PipelineSetLayouts result{.pushConstants = pipelineModule.reflectionData.pushConstants};
+    result.setLayouts.reserve(pipelineModule.reflectionData.sets.size());
+    for (const auto& set : pipelineModule.reflectionData.sets) {
         DescriptorSetLayout* layout = _getOrCreateSetLayout(set);
         if (!layout) {
             _logger.error(
-                "Failed to create descriptor set layout for set ", descriptorSetLayouts.size(), " in ", function.name
+                "Failed to create descriptor set layout for set ", result.setLayouts.size(), " in ", pipelineModule.name
             );
             return std::nullopt;
         }
-        descriptorSetLayouts.push_back(layout);
+        result.setLayouts.push_back(layout);
     }
-    return descriptorSetLayouts;
+    return result;
 }
 
 DescriptorSetLayout*
