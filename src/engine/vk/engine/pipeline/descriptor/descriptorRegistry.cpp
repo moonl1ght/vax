@@ -9,36 +9,57 @@ DescriptorRegistry::RegistrationResult DescriptorRegistry::registerBatch(const R
     std::vector<VkDescriptorImageInfo> storageImageInfos;
     std::vector<VkDescriptorImageInfo> sampledImageInfos;
     if (!batch.storageTextures.empty()) {
-        result.storageTextureIndex =
-            _registerTexture(batch.storageTextures, storageImageInfos, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1, false);
+        result.storageTextureIndices = _registerTexture(
+            batch.storageTextures,
+            storageImageInfos,
+            VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+            _storageTextures,
+            1,
+            false,
+            batch.contiguous
+        );
     }
     if (!batch.sampledTextures.empty()) {
-        result.sampledTextureIndex =
-            _registerTexture(batch.sampledTextures, sampledImageInfos, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 0, false);
+        result.sampledTextureIndices = _registerTexture(
+            batch.sampledTextures,
+            sampledImageInfos,
+            VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
+            _sampledTextures,
+            0,
+            false,
+            batch.contiguous
+        );
     }
 
     vkUpdateDescriptorSets(_device.get().vkDevice(), static_cast<uint32_t>(_writes.size()), _writes.data(), 0, nullptr);
+    _writes.clear();
     return result;
 }
 
-std::optional<uint32_t>
-DescriptorRegistry::registerStorageTexture(const std::vector<const Texture*>& textures) noexcept {
+std::optional<std::vector<uint32_t>>
+DescriptorRegistry::registerStorageTexture(const std::vector<const Texture*>& textures, bool contiguous) noexcept {
     std::vector<VkDescriptorImageInfo> imageInfos;
-    return _registerTexture(textures, imageInfos, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1, true);
+    return _registerTexture(
+        textures, imageInfos, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, _storageTextures, 1, true, contiguous
+    );
 }
 
-std::optional<uint32_t>
-DescriptorRegistry::registerSampledTexture(const std::vector<const Texture*>& textures) noexcept {
+std::optional<std::vector<uint32_t>>
+DescriptorRegistry::registerSampledTexture(const std::vector<const Texture*>& textures, bool contiguous) noexcept {
     std::vector<VkDescriptorImageInfo> imageInfos;
-    return _registerTexture(textures, imageInfos, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 0, true);
+    return _registerTexture(
+        textures, imageInfos, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, _sampledTextures, 0, true, contiguous
+    );
 }
 
-std::optional<uint32_t> DescriptorRegistry::_registerTexture(
-    const std::vector<const Texture*>& textures,
+std::optional<std::vector<uint32_t>> DescriptorRegistry::_registerTexture(
+    std::span<const Texture* const> textures,
     std::vector<VkDescriptorImageInfo>& imageInfos,
     VkDescriptorType descriptorType,
+    IndexAllocator& indexAllocator,
     uint32_t binding,
-    bool update
+    bool update,
+    bool contiguous
 ) noexcept {
     imageInfos.reserve(textures.size());
     for (const auto& texture : textures) {
@@ -46,26 +67,56 @@ std::optional<uint32_t> DescriptorRegistry::_registerTexture(
         if (!imageInfoOpt) {
             return std::nullopt;
         }
+        if (descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE) {
+            imageInfoOpt->imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+        }
         imageInfos.push_back(*imageInfoOpt);
     }
-    auto index = _sampledTextures.allocate(imageInfos.size());
-    if (!index) {
-        return std::nullopt;
+
+    std::vector<uint32_t> indices;
+    indices.reserve(imageInfos.size());
+    if (contiguous) {
+        auto first = indexAllocator.allocate(static_cast<uint32_t>(imageInfos.size()));
+        if (!first) {
+            return std::nullopt;
+        }
+        for (uint32_t i = 0; i < imageInfos.size(); ++i) {
+            indices.push_back(first.value() + i);
+        }
+    } else {
+        for (size_t i = 0; i < imageInfos.size(); ++i) {
+            auto index = indexAllocator.allocate();
+            if (!index) {
+                for (uint32_t allocated : indices) {
+                    indexAllocator.release(allocated);
+                }
+                return std::nullopt;
+            }
+            indices.push_back(index.value());
+        }
     }
 
-    VkWriteDescriptorSet write{
-        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-        .dstSet = _descriptorSet,
-        .dstBinding = binding,
-        .dstArrayElement = 0,
-        .descriptorCount = static_cast<uint32_t>(imageInfos.size()),
-        .descriptorType = descriptorType,
-        .pImageInfo = imageInfos.data()
-    };
-    if (update) {
-        vkUpdateDescriptorSets(_device.get().vkDevice(), 1, &write, 0, nullptr);
-    } else {
-        _writes.push_back(write);
+    std::vector<VkWriteDescriptorSet> writes;
+    writes.reserve(imageInfos.size());
+    for (size_t i = 0; i < imageInfos.size(); ++i) {
+        writes.push_back(
+            VkWriteDescriptorSet{
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = _descriptorSet,
+            .dstBinding = binding,
+            .dstArrayElement = indices[i],
+            .descriptorCount = 1,
+            .descriptorType = descriptorType,
+            .pImageInfo = &imageInfos[i]
+            }
+        );
     }
-    return index;
+    if (update) {
+        vkUpdateDescriptorSets(
+            _device.get().vkDevice(), static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr
+        );
+    } else {
+        _writes.insert(_writes.end(), writes.begin(), writes.end());
+    }
+    return indices;
 }

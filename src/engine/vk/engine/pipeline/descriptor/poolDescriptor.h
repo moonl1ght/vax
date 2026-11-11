@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <vector>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
@@ -11,8 +12,8 @@ struct PoolLimits final {
     uint32_t maxStorageImages = 500;
 
     PoolLimits(VkPhysicalDeviceProperties properties) {
-        maxSampledImages = properties.limits.maxDescriptorSetSampledImages;
-        maxStorageImages = properties.limits.maxDescriptorSetStorageImages;
+        maxSampledImages = std::min(properties.limits.maxDescriptorSetSampledImages, static_cast<uint32_t>(500));
+        maxStorageImages = std::min(properties.limits.maxDescriptorSetStorageImages, static_cast<uint32_t>(500));
     }
 };
 
@@ -43,10 +44,10 @@ struct PoolDescriptor final {
         };
     };
 
-    static std::vector<VkDescriptorSetLayoutBinding> bindlessBindings() {
+    static std::vector<VkDescriptorSetLayoutBinding> bindlessBindings(const PoolLimits& limits) {
         return {
-            {0, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 500, VK_SHADER_STAGE_ALL},
-            {1, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 500, VK_SHADER_STAGE_ALL},
+            {0, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, limits.maxSampledImages, VK_SHADER_STAGE_ALL},
+            {1, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, limits.maxStorageImages, VK_SHADER_STAGE_ALL},
         };
     }
 

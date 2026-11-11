@@ -24,7 +24,7 @@ bool DescriptorManager::setup() noexcept {
     constexpr VkDescriptorBindingFlags bindlessFlags = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
                                                        VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT |
                                                        VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT;
-    for (const auto& binding : PoolDescriptor::bindlessBindings()) {
+    for (const auto& binding : PoolDescriptor::bindlessBindings(_poolLimits)) {
         layoutBuilder.addBinding(binding, bindlessFlags);
     }
     auto layout = layoutBuilder.build(VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT);

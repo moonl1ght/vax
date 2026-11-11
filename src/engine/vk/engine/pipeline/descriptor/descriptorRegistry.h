@@ -2,6 +2,7 @@
 
 #include "indexAllocator.h"
 #include "poolDescriptor.h"
+#include <span>
 #include <vulkan/vulkan.h>
 
 namespace vax::vk {
@@ -12,13 +13,14 @@ class Device;
 class DescriptorRegistry {
   public:
     struct RegistrationBatch final {
-        const std::vector<const Texture*> storageTextures;
-        const std::vector<const Texture*> sampledTextures;
+        std::span<const Texture* const> storageTextures;
+        std::span<const Texture* const> sampledTextures;
+        bool contiguous = false;
     };
 
     struct RegistrationResult final {
-        std::optional<uint32_t> storageTextureIndex;
-        std::optional<uint32_t> sampledTextureIndex;
+        std::optional<std::vector<uint32_t>> storageTextureIndices;
+        std::optional<std::vector<uint32_t>> sampledTextureIndices;
     };
 
     explicit DescriptorRegistry(const vax::vk::Device& device, const PoolLimits& poolLimits) noexcept
@@ -37,9 +39,15 @@ class DescriptorRegistry {
 
     RegistrationResult registerBatch(const RegistrationBatch& batch) noexcept;
 
-    std::optional<uint32_t> registerStorageTexture(const std::vector<const Texture*>& textures) noexcept;
+    std::optional<std::vector<uint32_t>>
+    registerStorageTexture(const std::vector<const Texture*>& textures, bool contiguous = false) noexcept;
 
-    std::optional<uint32_t> registerSampledTexture(const std::vector<const Texture*>& textures) noexcept;
+    std::optional<std::vector<uint32_t>>
+    registerSampledTexture(const std::vector<const Texture*>& textures, bool contiguous = false) noexcept;
+
+    bool releaseStorageTexture(uint32_t index) noexcept { return _storageTextures.release(index); }
+
+    bool releaseSampledTexture(uint32_t index) noexcept { return _sampledTextures.release(index); }
 
   private:
     std::reference_wrapper<const vax::vk::Device> _device;
@@ -51,12 +59,14 @@ class DescriptorRegistry {
 
     std::vector<VkWriteDescriptorSet> _writes;
 
-    std::optional<uint32_t> _registerTexture(
-        const std::vector<const Texture*>& textures,
+    std::optional<std::vector<uint32_t>> _registerTexture(
+        std::span<const Texture* const> textures,
         std::vector<VkDescriptorImageInfo>& imageInfos,
         VkDescriptorType descriptorType,
+        IndexAllocator& indexAllocator,
         uint32_t binding,
-        bool update
+        bool update,
+        bool contiguous
     ) noexcept;
 };
 
