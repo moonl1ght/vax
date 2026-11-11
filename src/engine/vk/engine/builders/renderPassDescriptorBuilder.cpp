@@ -30,7 +30,7 @@ RenderPassDescriptorBuilder::buildSwapchain(VkFormat imageFormat) const noexcept
         .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
     };
 
-    VkFormat depthFormat = findDepthFormat(_device.get().vkPhysicalDevice);
+    VkFormat depthFormat = findDepthFormat(_device.get().vkPhysicalDevice());
     VkAttachmentDescription depthAttachment{
         .format = depthFormat,
         .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -80,7 +80,7 @@ RenderPassDescriptorBuilder::buildSwapchain(VkFormat imageFormat) const noexcept
     };
 
     VkRenderPass renderPass;
-    if (!VK_CHECK(vkCreateRenderPass(_device.get().vkDevice, &renderPassInfo, nullptr, &renderPass))) {
+    if (!VK_CHECK(vkCreateRenderPass(_device.get().vkDevice(), &renderPassInfo, nullptr, &renderPass))) {
         _logger.error("Failed to create render pass!");
         return std::nullopt;
     }
@@ -112,7 +112,7 @@ RenderPassDescriptorBuilder::buildOffscreen(VkFormat imageFormat, bool allowComp
         .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
     };
 
-    VkFormat depthFormat = findDepthFormat(_device.get().vkPhysicalDevice);
+    VkFormat depthFormat = findDepthFormat(_device.get().vkPhysicalDevice());
     VkAttachmentDescription depthAttachment{
         .format = depthFormat,
         .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -184,7 +184,7 @@ RenderPassDescriptorBuilder::buildOffscreen(VkFormat imageFormat, bool allowComp
     };
 
     VkRenderPass renderPass;
-    if (!VK_CHECK(vkCreateRenderPass(_device.get().vkDevice, &renderPassInfo, nullptr, &renderPass))) {
+    if (!VK_CHECK(vkCreateRenderPass(_device.get().vkDevice(), &renderPassInfo, nullptr, &renderPass))) {
         _logger.error("Failed to create render pass!");
         return std::nullopt;
     }
@@ -205,7 +205,7 @@ RenderPassDescriptorBuilder::buildOffscreen(VkFormat imageFormat, bool allowComp
 
 std::optional<vax::vk::RenderPassDescriptor>
 RenderPassDescriptorBuilder::buildShadowSun(VkFormat imageFormat, bool allowComputeUsage) const noexcept {
-    VkFormat depthFormat = findDepthFormat(_device.get().vkPhysicalDevice);
+    VkFormat depthFormat = findDepthFormat(_device.get().vkPhysicalDevice());
     VkAttachmentDescription depthAttachment{
         .format = depthFormat,
         .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -271,7 +271,7 @@ RenderPassDescriptorBuilder::buildShadowSun(VkFormat imageFormat, bool allowComp
     };
 
     VkRenderPass renderPass;
-    if (!VK_CHECK(vkCreateRenderPass(_device.get().vkDevice, &renderPassInfo, nullptr, &renderPass))) {
+    if (!VK_CHECK(vkCreateRenderPass(_device.get().vkDevice(), &renderPassInfo, nullptr, &renderPass))) {
         _logger.error("Failed to create render pass!");
         return std::nullopt;
     }

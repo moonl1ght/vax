@@ -4,10 +4,35 @@
 using namespace vax::vk;
 
 std::vector<const char*> deviceExtensions = {
-    VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-    VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
-    VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME
+    VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME
 };
+
+uint32_t deviceTypeScore(VkPhysicalDeviceType type) {
+    switch (type) {
+    case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
+        return 1000;
+    case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
+        return 100;
+    case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
+        return 50;
+    case VK_PHYSICAL_DEVICE_TYPE_CPU:
+        return 1;
+    default:
+        return 10;
+    }
+}
+
+uint32_t deviceLocalMemoryGb(VkPhysicalDevice device) {
+    VkPhysicalDeviceMemoryProperties memProps;
+    vkGetPhysicalDeviceMemoryProperties(device, &memProps);
+    VkDeviceSize total = 0;
+    for (uint32_t i = 0; i < memProps.memoryHeapCount; ++i) {
+        if (memProps.memoryHeaps[i].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT) {
+            total += memProps.memoryHeaps[i].size;
+        }
+    }
+    return static_cast<uint32_t>(total >> 30);
+}
 
 bool checkDeviceExtensionSupport(VkPhysicalDevice device) {
     uint32_t extensionCount;
@@ -25,16 +50,9 @@ bool checkDeviceExtensionSupport(VkPhysicalDevice device) {
     return requiredExtensions.empty();
 }
 
-void Device::destroy() {
-    _logger.info("Destroying device...");
-    vkDestroyDevice(vkDevice, nullptr);
-    vkDevice = VK_NULL_HANDLE;
-    _indices = QueueFamilyIndices();
-}
-
-int Device::createLogicalDevice(
+int Device::_createLogicalDevice(
     const VkPhysicalDevice& physicalDevice, const VkSurfaceKHR& surface, VkDevice& device, bool enableValidationLayers
-) {
+) noexcept {
 
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     std::set<uint32_t> uniqueQueueFamilies{_indices.graphicsFamily.value(), _indices.presentFamily.value()};
@@ -50,54 +68,61 @@ int Device::createLogicalDevice(
         queueCreateInfos.push_back(queueCreateInfo);
     }
 
-    VkPhysicalDeviceDescriptorIndexingFeatures descriptorIndexingFeatures{
-        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES,
+    VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR barycentricFeatures{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_KHR,
         .pNext = nullptr,
+        .fragmentShaderBarycentric = VK_TRUE,
+    };
+
+    VkPhysicalDeviceVulkan13Features vulkan13Features{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
+        .pNext = &barycentricFeatures,
+        .synchronization2 = VK_TRUE,
+        .dynamicRendering = VK_TRUE,
+    };
+
+    VkPhysicalDeviceVulkan12Features vulkan12Features{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
+        .pNext = &vulkan13Features,
         .shaderSampledImageArrayNonUniformIndexing = VK_TRUE,
-        .descriptorBindingUniformBufferUpdateAfterBind = VK_TRUE,
+        .shaderStorageImageArrayNonUniformIndexing = VK_TRUE,
         .descriptorBindingSampledImageUpdateAfterBind = VK_TRUE,
         .descriptorBindingStorageImageUpdateAfterBind = VK_TRUE,
         .descriptorBindingStorageBufferUpdateAfterBind = VK_TRUE,
+        .descriptorBindingUpdateUnusedWhilePending = VK_TRUE,
         .descriptorBindingPartiallyBound = VK_TRUE,
+        .runtimeDescriptorArray = VK_TRUE,
+        .scalarBlockLayout = VK_TRUE,
+        .bufferDeviceAddress = VK_TRUE,
+    };
+
+    VkPhysicalDeviceVulkan11Features vulkan11Features{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES,
+        .pNext = &vulkan12Features,
+        .shaderDrawParameters = VK_TRUE,
     };
 
     VkPhysicalDeviceFeatures2 deviceFeatures{
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
-        .pNext = &descriptorIndexingFeatures,
-        .features = {.multiDrawIndirect = VK_TRUE, .samplerAnisotropy = VK_TRUE},
+        .pNext = &vulkan11Features,
+        .features = {
+        .multiDrawIndirect = VK_TRUE,
+        .samplerAnisotropy = VK_TRUE,
+        .shaderStorageImageReadWithoutFormat = VK_TRUE,
+        .shaderStorageImageWriteWithoutFormat = VK_TRUE,
+        .shaderInt64 = VK_TRUE,
+        },
     };
 
-    VkPhysicalDeviceBufferDeviceAddressFeatures bufferDeviceAddressFeatures{
-        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES,
+    VkDeviceCreateInfo createInfo{
+        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
         .pNext = &deviceFeatures,
-        .bufferDeviceAddress = VK_TRUE,
+        .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
+        .pQueueCreateInfos = queueCreateInfos.data(),
+        .enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size()),
+        .ppEnabledExtensionNames = deviceExtensions.data(),
+        .pEnabledFeatures = nullptr,
     };
-
-    VkPhysicalDeviceSynchronization2Features synchronization2Features{
-        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES,
-        .pNext = &bufferDeviceAddressFeatures,
-        .synchronization2 = VK_TRUE,
-    };
-
-    VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR fragmentShaderBarycentricFeatures{
-        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_KHR,
-        .pNext = &synchronization2Features,
-        .fragmentShaderBarycentric = VK_TRUE,
-    };
-
-    VkDeviceCreateInfo createInfo{};
-    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-
-    createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
-    createInfo.pQueueCreateInfos = queueCreateInfos.data();
-
-    createInfo.pEnabledFeatures = nullptr;
-    createInfo.pNext = &fragmentShaderBarycentricFeatures;
-
-    createInfo.enabledExtensionCount = 0;
-
-    createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
-    createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
     if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
         _logger.error("failed to create logical device!");
@@ -107,7 +132,7 @@ int Device::createLogicalDevice(
     return EXIT_SUCCESS;
 }
 
-bool Device::isDeviceSuitable(const VkPhysicalDevice& device, const VkSurfaceKHR& surface) {
+bool Device::_isDeviceSuitable(const VkPhysicalDevice& device, const VkSurfaceKHR& surface) noexcept {
     QueueFamilyIndices indices = findQueueFamilies(device, surface);
 
     bool extensionsSupported = checkDeviceExtensionSupport(device);
@@ -124,48 +149,88 @@ bool Device::isDeviceSuitable(const VkPhysicalDevice& device, const VkSurfaceKHR
     return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 }
 
-int Device::pickPhysicalDevice(
+int Device::_pickPhysicalDevice(
     const VkInstance& instance, const VkSurfaceKHR& surface, VkPhysicalDevice& physicalDevice
-) {
+) noexcept {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
-
     if (deviceCount == 0) {
         _logger.error("failed to find GPUs with Vulkan support!");
         return EXIT_FAILURE;
     }
-
     std::vector<VkPhysicalDevice> devices(deviceCount);
     vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 
+    const char* overrideEnv = std::getenv("VAX_GPU");
+    std::string_view overrideName = overrideEnv ? overrideEnv : "";
+
+    VkPhysicalDevice best = VK_NULL_HANDLE;
+    uint32_t bestScore = 0;
+
     for (const auto& device : devices) {
-        if (isDeviceSuitable(device, surface)) {
-            physicalDevice = device;
-            break;
+        VkPhysicalDeviceProperties props;
+        vkGetPhysicalDeviceProperties(device, &props);
+        std::string_view name = props.deviceName;
+
+        if (props.apiVersion < VK_API_VERSION_1_4) {
+            _logger.info("Skipping ", name, ": Vulkan 1.4 not supported");
+            continue;
+        }
+        if (!_isDeviceSuitable(device, surface)) {
+            _logger.info("Skipping ", name, ": not suitable");
+            continue;
+        }
+
+        uint32_t score = deviceTypeScore(props.deviceType) + deviceLocalMemoryGb(device);
+        if (!overrideName.empty() && name.find(overrideName) != std::string_view::npos) {
+            score += 100000;
+        }
+
+        if (score > bestScore) {
+            bestScore = score;
+            best = device;
         }
     }
 
-    if (physicalDevice == VK_NULL_HANDLE) {
+    if (best == VK_NULL_HANDLE) {
         _logger.error("failed to find a suitable GPU!");
         return EXIT_FAILURE;
     }
+
+    physicalDevice = best;
+    VkPhysicalDeviceProperties props;
+    vkGetPhysicalDeviceProperties(physicalDevice, &props);
+    _logger.info(
+        "Selected GPU: ",
+        props.deviceName,
+        " (Vulkan ",
+        VK_API_VERSION_MAJOR(props.apiVersion),
+        ".",
+        VK_API_VERSION_MINOR(props.apiVersion),
+        ".",
+        VK_API_VERSION_PATCH(props.apiVersion),
+        ")"
+    );
     return EXIT_SUCCESS;
 }
 
-bool Device::load(VkInstance instance, VkSurfaceKHR surface, bool enableValidationLayers, uint32_t vulkanApiVersion) {
+bool Device::load(
+    VkInstance instance, VkSurfaceKHR surface, bool enableValidationLayers, uint32_t vulkanApiVersion
+) noexcept {
     _logger.info("Loading device...");
-    if (pickPhysicalDevice(instance, surface, vkPhysicalDevice) == EXIT_SUCCESS) {
-        _indices = findQueueFamilies(vkPhysicalDevice, surface);
-        if (createLogicalDevice(vkPhysicalDevice, surface, vkDevice, enableValidationLayers) == EXIT_SUCCESS) {
+    if (_pickPhysicalDevice(instance, surface, _vkPhysicalDevice) == EXIT_SUCCESS) {
+        _indices = findQueueFamilies(_vkPhysicalDevice, surface);
+        if (_createLogicalDevice(_vkPhysicalDevice, surface, _vkDevice, enableValidationLayers) == EXIT_SUCCESS) {
             _logger.info("Device loaded successfully!");
             VmaAllocatorCreateInfo allocatorInfo{
                 .flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT,
-                .physicalDevice = vkPhysicalDevice,
-                .device = vkDevice,
+                .physicalDevice = _vkPhysicalDevice,
+                .device = _vkDevice,
                 .instance = instance,
                 .vulkanApiVersion = vulkanApiVersion,
             };
-            vmaCreateAllocator(&allocatorInfo, &allocator);
+            vmaCreateAllocator(&allocatorInfo, &_allocator);
+            _loadDeviceProps();
             return true;
         }
     }
@@ -173,8 +238,4 @@ bool Device::load(VkInstance instance, VkSurfaceKHR surface, bool enableValidati
     return false;
 }
 
-VkPhysicalDeviceProperties Device::getPhysicalDeviceProperties() const {
-    VkPhysicalDeviceProperties properties;
-    vkGetPhysicalDeviceProperties(vkPhysicalDevice, &properties);
-    return properties;
-}
+void Device::_loadDeviceProps() { vkGetPhysicalDeviceProperties(_vkPhysicalDevice, &_properties); }

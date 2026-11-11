@@ -16,14 +16,14 @@ void vax::vk::CommandManager::cleanup() {
 
     _commandBuffers.clear();
 
-    vkDestroyCommandPool(_device.get().vkDevice, _commandPool, nullptr);
+    vkDestroyCommandPool(_device.get().vkDevice(), _commandPool, nullptr);
 
     _commandPool = VK_NULL_HANDLE;
 }
 
 bool vax::vk::CommandManager::_createCommandPool() {
     _logger.info("Creating command pool...");
-    QueueFamilyIndices queueFamilyIndices = _device.get().getQueueFamilyIndices();
+    QueueFamilyIndices queueFamilyIndices = _device.get().queueFamilyIndices();
 
     VkCommandPoolCreateInfo poolInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -31,7 +31,7 @@ bool vax::vk::CommandManager::_createCommandPool() {
         .queueFamilyIndex = queueFamilyIndices.graphicsFamily.value()
     };
 
-    if (!VK_CHECK(vkCreateCommandPool(_device.get().vkDevice, &poolInfo, nullptr, &_commandPool))) {
+    if (!VK_CHECK(vkCreateCommandPool(_device.get().vkDevice(), &poolInfo, nullptr, &_commandPool))) {
         _logger.error("Failed to create command pool!");
         return false;
     }
@@ -51,7 +51,7 @@ bool vax::vk::CommandManager::_createCommandBuffer() {
         .commandBufferCount = (uint32_t)commandBuffers.size()
     };
 
-    if (!VK_CHECK(vkAllocateCommandBuffers(_device.get().vkDevice, &allocInfo, commandBuffers.data()))) {
+    if (!VK_CHECK(vkAllocateCommandBuffers(_device.get().vkDevice(), &allocInfo, commandBuffers.data()))) {
         _logger.error("Failed to allocate command buffers!");
         return false;
     }
@@ -72,7 +72,7 @@ CommandBuffer vax::vk::CommandManager::createSingleTimeCommandBuffer() {
     };
 
     VkCommandBuffer commandBuffer;
-    vkAllocateCommandBuffers(_device.get().vkDevice, &allocInfo, &commandBuffer);
+    vkAllocateCommandBuffers(_device.get().vkDevice(), &allocInfo, &commandBuffer);
 
     return CommandBuffer(_device.get(), _commandPool, commandBuffer);
 }

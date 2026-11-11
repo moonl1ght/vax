@@ -10,7 +10,7 @@ std::optional<ShaderModule> ShaderModuleBuilder::build(const std::vector<uint32_
         .pCode = spirv.data(),
     };
     VkShaderModule shaderModule;
-    if (!VK_CHECK(vkCreateShaderModule(_device.get().vkDevice, &createInfo, nullptr, &shaderModule))) {
+    if (!VK_CHECK(vkCreateShaderModule(_device.get().vkDevice(), &createInfo, nullptr, &shaderModule))) {
         _logger.error("Failed to build shader module!");
         return std::nullopt;
     }
@@ -31,7 +31,7 @@ std::optional<VkShaderModule> ShaderModuleBuilder::build(const std::string& file
     };
 
     VkShaderModule shaderModule;
-    if (!VK_CHECK(vkCreateShaderModule(_device.get().vkDevice, &createInfo, nullptr, &shaderModule))) {
+    if (!VK_CHECK(vkCreateShaderModule(_device.get().vkDevice(), &createInfo, nullptr, &shaderModule))) {
         _logger.error("Failed to build shader module!");
         return std::nullopt;
     }

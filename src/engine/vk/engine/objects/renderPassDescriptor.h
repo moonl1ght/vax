@@ -44,7 +44,7 @@ class RenderPassDescriptor final {
 
     RenderPassDescriptor& operator=(RenderPassDescriptor&& other) noexcept {
         if (this != &other) {
-            vkDestroyRenderPass(_device.get().vkDevice, _renderPass, nullptr);
+            vkDestroyRenderPass(_device.get().vkDevice(), _renderPass, nullptr);
             _device = other._device;
             _renderPass = other._renderPass;
             imageFormat = other.imageFormat;
@@ -56,7 +56,7 @@ class RenderPassDescriptor final {
         return *this;
     }
 
-    ~RenderPassDescriptor() { vkDestroyRenderPass(_device.get().vkDevice, _renderPass, nullptr); };
+    ~RenderPassDescriptor() { vkDestroyRenderPass(_device.get().vkDevice(), _renderPass, nullptr); };
 
     const VkRenderPass getVkRenderPass() const { return _renderPass; }
 

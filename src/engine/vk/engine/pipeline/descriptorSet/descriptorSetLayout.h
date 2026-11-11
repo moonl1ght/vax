@@ -12,7 +12,7 @@ struct DescriptorSetLayout final {
         , _vkDescriptorSetLayout(vkDescriptorSetLayout)
         , _name(name) {}
 
-    ~DescriptorSetLayout() { vkDestroyDescriptorSetLayout(_device.get().vkDevice, _vkDescriptorSetLayout, nullptr); };
+    ~DescriptorSetLayout() { vkDestroyDescriptorSetLayout(_device.get().vkDevice(), _vkDescriptorSetLayout, nullptr); };
 
     DescriptorSetLayout(const DescriptorSetLayout&) = delete;
     DescriptorSetLayout(DescriptorSetLayout&&) = delete;

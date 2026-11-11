@@ -25,7 +25,7 @@ class PipelineManager final {
         _destroyPipelinesV2();
         _destroyPipelineLayoutsV2();
         for (auto& [name, pipelineLayout] : _pipelineLayouts) {
-            vkDestroyPipelineLayout(_device.get().vkDevice, pipelineLayout, nullptr);
+            vkDestroyPipelineLayout(_device.get().vkDevice(), pipelineLayout, nullptr);
         }
     };
 

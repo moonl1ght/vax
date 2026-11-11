@@ -26,7 +26,7 @@ DescriptorSetLayoutBuilder::build(VkDescriptorSetLayoutCreateFlags flags) noexce
     };
 
     VkDescriptorSetLayout descriptorSetLayout;
-    if (!VK_CHECK(vkCreateDescriptorSetLayout(_device.get().vkDevice, &layoutInfo, nullptr, &descriptorSetLayout))) {
+    if (!VK_CHECK(vkCreateDescriptorSetLayout(_device.get().vkDevice(), &layoutInfo, nullptr, &descriptorSetLayout))) {
         _logger.error("Failed to create descriptor set layout!");
         return std::nullopt;
     }
@@ -38,7 +38,7 @@ DescriptorSetLayoutBuilder::build(VkDescriptorSetLayoutCreateFlags flags) noexce
             .objectHandle = reinterpret_cast<size_t>(descriptorSetLayout),
             .pObjectName = _name.data(),
         };
-        vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice, &nameInfo);
+        vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &nameInfo);
     }
     return std::make_optional<VkDescriptorSetLayout>(descriptorSetLayout);
 }

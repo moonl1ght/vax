@@ -26,14 +26,14 @@ void PipelineManager::unload() noexcept {
 
 void PipelineManager::_destroyPipelinesV2() noexcept {
     for (auto& [name, pipeline] : _pipelinesV2) {
-        vkDestroyPipeline(_device.get().vkDevice, pipeline.vkPipeline, nullptr);
+        vkDestroyPipeline(_device.get().vkDevice(), pipeline.vkPipeline, nullptr);
     }
     _pipelinesV2.clear();
 }
 
 void PipelineManager::_destroyPipelineLayoutsV2() noexcept {
     for (auto& [key, layout] : _pipelineLayoutsV2) {
-        vkDestroyPipelineLayout(_device.get().vkDevice, layout, nullptr);
+        vkDestroyPipelineLayout(_device.get().vkDevice(), layout, nullptr);
     }
     _pipelineLayoutsV2.clear();
 }
@@ -472,10 +472,10 @@ bool PipelineManager::_createPipeline(
     }
     _pipelines.emplace(name, std::move(*pipeline));
     if (hasFragShader) {
-        vkDestroyShaderModule(_device.get().vkDevice, fragShaderModule.value(), nullptr);
+        vkDestroyShaderModule(_device.get().vkDevice(), fragShaderModule.value(), nullptr);
     }
     if (hasVertShader) {
-        vkDestroyShaderModule(_device.get().vkDevice, vertShaderModule.value(), nullptr);
+        vkDestroyShaderModule(_device.get().vkDevice(), vertShaderModule.value(), nullptr);
     }
     return true;
 }

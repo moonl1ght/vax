@@ -21,7 +21,7 @@ class CommandBuffer {
             end();
         }
         if (vkCommandBuffer != VK_NULL_HANDLE) {
-            vkFreeCommandBuffers(_device.get().vkDevice, _commandPool, 1, &vkCommandBuffer);
+            vkFreeCommandBuffers(_device.get().vkDevice(), _commandPool, 1, &vkCommandBuffer);
         }
     }
 
@@ -44,7 +44,7 @@ class CommandBuffer {
                 end();
             }
             if (vkCommandBuffer != VK_NULL_HANDLE) {
-                vkFreeCommandBuffers(_device.get().vkDevice, _commandPool, 1, &vkCommandBuffer);
+                vkFreeCommandBuffers(_device.get().vkDevice(), _commandPool, 1, &vkCommandBuffer);
             }
             vkCommandBuffer = other.vkCommandBuffer;
             _commandPool = other._commandPool;

@@ -130,7 +130,7 @@ class RenderPass : public RenderPassNode {
                 .objectHandle = reinterpret_cast<size_t>(renderDescriptorShared->getVkRenderPass()),
                 .pObjectName = _debugName.data(),
             };
-            vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice, &nameInfo);
+                vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &nameInfo);
 
             VkDebugUtilsLabelEXT label{
                 .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,

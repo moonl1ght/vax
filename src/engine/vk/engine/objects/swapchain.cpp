@@ -14,10 +14,10 @@ bool Swapchain::setup(VkPresentModeKHR presentMode) {
 void Swapchain::cleanup() {
     _logger.debug("Cleaning up swapchain...");
     for (auto imageView : swapchainImageViews) {
-        vkDestroyImageView(_device.get().vkDevice, imageView, nullptr);
+        vkDestroyImageView(_device.get().vkDevice(), imageView, nullptr);
     }
 
-    vkDestroySwapchainKHR(_device.get().vkDevice, swapchain, nullptr);
+    vkDestroySwapchainKHR(_device.get().vkDevice(), swapchain, nullptr);
 }
 
 bool Swapchain::_recreate(VkPresentModeKHR presentMode) {
@@ -76,7 +76,7 @@ VkPresentModeKHR Swapchain::_choosePresentMode(
 }
 
 bool Swapchain::_createSwapchain(VkPresentModeKHR requestedPresentMode) {
-    SwapChainSupportDetails swapChainSupport = querySwapChainSupport(_device.get().vkPhysicalDevice, _surface);
+    SwapChainSupportDetails swapChainSupport = querySwapChainSupport(_device.get().vkPhysicalDevice(), _surface);
 
     _requestedPresentMode = requestedPresentMode;
     presentMode = _choosePresentMode(requestedPresentMode, swapChainSupport.presentModes);
@@ -105,7 +105,7 @@ bool Swapchain::_createSwapchain(VkPresentModeKHR requestedPresentMode) {
         .oldSwapchain = VK_NULL_HANDLE,
     };
 
-    QueueFamilyIndices indices = findQueueFamilies(_device.get().vkPhysicalDevice, _surface);
+    QueueFamilyIndices indices = findQueueFamilies(_device.get().vkPhysicalDevice(), _surface);
     if (!indices.isComplete()) {
         _logger.error("Queue family indices are not complete!");
         return false;
@@ -123,14 +123,14 @@ bool Swapchain::_createSwapchain(VkPresentModeKHR requestedPresentMode) {
         createInfo.pQueueFamilyIndices = nullptr;
     }
 
-    if (!VK_CHECK(vkCreateSwapchainKHR(_device.get().vkDevice, &createInfo, nullptr, &swapchain))) {
+    if (!VK_CHECK(vkCreateSwapchainKHR(_device.get().vkDevice(), &createInfo, nullptr, &swapchain))) {
         _logger.error("Failed to create swap chain!");
         return false;
     }
 
-    vkGetSwapchainImagesKHR(_device.get().vkDevice, swapchain, &imageCount, nullptr);
+    vkGetSwapchainImagesKHR(_device.get().vkDevice(), swapchain, &imageCount, nullptr);
     swapchainImages.resize(imageCount);
-    if (!VK_CHECK(vkGetSwapchainImagesKHR(_device.get().vkDevice, swapchain, &imageCount, swapchainImages.data()))) {
+    if (!VK_CHECK(vkGetSwapchainImagesKHR(_device.get().vkDevice(), swapchain, &imageCount, swapchainImages.data()))) {
         _logger.error("Failed to get swap chain images!");
         return false;
     }
@@ -146,7 +146,7 @@ bool Swapchain::_createImageViews() {
 
     for (uint32_t i = 0; i < swapchainImages.size(); i++) {
         auto swapchainImageView = createImageView(
-            _device.get().vkDevice, swapchainImages[i], swapchainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT
+            _device.get().vkDevice(), swapchainImages[i], swapchainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT
         );
         if (swapchainImageView) {
             swapchainImageViews[i] = *swapchainImageView;

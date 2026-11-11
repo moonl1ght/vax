@@ -91,10 +91,10 @@ class Pipeline final {
     Pipeline& operator=(Pipeline&& other) noexcept {
         if (this != &other) {
             if (vkPipelineLayout != VK_NULL_HANDLE) {
-                vkDestroyPipelineLayout(_device.get().vkDevice, vkPipelineLayout, nullptr);
+                vkDestroyPipelineLayout(_device.get().vkDevice(), vkPipelineLayout, nullptr);
             }
             if (vkPipeline != VK_NULL_HANDLE) {
-                vkDestroyPipeline(_device.get().vkDevice, vkPipeline, nullptr);
+                vkDestroyPipeline(_device.get().vkDevice(), vkPipeline, nullptr);
             }
             _device = other._device;
             pipelineType = other.pipelineType;
@@ -122,7 +122,7 @@ class Pipeline final {
         , vkPipelineLayout(pipelineLayout)
         , vkPipeline(pipeline) {};
 
-    ~Pipeline() { vkDestroyPipeline(_device.get().vkDevice, vkPipeline, nullptr); };
+    ~Pipeline() { vkDestroyPipeline(_device.get().vkDevice(), vkPipeline, nullptr); };
 
   private:
     vax::Logger _logger = vax::Logger("Pipeline");

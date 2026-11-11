@@ -50,7 +50,7 @@ bool App::_setup() {
 
 void App::_cleanup() {
     _logger.info("Cleaning up...");
-    vkDeviceWaitIdle(_engine->device->vkDevice);
+    vkDeviceWaitIdle(_engine->device->vkDevice());
     _uiEngine->cleanup();
 
     _renderer = nullptr;

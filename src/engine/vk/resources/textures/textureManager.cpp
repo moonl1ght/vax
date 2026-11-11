@@ -7,7 +7,7 @@ using namespace vax::vk;
 
 bool TextureManager::setup() {
     VkPhysicalDeviceProperties properties{};
-    vkGetPhysicalDeviceProperties(_device.get().vkPhysicalDevice, &properties);
+    vkGetPhysicalDeviceProperties(_device.get().vkPhysicalDevice(), &properties);
     VkSamplerCreateInfo globalSamplerInfo{
         .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
         .magFilter = VK_FILTER_LINEAR,

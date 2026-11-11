@@ -24,15 +24,15 @@ void UIEngine::setup(VkRenderPass renderPass) {
         .poolSizeCount = 1,
         .pPoolSizes = &pool_size,
     };
-    vkCreateDescriptorPool(_vkEngine.get().device->vkDevice, &pool_info, nullptr, &_imguiDescriptorPool);
+    vkCreateDescriptorPool(_vkEngine.get().device->vkDevice(), &pool_info, nullptr, &_imguiDescriptorPool);
 
     ImGui_ImplSDL3_InitForVulkan(_window.get().window);
 
     ImGui_ImplVulkan_InitInfo init_info = {};
     init_info.Instance = _vkEngine.get().instance;
-    init_info.PhysicalDevice = _vkEngine.get().device->vkPhysicalDevice;
-    init_info.Device = _vkEngine.get().device->vkDevice;
-    init_info.QueueFamily = _vkEngine.get().device->getQueueFamilyIndices().graphicsFamily.value();
+    init_info.PhysicalDevice = _vkEngine.get().device->vkPhysicalDevice();
+    init_info.Device = _vkEngine.get().device->vkDevice();
+    init_info.QueueFamily = _vkEngine.get().device->queueFamilyIndices().graphicsFamily.value();
     init_info.Queue = _vkEngine.get().queueManager->graphicsQueue;
     init_info.DescriptorPool = _imguiDescriptorPool;
     init_info.RenderPass = renderPass;
@@ -56,7 +56,7 @@ void UIEngine::cleanup() {
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
-    vkDestroyDescriptorPool(_vkEngine.get().device->vkDevice, _imguiDescriptorPool, nullptr);
+    vkDestroyDescriptorPool(_vkEngine.get().device->vkDevice(), _imguiDescriptorPool, nullptr);
 }
 
 void UIEngine::processEvents(SDL_Event& event) { ImGui_ImplSDL3_ProcessEvent(&event); }

@@ -19,7 +19,7 @@ void BaseRenderer::_setViewportAndScissor(vax::vk::CommandBuffer& commandBuffer,
 
 void BaseRenderer::_waitForFence() {
     vkWaitForFences(
-        _vkEngine.get().device->vkDevice,
+        _vkEngine.get().device->vkDevice(),
         1,
         &_vkEngine.get().syncObjectsManager->getInFlightFences()[_currentFrame],
         VK_TRUE,
@@ -40,7 +40,7 @@ BaseRenderer::SwapchainResult BaseRenderer::_acquireSwapchainImage(size_t window
     bool hasError = false;
     bool shouldRecreateSwapchain = false;
     VkResult result = vkAcquireNextImageKHR(
-        _vkEngine.get().device->vkDevice,
+        _vkEngine.get().device->vkDevice(),
         _vkEngine.get().getWindowController().getWindow(windowIndex)->getSwapchain()->swapchain,
         UINT64_MAX,
         _vkEngine.get().syncObjectsManager->getImageAvailableSemaphores(semaphoreName)[_currentFrame],

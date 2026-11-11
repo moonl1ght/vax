@@ -58,13 +58,16 @@ bool vax::vk::Engine::setup() {
     deletionQueue.push_function([&]() { _windowController.get().getWindow(0)->destroySurface(); });
 
     device = std::make_unique<Device>();
-    if (!device->load(
-            instance, _windowController.get().getWindow(0)->surface, enableValidationLayers, vulkanApiVersion
-        )) {
+    auto deviceLoadResult =
+        device->load(instance, _windowController.get().getWindow(0)->surface, enableValidationLayers, vulkanApiVersion);
+    if (!deviceLoadResult) {
         return false;
     }
 
-    deletionQueue.push_function([&]() { device->destroy(); });
+    deletionQueue.push_function([&]() {
+        _logger.debug("Destroying device...");
+        device = nullptr;
+    });
 
     queueManager = std::make_unique<QueueManager>();
     queueManager->setup(*device);
@@ -118,7 +121,7 @@ void vax::vk::Engine::resize() {
         SDL_GetWindowSizeInPixels(_windowController.get().getWindow(0)->window, &width, &height);
         SDL_Delay(100);
     }
-    vkDeviceWaitIdle(device->vkDevice);
+    vkDeviceWaitIdle(device->vkDevice());
 
     _windowController.get().getWindow(0)->getSwapchain()->recreate();
 }

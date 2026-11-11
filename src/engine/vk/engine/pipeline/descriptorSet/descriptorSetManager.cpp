@@ -30,7 +30,7 @@ void DescriptorSetManager::_createDescriptorPool(const PoolDescriptor& poolDescr
         .pPoolSizes = poolDescriptor.poolSizes.data(),
     };
     VkDescriptorPool descriptorPool;
-    if (!VK_CHECK(vkCreateDescriptorPool(_device.get().vkDevice, &poolInfo, nullptr, &descriptorPool))) {
+    if (!VK_CHECK(vkCreateDescriptorPool(_device.get().vkDevice(), &poolInfo, nullptr, &descriptorPool))) {
         _logger.error("Failed to create descriptor pool!");
         return;
     }
@@ -43,10 +43,10 @@ void DescriptorSetManager::_createDescriptorPool(const PoolDescriptor& poolDescr
 
 void DescriptorSetManager::cleanupV2() noexcept {
     for (VkDescriptorPool pool : _descriptorPools) {
-        vkDestroyDescriptorPool(_device.get().vkDevice, pool, nullptr);
+        vkDestroyDescriptorPool(_device.get().vkDevice(), pool, nullptr);
     }
     for (VkDescriptorPool pool : _uabDescriptorPools) {
-        vkDestroyDescriptorPool(_device.get().vkDevice, pool, nullptr);
+        vkDestroyDescriptorPool(_device.get().vkDevice(), pool, nullptr);
     }
 }
 
@@ -145,7 +145,7 @@ std::vector<VkDescriptorSet> DescriptorSetManager::_createDescriptorSets(const s
         .pSetLayouts = layouts.data(),
     };
     descriptorSets.resize(_maxFramesInFlight, VK_NULL_HANDLE);
-    auto result = vkAllocateDescriptorSets(_device.get().vkDevice, &allocInfo, descriptorSets.data());
+    auto result = vkAllocateDescriptorSets(_device.get().vkDevice(), &allocInfo, descriptorSets.data());
     if (result != VK_SUCCESS) {
         // TODO: Handle new pool creation
         _logger.error("Failed to allocate descriptor set!");
@@ -189,8 +189,8 @@ DescriptorSetManager::getDescriptorSetHandler(const CommonDescriptorSetName& set
 }
 
 void DescriptorSetManager::cleanup() {
-    vkDestroyDescriptorPool(_device.get().vkDevice, _persistentDescriptorPool, nullptr);
-    vkDestroyDescriptorPool(_device.get().vkDevice, _persistentUABDescriptorPool, nullptr);
+    vkDestroyDescriptorPool(_device.get().vkDevice(), _persistentDescriptorPool, nullptr);
+    vkDestroyDescriptorPool(_device.get().vkDevice(), _persistentUABDescriptorPool, nullptr);
 }
 
 bool DescriptorSetManager::setup(std::vector<DescriptorSetInfo> descriptorSetInfos) {
@@ -225,7 +225,7 @@ std::vector<VkDescriptorSet> DescriptorSetManager::_createDescriptorSets(const C
         .pSetLayouts = layouts.data(),
     };
     descriptorSets.resize(_maxFramesInFlight, VK_NULL_HANDLE);
-    auto result = vkAllocateDescriptorSets(_device.get().vkDevice, &allocInfo, descriptorSets.data());
+    auto result = vkAllocateDescriptorSets(_device.get().vkDevice(), &allocInfo, descriptorSets.data());
     if (result != VK_SUCCESS) {
         _logger.error("Failed to allocate descriptor set!");
         return {};
@@ -300,7 +300,7 @@ bool DescriptorSetManager::_createDescriptorSetPools(const std::vector<Descripto
             .poolSizeCount = static_cast<uint32_t>(poolSizesVector.size()),
             .pPoolSizes = poolSizesVector.data(),
         };
-        if (!VK_CHECK(vkCreateDescriptorPool(_device.get().vkDevice, &poolInfo, nullptr, &_persistentDescriptorPool))) {
+        if (!VK_CHECK(vkCreateDescriptorPool(_device.get().vkDevice(), &poolInfo, nullptr, &_persistentDescriptorPool))) {
             _logger.error("Failed to create persistent descriptor pool!");
             return false;
         }
@@ -315,7 +315,7 @@ bool DescriptorSetManager::_createDescriptorSetPools(const std::vector<Descripto
             .pPoolSizes = uabPoolSizesVector.data(),
         };
         if (!VK_CHECK(
-                vkCreateDescriptorPool(_device.get().vkDevice, &poolInfo, nullptr, &_persistentUABDescriptorPool)
+                vkCreateDescriptorPool(_device.get().vkDevice(), &poolInfo, nullptr, &_persistentUABDescriptorPool)
             )) {
             _logger.error("Failed to create persistent UAB descriptor pool!");
             return false;

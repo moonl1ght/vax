@@ -16,7 +16,7 @@ VkPipelineLayout PipelineLayoutBuilder::build(std::string name) noexcept {
         .pPushConstantRanges = _pushConstantRange ? &*_pushConstantRange : nullptr,
     };
     VkPipelineLayout pipelineLayout;
-    auto result = vkCreatePipelineLayout(_device.get().vkDevice, &pipelineLayoutInfo, nullptr, &pipelineLayout);
+    auto result = vkCreatePipelineLayout(_device.get().vkDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout);
     if (result != VK_SUCCESS) {
         _logger.error("failed to create pipeline layout!");
         return VK_NULL_HANDLE;
@@ -28,7 +28,7 @@ VkPipelineLayout PipelineLayoutBuilder::build(std::string name) noexcept {
         .objectHandle = reinterpret_cast<size_t>(pipelineLayout),
         .pObjectName = (name + "_pipeline_layout").c_str(),
     };
-    vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice, &nameInfo);
+    vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &nameInfo);
     return pipelineLayout;
 }
 
@@ -49,7 +49,7 @@ std::optional<vax::vk::PipelineV2> ComputePipelineBuilder::build(std::string nam
 
     VkPipeline pipeline;
     auto result = vkCreateComputePipelines(
-        _device.get().vkDevice, VK_NULL_HANDLE, 1, &computePipelineCreateInfo, nullptr, &pipeline
+        _device.get().vkDevice(), VK_NULL_HANDLE, 1, &computePipelineCreateInfo, nullptr, &pipeline
     );
     if (!VK_CHECK(result)) {
         _logger.error("Failed to create compute pipeline!");
@@ -97,7 +97,7 @@ VkPipelineLayout GraphicsPipelineBuilder::buildPipelineLayout(std::string name) 
         .pPushConstantRanges = &_pushConstantRange
     };
     VkPipelineLayout pipelineLayout;
-    auto result = vkCreatePipelineLayout(_device.get().vkDevice, &pipelineLayoutInfo, nullptr, &pipelineLayout);
+    auto result = vkCreatePipelineLayout(_device.get().vkDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout);
     if (result != VK_SUCCESS) {
         _logger.error("failed to create pipeline layout!");
         return VK_NULL_HANDLE;
@@ -109,7 +109,7 @@ VkPipelineLayout GraphicsPipelineBuilder::buildPipelineLayout(std::string name) 
         .objectHandle = reinterpret_cast<size_t>(pipelineLayout),
         .pObjectName = (name + "_pipeline_layout").c_str(),
     };
-    vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice, &nameInfo);
+    vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &nameInfo);
     return pipelineLayout;
 }
 
@@ -193,7 +193,7 @@ std::optional<vax::vk::Pipeline> GraphicsPipelineBuilder::build(std::string name
 
     VkPipeline pipeline;
     auto pipelineResult =
-        vkCreateGraphicsPipelines(_device.get().vkDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline);
+        vkCreateGraphicsPipelines(_device.get().vkDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline);
     if (pipelineResult != VK_SUCCESS) {
         _logger.error("failed to create graphics pipeline!");
         return std::nullopt;
@@ -205,7 +205,7 @@ std::optional<vax::vk::Pipeline> GraphicsPipelineBuilder::build(std::string name
         .objectHandle = reinterpret_cast<size_t>(pipeline),
         .pObjectName = (name + "_pipeline").c_str(),
     };
-    vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice, &baseGraphicsPipelineNameInfo);
+    vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &baseGraphicsPipelineNameInfo);
     return vax::vk::Pipeline(_device.get(), name, vax::vk::PipelineType::RENDER, pipelineLayout, pipeline);
 }
 

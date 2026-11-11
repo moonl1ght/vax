@@ -38,7 +38,7 @@ void ViewManager::popView() {
         _isPendingPop = true;
         return;
     }
-    vkDeviceWaitIdle(_uiEngine.get().engine().device->vkDevice);
+    vkDeviceWaitIdle(_uiEngine.get().engine().device->vkDevice());
     _topViewNode = newTopViewNode;
     _topViewNode->child = nullptr;
     _isPendingPop = false;
@@ -85,7 +85,7 @@ vax::AppMode ViewManager::getAppMode() const {
 
 void ViewManager::_swapRootViewNode(std::unique_ptr<ViewNode> viewNode) {
     if (_rootNode) {
-        vkDeviceWaitIdle(_uiEngine.get().engine().device->vkDevice);
+        vkDeviceWaitIdle(_uiEngine.get().engine().device->vkDevice());
     }
     _rootNode = std::move(viewNode);
     _rootNode->view->linkViewManager(this);

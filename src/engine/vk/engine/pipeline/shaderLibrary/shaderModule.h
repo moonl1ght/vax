@@ -13,7 +13,7 @@ struct ShaderModule {
 
     ~ShaderModule() {
         if (vkModule != VK_NULL_HANDLE) {
-            vkDestroyShaderModule(_device.get().vkDevice, vkModule, nullptr);
+            vkDestroyShaderModule(_device.get().vkDevice(), vkModule, nullptr);
         }
     }
 
@@ -27,7 +27,7 @@ struct ShaderModule {
     ShaderModule& operator=(ShaderModule&& other) noexcept {
         if (this != &other) {
             if (vkModule != VK_NULL_HANDLE) {
-                vkDestroyShaderModule(_device.get().vkDevice, vkModule, nullptr);
+                vkDestroyShaderModule(_device.get().vkDevice(), vkModule, nullptr);
             }
             vkModule = std::exchange(other.vkModule, VK_NULL_HANDLE);
             _device = other._device;

@@ -31,7 +31,7 @@ class Sampler final {
     Sampler& operator=(Sampler&& other) noexcept {
         if (this != &other) {
             if (vkSampler != VK_NULL_HANDLE) {
-                vkDestroySampler(_device.get().vkDevice, vkSampler, nullptr);
+                vkDestroySampler(_device.get().vkDevice(), vkSampler, nullptr);
             }
             _device = other._device;
             vkSampler = other.vkSampler;
@@ -40,7 +40,7 @@ class Sampler final {
         return *this;
     }
 
-    ~Sampler() { vkDestroySampler(_device.get().vkDevice, vkSampler, nullptr); }
+    ~Sampler() { vkDestroySampler(_device.get().vkDevice(), vkSampler, nullptr); }
 
     void setName(const std::string& name) { _name = name; }
 

@@ -12,11 +12,11 @@ void Texture::cleanup() {
 
 void Texture::_destroy() {
     if (_imageView != VK_NULL_HANDLE) {
-        vkDestroyImageView(_device.get().vkDevice, _imageView, nullptr);
+        vkDestroyImageView(_device.get().vkDevice(), _imageView, nullptr);
         _imageView = VK_NULL_HANDLE;
     }
     if (_image != VK_NULL_HANDLE) {
-        vmaDestroyImage(_device.get().allocator, _image, _allocation);
+        vmaDestroyImage(_device.get().allocator(), _image, _allocation);
         _allocation = VK_NULL_HANDLE;
         _image = VK_NULL_HANDLE;
     }
@@ -30,7 +30,7 @@ void Texture::_destroy() {
 
 void Texture::loadImageView(VkImageViewType viewType, uint32_t layerCount, uint32_t levelCount) {
     _imageView =
-        createImageView(_device.get().vkDevice, _image, _format, _aspectMask, viewType, layerCount, levelCount).value();
+        createImageView(_device.get().vkDevice(), _image, _format, _aspectMask, viewType, layerCount, levelCount).value();
 }
 
 bool vax::vk::Texture::isValid() const { return _image != VK_NULL_HANDLE && _allocation != VK_NULL_HANDLE; }

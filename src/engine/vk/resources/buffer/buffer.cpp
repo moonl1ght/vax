@@ -58,7 +58,7 @@ template <typename T> void Buffer<T>::_detach() {
 template <typename T> void Buffer<T>::_destroy() {
     unmap();
     if (_vkBuffer != VK_NULL_HANDLE && _allocation != VK_NULL_HANDLE) {
-        vmaDestroyBuffer(_device.get().allocator, _vkBuffer, _allocation);
+        vmaDestroyBuffer(_device.get().allocator(), _vkBuffer, _allocation);
         _vkBuffer = VK_NULL_HANDLE;
         _allocation = VK_NULL_HANDLE;
     }
@@ -154,7 +154,7 @@ bool Buffer<T>::_allocate(VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage, 
     };
 
     VmaAllocationInfo resultAllocInfo{};
-    if (vmaCreateBuffer(_device.get().allocator, &bufferInfo, &allocInfo, &_vkBuffer, &_allocation, &resultAllocInfo) !=
+    if (vmaCreateBuffer(_device.get().allocator(), &bufferInfo, &allocInfo, &_vkBuffer, &_allocation, &resultAllocInfo) !=
         VK_SUCCESS) {
         _logger.error("failed to create VMA buffer!");
         return false;
@@ -167,7 +167,7 @@ bool Buffer<T>::_allocate(VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage, 
     }
 
     if (!_name.empty()) {
-        vmaSetAllocationName(_device.get().allocator, _allocation, _name.c_str());
+        vmaSetAllocationName(_device.get().allocator(), _allocation, _name.c_str());
 
         VkDebugUtilsObjectNameInfoEXT nameInfo{
             .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
@@ -175,7 +175,7 @@ bool Buffer<T>::_allocate(VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage, 
             .objectHandle = reinterpret_cast<uint64_t>(_vkBuffer),
             .pObjectName = _name.c_str(),
         };
-        vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice, &nameInfo);
+        vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &nameInfo);
     }
     return true;
 }
@@ -184,7 +184,7 @@ template <typename T> void Buffer<T>::map() {
     if (isMapped())
         return;
     void* mappedData = nullptr;
-    vmaMapMemory(_device.get().allocator, _allocation, &mappedData);
+    vmaMapMemory(_device.get().allocator(), _allocation, &mappedData);
     _mappedMemory = static_cast<T*>(mappedData);
     _isMapped = true;
 }
@@ -195,7 +195,7 @@ template <typename T> void Buffer<T>::unmap() {
     if (_isPersistentlyMapped) {
         return;
     }
-    vmaUnmapMemory(_device.get().allocator, _allocation);
+    vmaUnmapMemory(_device.get().allocator(), _allocation);
     _isMapped = false;
     _mappedMemory = nullptr;
 }

@@ -101,7 +101,7 @@ void DescriptorSetWriter::writeSampler(const Sampler& sampler, uint32_t binding,
 }
 
 VkDescriptorSet DescriptorSetWriter::update() {
-    vkUpdateDescriptorSets(_device.get().vkDevice, static_cast<uint32_t>(_writes.size()), _writes.data(), 0, nullptr);
+    vkUpdateDescriptorSets(_device.get().vkDevice(), static_cast<uint32_t>(_writes.size()), _writes.data(), 0, nullptr);
     return _descriptorSet;
 }
 

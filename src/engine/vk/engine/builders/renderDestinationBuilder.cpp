@@ -83,7 +83,7 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildMainOffscreen(
             .height = extent.height,
             .layers = 1,
         };
-        if (!VK_CHECK(vkCreateFramebuffer(_device.get().vkDevice, &framebufferInfo, nullptr, &framebuffers[i]))) {
+        if (!VK_CHECK(vkCreateFramebuffer(_device.get().vkDevice(), &framebufferInfo, nullptr, &framebuffers[i]))) {
             _logger.error("Failed to create offscreen framebuffer!");
             return std::nullopt;
         }
@@ -142,7 +142,7 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildSwapchain(
             .height = swapchain.swapchainExtent.height,
             .layers = 1,
         };
-        auto result = vkCreateFramebuffer(_device.get().vkDevice, &framebufferInfo, nullptr, &swapchainFramebuffers[i]);
+        auto result = vkCreateFramebuffer(_device.get().vkDevice(), &framebufferInfo, nullptr, &swapchainFramebuffers[i]);
         if (!VK_CHECK(result)) {
             _logger.error("Failed to create framebuffer!");
             return std::nullopt;
@@ -196,7 +196,7 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildShadowSunOffscre
             .height = extent.height,
             .layers = 1,
         };
-        if (!VK_CHECK(vkCreateFramebuffer(_device.get().vkDevice, &framebufferInfo, nullptr, &framebuffers[i]))) {
+        if (!VK_CHECK(vkCreateFramebuffer(_device.get().vkDevice(), &framebufferInfo, nullptr, &framebuffers[i]))) {
             _logger.error("Failed to create offscreen framebuffer!");
             return std::nullopt;
         }

@@ -148,7 +148,7 @@ bool Renderer::render(Scene* scene, const FrameTime& frameTime) {
 
     uint32_t imageIndex = 0;
     VkResult result = vkAcquireNextImageKHR(
-        _vkEngine.get().device->vkDevice,
+        _vkEngine.get().device->vkDevice(),
         _vkEngine.get().getWindowController().getWindow(0)->getSwapchain()->swapchain,
         UINT64_MAX,
         _vkEngine.get().syncObjectsManager->getImageAvailableSemaphores("main")[_currentFrame],
@@ -162,7 +162,7 @@ bool Renderer::render(Scene* scene, const FrameTime& frameTime) {
     uint32_t agentCameraImageIndex = UINT32_MAX;
     if (drawSecondaryWindow) {
         VkResult agentCameraResult = vkAcquireNextImageKHR(
-            _vkEngine.get().device->vkDevice,
+            _vkEngine.get().device->vkDevice(),
             _vkEngine.get().getWindowController().getWindow(1)->getSwapchain()->swapchain,
             UINT64_MAX,
             _vkEngine.get().syncObjectsManager->getImageAvailableSemaphores("secondary")[_currentFrame],
@@ -200,7 +200,7 @@ bool Renderer::render(Scene* scene, const FrameTime& frameTime) {
     }
 
     vkResetFences(
-        _vkEngine.get().device->vkDevice, 1, &_vkEngine.get().syncObjectsManager->getInFlightFences()[_currentFrame]
+        _vkEngine.get().device->vkDevice(), 1, &_vkEngine.get().syncObjectsManager->getInFlightFences()[_currentFrame]
     );
 
     auto& commandBuffer = _vkEngine.get().commandManager->getCommandBuffer(_currentFrame);
@@ -375,7 +375,7 @@ void Renderer::_resize() {
 }
 
 void Renderer::_resizeSecondary() {
-    vkDeviceWaitIdle(_vkEngine.get().device->vkDevice);
+    vkDeviceWaitIdle(_vkEngine.get().device->vkDevice());
     _getSwapchain(1)->recreate();
     _wasResized = true;
 }

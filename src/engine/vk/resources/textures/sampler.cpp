@@ -5,7 +5,7 @@ using namespace vax::vk;
 std::optional<Sampler>
 Sampler::createSampler(const vk::Device& device, std::string name, VkSamplerCreateInfo samplerInfo) {
     VkSampler vkSampler;
-    if (vkCreateSampler(device.vkDevice, &samplerInfo, nullptr, &vkSampler) != VK_SUCCESS) {
+    if (vkCreateSampler(device.vkDevice(), &samplerInfo, nullptr, &vkSampler) != VK_SUCCESS) {
         Logger::getInstance().error("failed to create texture sampler!");
         return std::nullopt;
     }
@@ -16,7 +16,7 @@ Sampler::createSampler(const vk::Device& device, std::string name, VkSamplerCrea
             .objectHandle = reinterpret_cast<size_t>(vkSampler),
             .pObjectName = name.c_str(),
         };
-        vax::vk::pfnSetDebugUtilsObjectNameEXT(device.vkDevice, &nameInfo);
+        vax::vk::pfnSetDebugUtilsObjectNameEXT(device.vkDevice(), &nameInfo);
     }
     return Sampler(vkSampler, device);
 }
