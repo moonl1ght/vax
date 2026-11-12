@@ -28,11 +28,6 @@ inline vec4 unpackRGBA(uint32_t rgba) {
 
 #else // Slang
 
-typedef float4x4 mat4;
-typedef float2 vec2;
-typedef float3 vec3;
-typedef float4 vec4;
-
 uint packRGBA(float4 color) {
     uint r = uint(color.r * 255.0);
     uint g = uint(color.g * 255.0);

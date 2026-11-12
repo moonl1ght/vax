@@ -11,7 +11,7 @@ namespace vax::vk {
 constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 constexpr int MAX_GLOBAL_TEXTURES = MAX_TEXTURES + MAX_CUBE_MAP_TEXTURES + MAX_SHADOW_TEXTURES;
 constexpr int MAX_MATERIALS = 500;
-constexpr int MAX_GLOBAL_SAMPLERS = MAX_SAMPLERS;
+constexpr int MAX_GLOBAL_SAMPLERS = MAX_SAMPLERS_;
 constexpr int MAX_DRAWABLE_INSTANCES = 2000;
 } // namespace vax::vk
 

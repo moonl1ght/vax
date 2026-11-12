@@ -6,7 +6,7 @@ struct BindlessDescriptorSet {
 };
 
 [DynamicOffset]
-[vk::binding(PerFrameDescriptorSetResourceIndex::FRAME_UNIFORM_BUFFER_INDEX, MainSetIndices::PER_FRAME_SET_INDEX)]
+[vk::binding(PerFrameDescriptorSetResourceIndex::FRAME_UNIFORM_BUFFER_INDEX_, MainSetIndices::PER_FRAME_SET_INDEX)]
 ConstantBuffer<UniformBufferObject> ubo;
 
 [vk::binding(PerFrameDescriptorSetResourceIndex::FRAME_LIGHT_BUFFER_INDEX, MainSetIndices::PER_FRAME_SET_INDEX)]
@@ -25,7 +25,7 @@ StructuredBuffer<PBRMaterial> materials;
 StructuredBuffer<EnvironmentMapData> environmentMaps;
 
 [vk::binding(GlobalDescriptorSetResourceIndex::GLOBAL_SAMPLER_INDEX, MainSetIndices::GLOBAL_SET_INDEX)]
-SamplerState globalSamplers[MAX_SAMPLERS];
+SamplerState globalSamplers[MAX_SAMPLERS_];
 
 [vk::binding(GlobalDescriptorSetResourceIndex::GLOBAL_TEXTURE_INDEX, MainSetIndices::GLOBAL_SET_INDEX)]
 Texture2D globalTextures[MAX_TEXTURES];

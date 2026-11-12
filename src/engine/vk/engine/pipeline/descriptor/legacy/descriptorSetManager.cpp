@@ -8,38 +8,38 @@ using namespace vax::vk;
 using namespace vax;
 
 void DescriptorSetManager::setup() noexcept {
-    auto defaultPoolDescriptor = PoolDescriptor::defaultPoolDescriptor();
-    _createDescriptorPool(defaultPoolDescriptor);
-    auto uabPoolDescriptor = PoolDescriptor::defaultPoolDescriptor();
-    uabPoolDescriptor.type = PoolType::UAB;
-    _createDescriptorPool(uabPoolDescriptor);
+    // auto defaultPoolDescriptor = PoolDescriptor::defaultPoolDescriptor();
+    // _createDescriptorPool(defaultPoolDescriptor);
+    // auto uabPoolDescriptor = PoolDescriptor::defaultPoolDescriptor();
+    // uabPoolDescriptor.type = PoolType::UAB;
+    // _createDescriptorPool(uabPoolDescriptor);
 }
 
-void DescriptorSetManager::_createDescriptorPool(const PoolDescriptor& poolDescriptor) noexcept {
-    VkDescriptorPoolCreateFlags flags = 0;
-    bool isUAB = false;
-    if (poolDescriptor.type == PoolType::UAB && poolDescriptor.poolSupportsUpdateAfterBind()) {
-        flags |= VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT;
-        isUAB = true;
-    }
-    VkDescriptorPoolCreateInfo poolInfo{
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-        .flags = flags,
-        .maxSets = poolDescriptor.maxSets,
-        .poolSizeCount = static_cast<uint32_t>(poolDescriptor.poolSizes.size()),
-        .pPoolSizes = poolDescriptor.poolSizes.data(),
-    };
-    VkDescriptorPool descriptorPool;
-    if (!VK_CHECK(vkCreateDescriptorPool(_device.get().vkDevice(), &poolInfo, nullptr, &descriptorPool))) {
-        _logger.error("Failed to create descriptor pool!");
-        return;
-    }
-    if (isUAB) {
-        _uabDescriptorPools.push_back(descriptorPool);
-    } else {
-        _descriptorPools.push_back(descriptorPool);
-    }
-}
+// void DescriptorSetManager::_createDescriptorPool(const PoolDescriptor& poolDescriptor) noexcept {
+//     VkDescriptorPoolCreateFlags flags = 0;
+//     bool isUAB = false;
+//     if (poolDescriptor.type == PoolType::UAB && poolDescriptor.poolSupportsUpdateAfterBind()) {
+//         flags |= VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT;
+//         isUAB = true;
+//     }
+//     VkDescriptorPoolCreateInfo poolInfo{
+//         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+//         .flags = flags,
+//         .maxSets = poolDescriptor.maxSets,
+//         .poolSizeCount = static_cast<uint32_t>(poolDescriptor.poolSizes.size()),
+//         .pPoolSizes = poolDescriptor.poolSizes.data(),
+//     };
+//     VkDescriptorPool descriptorPool;
+//     if (!VK_CHECK(vkCreateDescriptorPool(_device.get().vkDevice(), &poolInfo, nullptr, &descriptorPool))) {
+//         _logger.error("Failed to create descriptor pool!");
+//         return;
+//     }
+//     if (isUAB) {
+//         _uabDescriptorPools.push_back(descriptorPool);
+//     } else {
+//         _descriptorPools.push_back(descriptorPool);
+//     }
+// }
 
 void DescriptorSetManager::cleanupV2() noexcept {
     for (VkDescriptorPool pool : _descriptorPools) {

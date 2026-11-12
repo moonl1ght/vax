@@ -209,7 +209,7 @@ bool Scene::writeFrameDescriptorSet(
 ) {
     descriptorWriter.writeBuffer(
         *_sceneUniformBuffers[_renderCallContext.currentFrame],
-        PerFrameDescriptorSetResourceIndex::FRAME_UNIFORM_BUFFER_INDEX,
+        PerFrameDescriptorSetResourceIndex::FRAME_UNIFORM_BUFFER_INDEX_,
         0,
         VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC
     );
@@ -228,7 +228,7 @@ bool Scene::writeFrameDescriptorSet(
 
     agentCameraDescriptorWriter.writeBuffer(
         *_agentCameraUniformBuffers[_renderCallContext.currentFrame],
-        PerFrameDescriptorSetResourceIndex::FRAME_UNIFORM_BUFFER_INDEX,
+        PerFrameDescriptorSetResourceIndex::FRAME_UNIFORM_BUFFER_INDEX_,
         0,
         VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC
     );

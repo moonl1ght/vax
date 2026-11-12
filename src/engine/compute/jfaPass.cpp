@@ -16,11 +16,18 @@ void JFAPass::setup(std::weak_ptr<vax::vk::RenderDestination> inputRenderDestina
 void JFAPass::update(std::weak_ptr<vax::vk::RenderDestination> inputRenderDestination) {
     _inputRenderDestination = std::move(inputRenderDestination);
     if (auto inputRenderDestinationShared = _inputRenderDestination.lock()) {
-        _writeTextures(inputRenderDestinationShared->maskTextures(), inputRenderDestinationShared->depthTexture());
+        auto& descriptorRegistry = _pipelineManager.get().descriptorRegistry();
+        for (const auto& textureHandle : _textureHandles) {
+            descriptorRegistry.releaseStorageTexture(textureHandle.jfaA);
+            descriptorRegistry.releaseStorageTexture(textureHandle.jfaB);
+            descriptorRegistry.releaseSampledTexture(textureHandle.mask);
+            descriptorRegistry.releaseSampledTexture(textureHandle.depth);
+        }
+        _createTextures(inputRenderDestinationShared->maskTextures(), inputRenderDestinationShared->depthTexture());
     }
 }
 
-void JFAPass::_writeTextures(const std::vector<vax::vk::Texture>& maskTextures, const vax::vk::Texture& depthTexture) {
+void JFAPass::_createTextures(const std::vector<vax::vk::Texture>& maskTextures, const vax::vk::Texture& depthTexture) {
     _jfaTexturesA.clear();
     _jfaTexturesB.clear();
     _textureHandles.clear();
@@ -172,7 +179,7 @@ void JFAPass::runPass(RunPassInfo& runPassInfo) {
     bool isTextureAInput = true;
     uint32_t maxDim = std::max(width, height);
 
-    StorageHandle in = textureHandle.jfaA, out = textureHandle.jfaB;
+    StorageImageShaderHandle in = textureHandle.jfaA, out = textureHandle.jfaB;
     for (uint32_t step = maxDim / 2; step > 0; step /= 2) {
         JFAStepPushConstants stepPushConstants{.input = in, .output = out, .step = step};
         vkCmdPushConstants(

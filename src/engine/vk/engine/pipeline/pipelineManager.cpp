@@ -99,16 +99,46 @@ bool PipelineManager::prebuildPipelines(const std::vector<PipelineDescriptor>& p
             break;
         }
         case PipelineDescriptor::Type::GRAPHICS: {
+            if (pipelineDescriptor.renderPassDescriptor == nullptr) {
+                _logger.error("Graphics pipeline has no render pass descriptor: ", pipelineDescriptor.name);
+                break;
+            }
             GraphicsPipelineBuilder pipelineBuilder(_device.get());
+            std::vector<ShaderModule> shaderModules;
+            shaderModules.reserve(pipelineModule->functions.size());
+            bool shaderModulesBuilt = true;
             for (const auto& function : pipelineModule->functions) {
                 auto shaderModule = shaderModuleBuilder.build(function.spirv);
                 if (!shaderModule) {
                     _logger.error("Failed to create shader module for function: ", function.name);
+                    shaderModulesBuilt = false;
                     break;
                 }
+                shaderModules.push_back(std::move(*shaderModule));
                 auto stageFlags = static_cast<VkShaderStageFlagBits>(function.stageFlags);
-                pipelineBuilder.addShaderStage(stageFlags, shaderModule.value().vkModule, "main");
+                pipelineBuilder.addShaderStage(stageFlags, shaderModules.back().vkModule, "main");
             }
+            if (!shaderModulesBuilt) {
+                break;
+            }
+            pipelineBuilder.setDepthStencilState({
+                .depthWriteEnable = false,
+                .depthCompareOp = VK_COMPARE_OP_GREATER_OR_EQUAL,
+            });
+            pipelineBuilder.setRenderPass(pipelineDescriptor.renderPassDescriptor->getVkRenderPass());
+            auto pipeline = pipelineBuilder.build(pipelineDescriptor.name, _pipelineLayout);
+            if (!pipeline) {
+                _logger.error("Failed to create graphics pipeline!");
+                break;
+            }
+            _pipelinesV3.emplace(
+                pipelineDescriptor.name,
+                PipelineV2{
+                .vkPipeline = pipeline.value().vkPipeline,
+                .pipelineLayout = _pipelineLayout,
+                .descriptorSetLayout = _descriptorManager->descriptorSet(),
+                }
+            );
             break;
         }
         }
@@ -123,10 +153,6 @@ bool PipelineManager::setup(
     const RenderPassDescriptor& postProcessRenderPassDescriptor,
     const RenderPassDescriptor& shadowRenderPassDescriptor
 ) {
-    if (!_createBackgroundPipelineLayout(PipelineLayoutName::BACKGROUND)) {
-        _logger.error("Failed to create background pipeline layout!");
-        return false;
-    }
     if (!_createBasePipelineLayout(PipelineLayoutName::BASE)) {
         _logger.error("Failed to create base pipeline layout!");
         return false;
@@ -149,10 +175,6 @@ bool PipelineManager::setup(
     }
     if (!_createBasePipeline(renderPassDescriptor)) {
         _logger.error("Failed to create base pipeline!");
-        return false;
-    }
-    if (!_createBackgroundPipeline(renderPassDescriptor)) {
-        _logger.error("Failed to create background pipeline!");
         return false;
     }
     if (!_createFinalBlendPipeline(postProcessRenderPassDescriptor)) {
@@ -178,22 +200,6 @@ const Pipeline* PipelineManager::getPipeline(PipelineName pipelineName) const {
         return nullptr;
     }
     return &it->second;
-}
-
-bool PipelineManager::_createBackgroundPipeline(const RenderPassDescriptor& renderPassDescriptor) {
-    return _createPipeline(
-        renderPassDescriptor,
-        SRC_PATH("engine/shaders/out/background.vert.spv"),
-        SRC_PATH("engine/shaders/out/background.frag.spv"),
-        PipelineName::BACKGROUND,
-        PipelineLayoutName::BACKGROUND,
-        [](GraphicsPipelineBuilder& pipelineBuilder) {
-            pipelineBuilder.setDepthStencilState({
-                .depthWriteEnable = false,
-                .depthCompareOp = VK_COMPARE_OP_GREATER_OR_EQUAL,
-            });
-        }
-    );
 }
 
 bool PipelineManager::_createShadowPipeline(const RenderPassDescriptor& renderPassDescriptor) {
@@ -270,18 +276,6 @@ bool PipelineManager::_createBasePipeline(const RenderPassDescriptor& renderPass
         PipelineLayoutName::BASE,
         [](GraphicsPipelineBuilder& pipelineBuilder) {}
     );
-}
-
-bool vax::vk::PipelineManager::_createBackgroundPipelineLayout(vax::vk::PipelineLayoutName pipelineLayoutName) {
-    auto pipelineBuilder = vax::vk::GraphicsPipelineBuilder(_device.get());
-    auto name = vax::vk::Pipeline::pipelineLayoutNameToString(pipelineLayoutName);
-    auto pipelineLayout = pipelineBuilder.buildPipelineLayout(name);
-    if (!pipelineLayout) {
-        _logger.error("Failed to create background pipeline layout!");
-        return false;
-    }
-    _pipelineLayouts.emplace(name, pipelineLayout);
-    return true;
 }
 
 bool vax::vk::PipelineManager::_createFinalBlendPipelineLayout(vax::vk::PipelineLayoutName pipelineLayoutName) {

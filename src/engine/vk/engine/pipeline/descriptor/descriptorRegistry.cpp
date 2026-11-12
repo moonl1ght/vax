@@ -9,23 +9,23 @@ DescriptorRegistry::RegistrationResult DescriptorRegistry::registerBatch(const R
     std::vector<VkDescriptorImageInfo> storageImageInfos;
     std::vector<VkDescriptorImageInfo> sampledImageInfos;
     if (!batch.storageTextures.empty()) {
-        result.storageTextures = _toHandles<StorageHandle>(_registerTexture(
+        result.storageTextures = _toHandles<StorageImageShaderHandle>(_registerTexture(
             batch.storageTextures,
             storageImageInfos,
             VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
             _storageTextures,
-            1,
+            STORAGE_IMAGE_BINDING_INDEX,
             false,
             batch.contiguous
         ));
     }
     if (!batch.sampledTextures.empty()) {
-        result.sampledTextures = _toHandles<SampledHandle>(_registerTexture(
+        result.sampledTextures = _toHandles<SampledImageShaderHandle>(_registerTexture(
             batch.sampledTextures,
             sampledImageInfos,
             VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
             _sampledTextures,
-            0,
+            SAMPLED_IMAGE_BINDING_INDEX,
             false,
             batch.contiguous
         ));
@@ -36,20 +36,32 @@ DescriptorRegistry::RegistrationResult DescriptorRegistry::registerBatch(const R
     return result;
 }
 
-std::optional<std::vector<StorageHandle>>
+std::optional<std::vector<StorageImageShaderHandle>>
 DescriptorRegistry::registerStorageTexture(const std::vector<const Texture*>& textures, bool contiguous) noexcept {
     std::vector<VkDescriptorImageInfo> imageInfos;
-    return _toHandles<StorageHandle>(
-        _registerTexture(textures, imageInfos, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, _storageTextures, 1, true, contiguous)
-    );
+    return _toHandles<StorageImageShaderHandle>(_registerTexture(
+        textures,
+        imageInfos,
+        VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+        _storageTextures,
+        STORAGE_IMAGE_BINDING_INDEX,
+        true,
+        contiguous
+    ));
 }
 
-std::optional<std::vector<SampledHandle>>
+std::optional<std::vector<SampledImageShaderHandle>>
 DescriptorRegistry::registerSampledTexture(const std::vector<const Texture*>& textures, bool contiguous) noexcept {
     std::vector<VkDescriptorImageInfo> imageInfos;
-    return _toHandles<SampledHandle>(
-        _registerTexture(textures, imageInfos, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, _sampledTextures, 0, true, contiguous)
-    );
+    return _toHandles<SampledImageShaderHandle>(_registerTexture(
+        textures,
+        imageInfos,
+        VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
+        _sampledTextures,
+        SAMPLED_IMAGE_BINDING_INDEX,
+        true,
+        contiguous
+    ));
 }
 
 std::optional<std::vector<ShaderResourceIndex>> DescriptorRegistry::_registerTexture(

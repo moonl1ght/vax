@@ -72,7 +72,7 @@ class DescriptorSetManager final {
 
     DescriptorSetLayout* _getOrCreateSetLayout(const ShaderReflectionData::SetReflectionData& set) noexcept;
 
-    void _createDescriptorPool(const PoolDescriptor& poolDescriptor) noexcept;
+    // void _createDescriptorPool(const PoolDescriptor& poolDescriptor) noexcept;
 
     std::vector<VkDescriptorSet> _createDescriptorSets(const std::string& name) noexcept;
 

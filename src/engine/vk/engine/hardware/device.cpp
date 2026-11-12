@@ -238,4 +238,13 @@ bool Device::load(
     return false;
 }
 
-void Device::_loadDeviceProps() { vkGetPhysicalDeviceProperties(_vkPhysicalDevice, &_properties); }
+void Device::_loadDeviceProps() {
+    _vulkan12Properties = VkPhysicalDeviceVulkan12Properties{.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES};
+    VkPhysicalDeviceProperties2 properties2{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
+        .pNext = &_vulkan12Properties,
+    };
+    vkGetPhysicalDeviceProperties2(_vkPhysicalDevice, &properties2);
+    _properties = properties2.properties;
+    _vulkan12Properties.pNext = nullptr;
+}

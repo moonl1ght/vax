@@ -8,7 +8,6 @@
 
 namespace vax::vk {
 enum class PipelineLayoutName : uint32_t {
-    BACKGROUND = 0,
     BASE = 1,
     FINAL_BLEND = 2,
     AGENT_CAMERA_FB = 3,
@@ -16,7 +15,6 @@ enum class PipelineLayoutName : uint32_t {
 };
 
 enum class PipelineName : uint32_t {
-    BACKGROUND = 0,
     PBR = 1,
     BASE = 2,
     FINAL_BLEND = 3,
@@ -32,8 +30,6 @@ class Pipeline final {
   public:
     static std::string pipelineNameToString(PipelineName name) {
         switch (name) {
-        case PipelineName::BACKGROUND:
-            return "background_pipeline";
         case PipelineName::PBR:
             return "pbr_pipeline";
         case PipelineName::BASE:
@@ -53,8 +49,6 @@ class Pipeline final {
 
     static std::string pipelineLayoutNameToString(PipelineLayoutName name) {
         switch (name) {
-        case PipelineLayoutName::BACKGROUND:
-            return "background_pipeline_layout";
         case PipelineLayoutName::BASE:
             return "base_pipeline_layout";
         case PipelineLayoutName::FINAL_BLEND:

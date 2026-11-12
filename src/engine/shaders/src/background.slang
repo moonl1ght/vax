@@ -16,7 +16,7 @@ Coordinates vertex_main(uint vertexIndex: SV_VulkanVertexID) {
 float4 fragment_main(float2 uv: TEXCOORD0)
     : SV_Target {
     float3 topColor = float3(0.1f, 0.2f, 0.4f);
-    float3 bottomColor = float3(0.55f, 0.55f, 0.55f);
+    float3 bottomColor = float3(1.0f, 0.55f, 0.55f);
 
     float3 gradient = lerp(bottomColor, topColor, uv.y);
 

@@ -1,8 +1,8 @@
 #include "renderer.h"
-#include "paths.h"
 #include "descriptorSetManager.h"
 #include "imageUtils.h"
 #include "jfaPass.h"
+#include "paths.h"
 #include "pipeline.h"
 #include "profiler.h"
 #include "textureFactory.h"
@@ -17,12 +17,20 @@ void Renderer::load() {
     auto swapchain = _getSwapchain(0);
     _renderPassGraphManager->setupRenderPassDescriptors(swapchain->swapchainImageFormat);
     auto swapchainRenderPassDescriptor = _renderPassGraphManager->getRenderPassDescriptor("swapchain");
+    auto mainRenderPassDescriptor = _renderPassGraphManager->getRenderPassDescriptor("main");
+    auto shadowSunRenderPassDescriptor = _renderPassGraphManager->getRenderPassDescriptor("shadow_sun");
     _uiEngine.get().setup(swapchainRenderPassDescriptor->getVkRenderPass());
 
     _renderPassGraphManager->setupRenderDestinations(
         *_vkEngine.get().commandManager, *_vkEngine.get().queueManager, *swapchain
     );
-    _vkEngine.get().pipelineManager->prebuildPipelines(vax::vk::defaultPipelines());
+    auto defaultPipelines = vax::vk::defaultPipelines();
+    defaultPipelines["background"].renderPassDescriptor = swapchainRenderPassDescriptor;
+    std::vector<vax::vk::PipelineDescriptor> pipelineDescriptors;
+    for (const auto& [name, pipelineDescriptor] : defaultPipelines) {
+        pipelineDescriptors.push_back(pipelineDescriptor);
+    }
+    _vkEngine.get().pipelineManager->prebuildPipelines(pipelineDescriptors);
 }
 
 void Renderer::setup(Scene* scene) {

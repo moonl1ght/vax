@@ -88,7 +88,6 @@ class PipelineManager final {
     std::unordered_map<std::string, Pipeline> _pipelines;
     std::unordered_map<std::string, VkPipelineLayout> _pipelineLayouts;
 
-    bool _createBackgroundPipelineLayout(PipelineLayoutName pipelineLayoutName);
     bool _createBasePipelineLayout(PipelineLayoutName pipelineLayoutName);
     bool _createFinalBlendPipelineLayout(PipelineLayoutName pipelineLayoutName);
     bool _createAgentCameraFBPipelineLayout(PipelineLayoutName pipelineLayoutName);
@@ -96,7 +95,6 @@ class PipelineManager final {
     bool _createPBRPipeline(const RenderPassDescriptor& renderPassDescriptor);
     bool _createAgentCameraPipeline(const RenderPassDescriptor& renderPassDescriptor);
     bool _createAgentCameraFBPipeline(const RenderPassDescriptor& renderPassDescriptor);
-    bool _createBackgroundPipeline(const RenderPassDescriptor& renderPassDescriptor);
     bool _createBasePipeline(const RenderPassDescriptor& renderPassDescriptor);
     bool _createFinalBlendPipeline(const RenderPassDescriptor& renderPassDescriptor);
     bool _createShadowPipeline(const RenderPassDescriptor& renderPassDescriptor);

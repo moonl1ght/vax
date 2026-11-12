@@ -50,7 +50,7 @@ slang::IModule* ShaderLibrary::_loadModule(const std::string& name) noexcept {
 
 std::optional<ShaderLibrary::PipelineModule>
 ShaderLibrary::loadPipelineModule(const ShaderModuleDescriptor& descriptor) noexcept {
-    if (descriptor.entryPoints.size() >= 1) {
+    if (descriptor.entryPoints.empty()) {
         _logger.error("Module must have at least one entry point: ", descriptor.name);
         return std::nullopt;
     }

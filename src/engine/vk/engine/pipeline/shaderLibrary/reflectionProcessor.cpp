@@ -154,6 +154,14 @@ void collectParameter(
     noUab = noUab || hasNoUabAttribute(var, context);
     slang::TypeLayoutReflection* typeLayout = var->getTypeLayout();
 
+    slang::TypeReflection* elementType = var->getType();
+    if (elementType && elementType->getKind() == slang::TypeReflection::Kind::Array) {
+        elementType = elementType->getElementType();
+    }
+    if (elementType && elementType->getKind() == slang::TypeReflection::Kind::DynamicResource) {
+        return;
+    }
+
     switch (typeLayout->getKind()) {
     case slang::TypeReflection::Kind::Struct:
         for (unsigned int i = 0; i < typeLayout->getFieldCount(); ++i) {

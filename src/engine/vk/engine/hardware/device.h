@@ -30,6 +30,8 @@ class Device final {
 
     VkPhysicalDeviceProperties physicalDeviceProperties() const noexcept { return _properties; }
 
+    VkPhysicalDeviceVulkan12Properties vulkan12Properties() const noexcept { return _vulkan12Properties; }
+
     template <typename T> size_t minUniformBufferOffsetAlignment() const noexcept {
         VkDeviceSize minAlignment = physicalDeviceProperties().limits.minUniformBufferOffsetAlignment;
         return (sizeof(T) + minAlignment - 1) & ~(minAlignment - 1);
@@ -46,6 +48,9 @@ class Device final {
 
     QueueFamilyIndices _indices;
     VkPhysicalDeviceProperties _properties;
+    VkPhysicalDeviceVulkan12Properties _vulkan12Properties{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES
+    };
     VmaAllocator _allocator = VK_NULL_HANDLE;
     VkDevice _vkDevice = VK_NULL_HANDLE;
     VkPhysicalDevice _vkPhysicalDevice = VK_NULL_HANDLE;
