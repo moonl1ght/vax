@@ -2,6 +2,7 @@
 
 #include "indexAllocator.h"
 #include "poolDescriptor.h"
+#include "shaderResourceHandle.h"
 #include <span>
 #include <vulkan/vulkan.h>
 
@@ -19,8 +20,8 @@ class DescriptorRegistry {
     };
 
     struct RegistrationResult final {
-        std::optional<std::vector<uint32_t>> storageTextureIndices;
-        std::optional<std::vector<uint32_t>> sampledTextureIndices;
+        std::optional<std::vector<StorageHandle>> storageTextures;
+        std::optional<std::vector<SampledHandle>> sampledTextures;
     };
 
     explicit DescriptorRegistry(const vax::vk::Device& device, const PoolLimits& poolLimits) noexcept
@@ -39,17 +40,31 @@ class DescriptorRegistry {
 
     RegistrationResult registerBatch(const RegistrationBatch& batch) noexcept;
 
-    std::optional<std::vector<uint32_t>>
+    std::optional<std::vector<StorageHandle>>
     registerStorageTexture(const std::vector<const Texture*>& textures, bool contiguous = false) noexcept;
 
-    std::optional<std::vector<uint32_t>>
+    std::optional<std::vector<SampledHandle>>
     registerSampledTexture(const std::vector<const Texture*>& textures, bool contiguous = false) noexcept;
 
-    bool releaseStorageTexture(uint32_t index) noexcept { return _storageTextures.release(index); }
+    bool releaseStorageTexture(StorageHandle handle) noexcept { return _storageTextures.release(handle.index); }
 
-    bool releaseSampledTexture(uint32_t index) noexcept { return _sampledTextures.release(index); }
+    bool releaseSampledTexture(SampledHandle handle) noexcept { return _sampledTextures.release(handle.index); }
 
   private:
+    template <typename Handle>
+    static std::optional<std::vector<Handle>>
+    _toHandles(std::optional<std::vector<ShaderResourceIndex>> indices) noexcept {
+        if (!indices) {
+            return std::nullopt;
+        }
+        std::vector<Handle> handles;
+        handles.reserve(indices->size());
+        for (ShaderResourceIndex index : *indices) {
+            handles.push_back(Handle{.index = index});
+        }
+        return handles;
+    }
+
     std::reference_wrapper<const vax::vk::Device> _device;
 
     IndexAllocator _storageTextures;

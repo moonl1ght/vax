@@ -35,13 +35,21 @@ class PipelineManager final {
 
     bool setup() noexcept;
 
-    void load(const std::string& shaderDirectory) noexcept;
+    bool load(const std::string& shaderDirectory) noexcept;
 
     void unload() noexcept;
 
-    void prebuildPipelines(const std::vector<PipelineDescriptor>& pipelineDescriptors) noexcept;
+    bool prebuildPipelines(const std::vector<PipelineDescriptor>& pipelineDescriptors) noexcept;
 
-    std::optional<PipelineHandle> getPipeline(const std::string& pipelineName) const noexcept;
+    std::optional<PipelineV2> getPipelineV2(const std::string& pipelineName) const noexcept {
+        auto it = _pipelinesV3.find(pipelineName);
+        if (it == _pipelinesV3.end()) {
+            return std::nullopt;
+        }
+        return it->second;
+    }
+
+    DescriptorRegistry& descriptorRegistry() const noexcept { return _descriptorManager->descriptorRegistry(); }
 
     // Legacy
 
@@ -62,18 +70,14 @@ class PipelineManager final {
 
     std::unique_ptr<ShaderLibrary> _shaderLibrary = nullptr;
     std::unique_ptr<DescriptorManager> _descriptorManager = nullptr;
-    std::unique_ptr<DescriptorSetManager> _descriptorSetManagerV2 = nullptr;
 
-    std::unordered_map<std::string, PipelineV2> _pipelinesV2;
-    std::unordered_map<PipelineLayoutKey, VkPipelineLayout> _pipelineLayoutsV2;
+    VkPipelineLayout _pipelineLayout = VK_NULL_HANDLE;
+
+    std::unordered_map<std::string, PipelineV2> _pipelinesV3;
 
     void _destroyPipelinesV2() noexcept;
 
     void _destroyPipelineLayoutsV2() noexcept;
-
-    std::optional<std::pair<PipelineLayoutKey, VkPipelineLayout>> _getOrCreatePipelineLayout(
-        const DescriptorSetManager::PipelineSetLayouts& setLayouts, const std::string& name
-    ) noexcept;
 
     // LEGACY:
     std::reference_wrapper<const Device> _device;

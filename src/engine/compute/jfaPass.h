@@ -40,16 +40,23 @@ class JFAPass final : public RenderPassNode {
     void runPass(RunPassInfo& runPassInfo) override;
 
   private:
+    struct TextureHandles final {
+        SampledHandle mask;
+        SampledHandle depth;
+        StorageHandle jfaA;
+        StorageHandle jfaB;
+    };
+
     vax::Logger _logger = vax::Logger("JFAPass");
     std::reference_wrapper<const vax::vk::Device> _device;
     std::reference_wrapper<const vax::vk::PipelineManager> _pipelineManager;
-    std::optional<vax::vk::PipelineHandle> _initPipeline;
-    std::optional<vax::vk::PipelineHandle> _jfaPipeline;
+    std::optional<vax::vk::PipelineV2> _initPipeline;
+    std::optional<vax::vk::PipelineV2> _stepPipeline;
     std::vector<vax::vk::Texture> _jfaTexturesA;
     std::vector<vax::vk::Texture> _jfaTexturesB;
     std::weak_ptr<vax::vk::RenderDestination> _inputRenderDestination;
     bool _isFinalImageA = true;
-
+    std::vector<TextureHandles> _textureHandles;
     void _writeTextures(const std::vector<vax::vk::Texture>& maskTextures, const vax::vk::Texture& depthTexture);
 };
 } // namespace vax::engine

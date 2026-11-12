@@ -21,7 +21,7 @@ constexpr std::vector<PipelineDescriptor> defaultPipelines() {
         PipelineDescriptor::Type::COMPUTE, "jfa_init", ShaderModuleDescriptor::Compute("jfa/jfa", "jfa_init")
         },
         PipelineDescriptor{
-        PipelineDescriptor::Type::COMPUTE, "jfa_main", ShaderModuleDescriptor::Compute("jfa/jfa", "jfa_main")
+        PipelineDescriptor::Type::COMPUTE, "jfa_step", ShaderModuleDescriptor::Compute("jfa/jfa", "jfa_step")
         },
         PipelineDescriptor{
         PipelineDescriptor::Type::GRAPHICS, "background", ShaderModuleDescriptor::GraphicsVF("background")

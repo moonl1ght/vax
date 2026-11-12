@@ -27,6 +27,12 @@ class DescriptorManager final {
 
     bool setup() noexcept;
 
+    VkDescriptorSetLayout descriptorSetLayout() const noexcept { return _descriptorSetLayout; }
+
+    VkDescriptorSet descriptorSet() const noexcept { return _descriptorSet; }
+
+    DescriptorRegistry& descriptorRegistry() const noexcept { return *_descriptorRegistry; }
+
   private:
     vax::Logger _logger = vax::Logger("DescriptorManager");
 

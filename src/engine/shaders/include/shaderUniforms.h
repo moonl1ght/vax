@@ -21,6 +21,8 @@ typedef float4 vec4;
 
 #endif
 
+#include "shaderResourceHandle.h"
+
 enum MainSetIndices {
     GLOBAL_SET_INDEX = 0,
     PER_FRAME_SET_INDEX = 1,

@@ -1,8 +1,5 @@
 #include "jfaPass.h"
-#include "descriptorSetLayoutBuilder.h"
 #include "jfa.h"
-#include "pipelineBuilder.h"
-#include "shaderModule.h"
 #include "textureFactory.h"
 #include <vulkan/vulkan_core.h>
 
@@ -10,8 +7,8 @@ using namespace vax::engine;
 using namespace vax::vk;
 
 void JFAPass::setup(std::weak_ptr<vax::vk::RenderDestination> inputRenderDestination) {
-    _initPipeline = _pipelineManager.get().getPipeline("jfa_init");
-    _jfaPipeline = _pipelineManager.get().getPipeline("jfa_main");
+    _initPipeline = _pipelineManager.get().getPipelineV2("jfa_init");
+    _stepPipeline = _pipelineManager.get().getPipelineV2("jfa_step");
 
     update(inputRenderDestination);
 }
@@ -26,13 +23,10 @@ void JFAPass::update(std::weak_ptr<vax::vk::RenderDestination> inputRenderDestin
 void JFAPass::_writeTextures(const std::vector<vax::vk::Texture>& maskTextures, const vax::vk::Texture& depthTexture) {
     _jfaTexturesA.clear();
     _jfaTexturesB.clear();
+    _textureHandles.clear();
+    _textureHandles.resize(vax::vk::MAX_FRAMES_IN_FLIGHT);
     auto textureFactory = TextureFactory(_device.get());
     for (int i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
-        auto& initDescriptorSetWriter = _initPipeline->descriptorSetWriters["JFAInit"][i];
-        auto& jfaDescriptorSetWriter = _jfaPipeline->descriptorSetWriters["JFAStep"][i];
-
-        initDescriptorSetWriter.writeTexture(maskTextures[i], 0);
-        initDescriptorSetWriter.writeTexture(depthTexture, 1);
 
         auto inputTextureSize = maskTextures[i].size();
         auto textureA = textureFactory.makeTextureDetached(
@@ -51,7 +45,6 @@ void JFAPass::_writeTextures(const std::vector<vax::vk::Texture>& maskTextures, 
         }
         textureA->loadImageView(VK_IMAGE_VIEW_TYPE_2D, 1, 1);
         _jfaTexturesA.push_back(std::move(*textureA));
-        initDescriptorSetWriter.writeStorageTexture(_jfaTexturesA[i], 2);
 
         auto textureB = textureFactory.makeTextureDetached(
             TextureFactory::TextureCreateInfo{
@@ -69,20 +62,33 @@ void JFAPass::_writeTextures(const std::vector<vax::vk::Texture>& maskTextures, 
         }
         textureB->loadImageView(VK_IMAGE_VIEW_TYPE_2D, 1, 1);
         _jfaTexturesB.push_back(std::move(*textureB));
-
-        jfaDescriptorSetWriter.writeStorageTexture(_jfaTexturesA[i], 0);
-        jfaDescriptorSetWriter.writeStorageTexture(_jfaTexturesB[i], 1);
-
-        jfaDescriptorSetWriter.update();
-        initDescriptorSetWriter.update();
+        auto& descriptorRegistry = _pipelineManager.get().descriptorRegistry();
+        auto registrationResult = descriptorRegistry.registerBatch({
+            .storageTextures = std::array<const Texture*, 2>{&_jfaTexturesA[i], &_jfaTexturesB[i]},
+            .sampledTextures = std::array<const Texture*, 2>{&maskTextures[i], &depthTexture},
+        });
+        _textureHandles[i] = TextureHandles{
+            .mask = registrationResult.sampledTextures.value()[0],
+            .depth = registrationResult.sampledTextures.value()[1],
+            .jfaA = registrationResult.storageTextures.value()[0],
+            .jfaB = registrationResult.storageTextures.value()[1],
+        };
     }
 }
 
 void JFAPass::runPass(RunPassInfo& runPassInfo) {
-    if (!_initPipeline.has_value() || !_jfaPipeline.has_value()) {
+    if (!_initPipeline.has_value() || !_stepPipeline.has_value()) {
         _logger.error("JFA pipelines are not initialized!");
         return;
     }
+
+    auto& textureHandle = _textureHandles[runPassInfo.frameIndex];
+
+    VkPipelineLayout layout = _initPipeline.value().pipelineLayout;
+    VkDescriptorSet set = _initPipeline.value().descriptorSetLayout;
+    vkCmdBindDescriptorSets(
+        runPassInfo.commandBuffer.vkCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, layout, 0, 1, &set, 0, nullptr
+    );
 
     VkImageMemoryBarrier2 textureABarrier{
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
@@ -106,12 +112,18 @@ void JFAPass::runPass(RunPassInfo& runPassInfo) {
     vkCmdPipelineBarrier2(runPassInfo.commandBuffer.vkCommandBuffer, &dependencyInfo);
 
     vkCmdBindPipeline(
-        runPassInfo.commandBuffer.vkCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _initPipeline->pipeline->vkPipeline
+        runPassInfo.commandBuffer.vkCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _initPipeline.value().vkPipeline
     );
-
-    auto& initDescriptorSetHandler = _initPipeline->descriptorSetHandlers["JFAInit"][runPassInfo.frameIndex];
-    initDescriptorSetHandler.bind(
-        runPassInfo.commandBuffer.vkCommandBuffer, _initPipeline->pipelineLayout, 0, VK_PIPELINE_BIND_POINT_COMPUTE
+    JFAInitPushConstants initPushConstants{
+        .inputMask = textureHandle.mask, .inputDepth = textureHandle.depth, .output = textureHandle.jfaA
+    };
+    vkCmdPushConstants(
+        runPassInfo.commandBuffer.vkCommandBuffer,
+        layout,
+        VK_SHADER_STAGE_ALL,
+        0,
+        sizeof(initPushConstants),
+        &initPushConstants
     );
 
     uint32_t width = _jfaTexturesA[runPassInfo.frameIndex].width();
@@ -154,28 +166,22 @@ void JFAPass::runPass(RunPassInfo& runPassInfo) {
     vkCmdPipelineBarrier2(runPassInfo.commandBuffer.vkCommandBuffer, &prepareDependency);
 
     vkCmdBindPipeline(
-        runPassInfo.commandBuffer.vkCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _jfaPipeline->pipeline->vkPipeline
+        runPassInfo.commandBuffer.vkCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _stepPipeline.value().vkPipeline
     );
 
     bool isTextureAInput = true;
     uint32_t maxDim = std::max(width, height);
 
-    auto& jfaDescriptorSetHandler = _jfaPipeline->descriptorSetHandlers["JFAStep"][runPassInfo.frameIndex];
-
-    jfaDescriptorSetHandler.bind(
-        runPassInfo.commandBuffer.vkCommandBuffer, _jfaPipeline->pipelineLayout, 0, VK_PIPELINE_BIND_POINT_COMPUTE
-    );
-
+    StorageHandle in = textureHandle.jfaA, out = textureHandle.jfaB;
     for (uint32_t step = maxDim / 2; step > 0; step /= 2) {
-        JFAPushConstants pushConstants{.step = step, .swapInputAndOutput = isTextureAInput ? 0u : 1u};
-
+        JFAStepPushConstants stepPushConstants{.input = in, .output = out, .step = step};
         vkCmdPushConstants(
             runPassInfo.commandBuffer.vkCommandBuffer,
-            _jfaPipeline->pipelineLayout,
-            VK_SHADER_STAGE_COMPUTE_BIT,
+            layout,
+            VK_SHADER_STAGE_ALL,
             0,
-            sizeof(pushConstants),
-            &pushConstants
+            sizeof(stepPushConstants),
+            &stepPushConstants
         );
 
         vkCmdDispatch(runPassInfo.commandBuffer.vkCommandBuffer, groupCountX, groupCountY, 1);
@@ -215,6 +221,7 @@ void JFAPass::runPass(RunPassInfo& runPassInfo) {
         vkCmdPipelineBarrier2(runPassInfo.commandBuffer.vkCommandBuffer, &loopDependency);
 
         isTextureAInput = !isTextureAInput;
+        std::swap(in, out);
     }
 
     VkImage finalImage =

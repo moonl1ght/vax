@@ -134,7 +134,8 @@ foreach(SLANG ${SLANG_SOURCE_FILES})
         OUTPUT ${SPIRV}
         COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_SOURCE_DIR}/src/engine/shaders/out"
         COMMAND ${SLANG_COMPILER} "${SLANG}"
-            -I "${PROJECT_SOURCE_DIR}/src/engine/shaders"
+            -I "${PROJECT_SOURCE_DIR}/src/engine/shaders/src"
+            -I "${PROJECT_SOURCE_DIR}/src/engine/shaders/include"
             -entry ${EP}
             -stage ${STAGE}
             -target spirv

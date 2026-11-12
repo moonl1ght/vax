@@ -2,18 +2,18 @@
 
 using namespace vax::vk;
 
-VkPipelineLayout PipelineLayoutBuilder::build(std::string name) noexcept {
-    std::vector<VkDescriptorSetLayout> descriptorSetLayoutsVk;
-    descriptorSetLayoutsVk.reserve(_descriptorSetLayouts.size());
-    for (const auto descriptorSetLayout : _descriptorSetLayouts) {
-        descriptorSetLayoutsVk.push_back(descriptorSetLayout->getVkDescriptorSetLayout());
-    }
+VkPipelineLayout PipelineLayoutBuilder::build(std::string name) const noexcept {
+    VkPushConstantRange pushConstantRange{
+        .stageFlags = VK_SHADER_STAGE_ALL,
+        .offset = 0,
+        .size = _pushConstantSize,
+    };
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-        .setLayoutCount = static_cast<uint32_t>(descriptorSetLayoutsVk.size()),
-        .pSetLayouts = descriptorSetLayoutsVk.data(),
-        .pushConstantRangeCount = _pushConstantRange ? 1u : 0u,
-        .pPushConstantRanges = _pushConstantRange ? &*_pushConstantRange : nullptr,
+        .setLayoutCount = 1,
+        .pSetLayouts = &_descriptorSetLayout,
+        .pushConstantRangeCount = 1,
+        .pPushConstantRanges = &pushConstantRange,
     };
     VkPipelineLayout pipelineLayout;
     auto result = vkCreatePipelineLayout(_device.get().vkDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout);
@@ -34,7 +34,7 @@ VkPipelineLayout PipelineLayoutBuilder::build(std::string name) noexcept {
 
 // MARK: - ComputePipelineBuilder
 
-std::optional<vax::vk::PipelineV2> ComputePipelineBuilder::build(std::string name) noexcept {
+std::optional<VkPipeline> ComputePipelineBuilder::build(std::string name) noexcept {
     if (_shaderStageInfo.stage != VK_SHADER_STAGE_COMPUTE_BIT) {
         _logger.error("Compute pipeline requires compute shader stage!");
         return std::nullopt;
@@ -56,24 +56,7 @@ std::optional<vax::vk::PipelineV2> ComputePipelineBuilder::build(std::string nam
         return std::nullopt;
     }
 
-    std::vector<std::string> descriptorSetNames;
-    descriptorSetNames.reserve(_pipelineLayoutKey.setLayouts.size());
-    for (size_t i = 0; i < _pipelineLayoutKey.setLayouts.size(); i++) {
-        descriptorSetNames.push_back(_pipelineLayoutKey.descriptorSetNames[i]);
-    }
-
-    return vax::vk::PipelineV2{
-        .pipelineLayoutKey = _pipelineLayoutKey,
-        .vkPipeline = pipeline,
-        .descriptorSetNames = descriptorSetNames,
-    };
-}
-
-void ComputePipelineBuilder::setPipelineLayout(
-    const PipelineLayoutKey& pipelineLayoutKey, const VkPipelineLayout& pipelineLayout
-) noexcept {
-    _pipelineLayoutKey = pipelineLayoutKey;
-    _pipelineLayout = pipelineLayout;
+    return pipeline;
 }
 
 void ComputePipelineBuilder::setShaderModule(const ShaderModule& module, const char* name) noexcept {

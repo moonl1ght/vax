@@ -15,11 +15,13 @@ constexpr const char* profileToString(ShaderLibrary::Profile profile) {
 }
 
 void ShaderLibrary::startSession(const std::string& shaderDirectory, Profile profile) noexcept {
-    const char* searchPaths[] = {shaderDirectory.c_str()};
+    const std::string srcDirectory = shaderDirectory + "/src";
+    const std::string includeDirectory = shaderDirectory + "/include";
+    const char* searchPaths[] = {srcDirectory.c_str(), includeDirectory.c_str()};
 
     slang::SessionDesc sessionDesc = {};
     sessionDesc.searchPaths = searchPaths;
-    sessionDesc.searchPathCount = 1;
+    sessionDesc.searchPathCount = 2;
 
     slang::TargetDesc targetDesc = {};
     targetDesc.format = SLANG_SPIRV;
@@ -48,8 +50,8 @@ slang::IModule* ShaderLibrary::_loadModule(const std::string& name) noexcept {
 
 std::optional<ShaderLibrary::PipelineModule>
 ShaderLibrary::loadPipelineModule(const ShaderModuleDescriptor& descriptor) noexcept {
-    if (descriptor.entryPoints.size() != 1) {
-        _logger.error("Compute module must have exactly one entry point: ", descriptor.name);
+    if (descriptor.entryPoints.size() >= 1) {
+        _logger.error("Module must have at least one entry point: ", descriptor.name);
         return std::nullopt;
     }
     slang::IModule* module = _loadModule(descriptor.name);

@@ -22,26 +22,23 @@ struct DepthStencilState {
 
 class PipelineLayoutBuilder final {
   public:
-    explicit PipelineLayoutBuilder(const vax::vk::Device& device) noexcept
-        : _device(device) {};
+    explicit PipelineLayoutBuilder(const vax::vk::Device& device, uint32_t pushConstantSize = 128) noexcept
+        : _device(device)
+        , _pushConstantSize(pushConstantSize) {};
 
     ~PipelineLayoutBuilder() = default;
 
-    VkPipelineLayout build(std::string name) noexcept;
+    VkPipelineLayout build(std::string name) const noexcept;
 
-    void setDescriptorSetLayouts(const std::vector<DescriptorSetLayout*>& descriptorSetLayouts) noexcept {
-        _descriptorSetLayouts = descriptorSetLayouts;
-    }
-
-    void setPushConstantRange(const VkPushConstantRange& pushConstantRange) noexcept {
-        _pushConstantRange = pushConstantRange;
+    void setDescriptorSetLayout(const VkDescriptorSetLayout& descriptorSetLayout) noexcept {
+        _descriptorSetLayout = descriptorSetLayout;
     }
 
   private:
     vax::Logger _logger = vax::Logger("PipelineLayoutBuilder");
+    const uint32_t _pushConstantSize;
     std::reference_wrapper<const vax::vk::Device> _device;
-    std::vector<DescriptorSetLayout*> _descriptorSetLayouts;
-    std::optional<VkPushConstantRange> _pushConstantRange;
+    VkDescriptorSetLayout _descriptorSetLayout = VK_NULL_HANDLE;
 };
 
 class ComputePipelineBuilder final {
@@ -51,16 +48,15 @@ class ComputePipelineBuilder final {
 
     ~ComputePipelineBuilder() = default;
 
-    std::optional<vax::vk::PipelineV2> build(std::string name) noexcept;
+    std::optional<VkPipeline> build(std::string name) noexcept;
 
-    void setPipelineLayout(const PipelineLayoutKey& pipelineLayoutKey, const VkPipelineLayout& pipelineLayout) noexcept;
+    void setPipelineLayout(const VkPipelineLayout& pipelineLayout) noexcept { _pipelineLayout = pipelineLayout; }
 
     void setShaderModule(const ShaderModule& module, const char* name) noexcept;
 
   private:
     vax::Logger _logger = vax::Logger("ComputePipelineBuilder");
     std::reference_wrapper<const vax::vk::Device> _device;
-    PipelineLayoutKey _pipelineLayoutKey;
     VkPipelineLayout _pipelineLayout = VK_NULL_HANDLE;
     VkPipelineShaderStageCreateInfo _shaderStageInfo = {};
 };
