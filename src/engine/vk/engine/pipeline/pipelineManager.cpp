@@ -173,10 +173,6 @@ bool PipelineManager::setup(
         _logger.error("Failed to create agent camera pipeline!");
         return false;
     }
-    if (!_createBasePipeline(renderPassDescriptor)) {
-        _logger.error("Failed to create base pipeline!");
-        return false;
-    }
     if (!_createFinalBlendPipeline(postProcessRenderPassDescriptor)) {
         _logger.error("Failed to create final blend pipeline!");
         return false;
@@ -262,17 +258,6 @@ bool PipelineManager::_createAgentCameraPipeline(const RenderPassDescriptor& ren
         SRC_PATH("engine/shaders/out/base.vert.spv"),
         SRC_PATH("engine/shaders/out/pbr.frag.spv"),
         PipelineName::AGENT_CAMERA,
-        PipelineLayoutName::BASE,
-        [](GraphicsPipelineBuilder& pipelineBuilder) {}
-    );
-}
-
-bool PipelineManager::_createBasePipeline(const RenderPassDescriptor& renderPassDescriptor) {
-    return _createPipeline(
-        renderPassDescriptor,
-        SRC_PATH("engine/shaders/out/base.vert.spv"),
-        SRC_PATH("engine/shaders/out/base.frag.spv"),
-        PipelineName::BASE,
         PipelineLayoutName::BASE,
         [](GraphicsPipelineBuilder& pipelineBuilder) {}
     );

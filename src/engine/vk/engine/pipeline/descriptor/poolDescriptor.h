@@ -1,11 +1,12 @@
 #pragma once
 
+#include "shaderConstants.h"
+#include "vkUtils.h"
 #include <algorithm>
 #include <vector>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
 
-#include "shaderConstants.h"
 namespace vax::vk {
 
 #define MAX_SAMPLERS 30
@@ -13,12 +14,14 @@ namespace vax::vk {
 #define MAX_STORAGE_IMAGES 1024
 #define MAX_UNIFORM_BUFFERS 128
 #define MAX_STORAGE_BUFFERS 1024
+#define MAX_UNIFORM_BUFFERS_DYNAMIC 128
 
 struct PoolLimits final {
     uint32_t maxSampledImages = MAX_SAMPLED_IMAGES;
     uint32_t maxStorageImages = MAX_STORAGE_IMAGES;
     uint32_t maxSamplers = MAX_SAMPLERS;
     uint32_t maxUniformBuffers = MAX_UNIFORM_BUFFERS;
+    uint32_t maxUniformBuffersDynamic = MAX_UNIFORM_BUFFERS_DYNAMIC;
     uint32_t maxStorageBuffers = MAX_STORAGE_BUFFERS;
     uint32_t maxPerStageBindlessResources = 0;
 
@@ -50,6 +53,11 @@ struct PoolLimits final {
             properties.limits.maxPerStageDescriptorUniformBuffers,
             static_cast<uint32_t>(MAX_UNIFORM_BUFFERS),
         });
+        maxUniformBuffersDynamic = std::min({
+            properties.limits.maxDescriptorSetUniformBuffersDynamic,
+            properties.limits.maxDescriptorSetStorageBuffersDynamic,
+            static_cast<uint32_t>(MAX_UNIFORM_BUFFERS_DYNAMIC),
+        });
     }
 
     uint64_t bindlessResourcesPerStage() const noexcept {
@@ -76,8 +84,9 @@ struct PoolDescriptor final {
         return {
             {
             {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, limits.maxUniformBuffers},
+            {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, limits.maxUniformBuffers},
             },
-            1
+            MAX_FRAMES_IN_FLIGHT
         };
     };
 

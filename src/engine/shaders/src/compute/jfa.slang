@@ -1,8 +1,7 @@
 #include "jfa.h"
+#include "shaderConstants.h"
 
 import layout;
-import uniforms;
-import utils.customAttributes;
 
 struct JFAInit {
     void execute(uint3 dtid, JFAInitPushConstants pc) {

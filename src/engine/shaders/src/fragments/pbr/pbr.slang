@@ -1,10 +1,12 @@
-import layoutAndBindings;
-import common;
-import uniforms;
-import sharedUtils;
-import pbr;
-import math;
-import light;
+module pbr;
+
+import sharedTypes;
+import layout;
+import base;
+import shadow;
+import utils.math;
+import utils.sampling;
+import fragments.pbr.pbrUtils;
 
 struct FragmentInput {
     float4 position : SV_Position;
@@ -35,22 +37,21 @@ float3 ACESFilm(float3 x) {
     return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0f, 1.0f);
 }
 
-struct FragmentOutput
-{
+struct FragmentOutput {
     float4 color : SV_Target0;
 
     uint objectId : SV_Target1;
 };
 
 [shader("fragment")]
-FragmentOutput fragMain(uniform GlobalPushConstants pushConstants, FragmentInput input) {
+FragmentOutput fragment_main(uniform PBRPushConstants pushConstants, FragmentInput input) {
 
     uint instanceIndex = input.instanceIndex;
     uint drawIndex = input.drawIndex;
-    PerDrawData drawData = drawData[drawIndex];
-    PBRMaterial material = materials[drawData.materialIndex];
+    PerDrawData drawData = pushConstants.drawData[drawIndex];
+    PBRMaterial material = pushConstants.materials[drawData.materialIndex];
     float2[2] UVs = float2[2](input.uv, input.uv2);
-    InstanceData instance = instances[instanceIndex];
+    InstanceData instance = pushConstants.instances[instanceIndex];
     float3x3 normalMatrix = float3x3(instance.normalMatrix);
 
     float4 albedo = sampleBaseColor(material, UVs[material.baseColorTextureUVIndex]);
@@ -75,7 +76,7 @@ FragmentOutput fragMain(uniform GlobalPushConstants pushConstants, FragmentInput
         if (dot(edgeTangent, edgeTangent) > 0.001f) {
             tangent = normalize(edgeTangent);
         } else {
-            tangent = float3(1.0f, 0.0f, 0.0f); 
+            tangent = float3(1.0f, 0.0f, 0.0f);
             if (abs(dot(tangent, normal)) > 0.99f) {
                 tangent = float3(0.0f, 0.0f, 1.0f);
             }
@@ -89,18 +90,18 @@ FragmentOutput fragMain(uniform GlobalPushConstants pushConstants, FragmentInput
     }
 
     PBRProperties pbrProperties = calculatePBRPropertiesMetallicRoughness(
-        material,
-        albedo,
-        finalNormal,
-        ubo.cameraPosition.xyz,
-        input.worldPosition,
-        metallicRoughness);
+        material, albedo, finalNormal, frameUniformBuffer.cameraPosition.xyz, input.worldPosition, metallicRoughness
+    );
 
-    float3 specularColor = getIBLRadianceContributionGGX(environmentMaps[ubo.environmentMapIndex], pbrProperties, 1.0);
-    float3 diffuseColor = getIBLRadianceLambertian(environmentMaps[ubo.environmentMapIndex], pbrProperties, 1.0);
+    float3 specularColor = getIBLRadianceContributionGGX(
+        pushConstants.environmentMaps[frameUniformBuffer.environmentMapIndex], pbrProperties, 1.0
+    );
+    float3 diffuseColor = getIBLRadianceLambertian(
+        pushConstants.environmentMaps[frameUniformBuffer.environmentMapIndex], pbrProperties, 1.0
+    );
     float3 ambientColor = diffuseColor + specularColor;
 
-    LightData sunLight = lights.lights[0];
+    LightData sunLight = lightUniformBuffer.lights[0];
 
     float3 lightDirection = normalize(-sunLight.position.xyz);
 
@@ -133,4 +134,22 @@ FragmentOutput fragMain(uniform GlobalPushConstants pushConstants, FragmentInput
     uint finalId = instanceIndex * hasMaskId + NO_ID * (1u - hasMaskId);
     float4 shadowColor = float4(0, shadowFactor, shadowFactor, 1.0f);
     return FragmentOutput(finalColor, finalId);
+}
+
+[shader("vertex")]
+VertexOutput vertex_main(
+    uniform PBRPushConstants pushConstants,
+    uint vertexIndex: SV_VulkanVertexID,
+    uint instanceIndex: SV_VulkanInstanceID,
+    uint drawIndex: SV_DrawIndex
+) {
+    return BaseVertexOutput::calculate(
+        pushConstants.vertices,
+        pushConstants.instances,
+        pushConstants.drawData,
+        vertexIndex,
+        instanceIndex,
+        drawIndex,
+        pushConstants.drawIndexOffset
+    );
 }

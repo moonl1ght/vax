@@ -1,14 +1,19 @@
-import uniforms;
-import layoutAndBindings;
+module shadow;
 
-float calculateSunShadow(float3 worldPos, float3 normal, float3 lightDir, LightData light) {
+import sharedTypes;
+import layout;
+
+public float calculateSunShadow(float3 worldPos, float3 normal, float3 lightDir, LightData light) {
     if (light.shadowMapIndex == NO_SHADOW_MAP_INDEX) {
         return 1.0f;
     }
 
+    Texture2D.Handle shadowMap = Texture2D.Handle(uint2(light.shadowMapIndex, 0));
+    SamplerState.Handle shadowMapSampler = SamplerState.Handle(uint2(light.shadowMapSamplerIndex, 0));
+
     uint shadowMapWidth;
     uint shadowMapHeight;
-    globalShadowTextures[light.shadowMapIndex].GetDimensions(shadowMapWidth, shadowMapHeight);
+    shadowMap.GetDimensions(shadowMapWidth, shadowMapHeight);
     float worldPerClip = 1.0f / length(light.lightSpaceMatrix[0].xyz);
     float texelWorldSize = 2.0f * worldPerClip / float(shadowMapWidth);
     float NdotL = saturate(dot(normal, -lightDir));
@@ -25,10 +30,7 @@ float calculateSunShadow(float3 worldPos, float3 normal, float3 lightDir, LightD
         return 1.0f;
     }
 
-    float closestDepth = globalShadowTextures[light.shadowMapIndex].Sample(
-        globalSamplers[light.shadowMapSamplerIndex],
-        shadowUV
-    ).r;
+    float closestDepth = shadowMap.Sample(shadowMapSampler, shadowUV).r;
 
     float bias = max(0.000005f * (1.0f - NdotL), 0.00005f);
 

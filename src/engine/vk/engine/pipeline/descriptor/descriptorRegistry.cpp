@@ -132,3 +132,21 @@ std::optional<std::vector<ShaderResourceIndex>> DescriptorRegistry::_registerTex
     }
     return indices;
 }
+
+std::optional<SamplerShaderHandle> DescriptorRegistry::registerSampler(VkSampler sampler) noexcept {
+    auto index = _samplers.allocate();
+    if (!index)
+        return std::nullopt;
+    VkDescriptorImageInfo info{.sampler = sampler};
+    VkWriteDescriptorSet write{
+        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        .dstSet = _descriptorSet,
+        .dstBinding = SAMPLER_BINDING_INDEX,
+        .dstArrayElement = *index,
+        .descriptorCount = 1,
+        .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER,
+        .pImageInfo = &info,
+    };
+    vkUpdateDescriptorSets(_device.get().vkDevice(), 1, &write, 0, nullptr);
+    return SamplerShaderHandle{.index = *index};
+}

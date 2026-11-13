@@ -39,6 +39,20 @@ constexpr std::unordered_map<std::string, PipelineDescriptor> defaultPipelines()
         PipelineDescriptor::Type::GRAPHICS, "background", ShaderModuleDescriptor::GraphicsVF("background")
         },
         },
+        {
+        "finalblend",
+        PipelineDescriptor{
+        PipelineDescriptor::Type::GRAPHICS, "finalblend", ShaderModuleDescriptor::GraphicsVF("finalblend")
+        },
+        },
+        {
+        "finalblend_cam",
+        PipelineDescriptor{
+        PipelineDescriptor::Type::GRAPHICS,
+        "finalblend_cam",
+        ShaderModuleDescriptor::GraphicsVF("finalblend", "vertex_main", "fragment_cam_main")
+        },
+        },
     };
 }
 } // namespace vax::vk

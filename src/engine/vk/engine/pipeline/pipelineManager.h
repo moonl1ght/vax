@@ -95,7 +95,6 @@ class PipelineManager final {
     bool _createPBRPipeline(const RenderPassDescriptor& renderPassDescriptor);
     bool _createAgentCameraPipeline(const RenderPassDescriptor& renderPassDescriptor);
     bool _createAgentCameraFBPipeline(const RenderPassDescriptor& renderPassDescriptor);
-    bool _createBasePipeline(const RenderPassDescriptor& renderPassDescriptor);
     bool _createFinalBlendPipeline(const RenderPassDescriptor& renderPassDescriptor);
     bool _createShadowPipeline(const RenderPassDescriptor& renderPassDescriptor);
 

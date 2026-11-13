@@ -60,7 +60,7 @@ bool DescriptorManager::setup() noexcept {
         _logger.error("Failed to setup UBO descriptor pool and set!");
         return false;
     }
-    _descriptorRegistry->use(_descriptorSet, _uboDescriptorSet);
+    _descriptorRegistry->use(_descriptorSet);
     return true;
 }
 

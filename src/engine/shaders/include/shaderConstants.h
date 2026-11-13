@@ -20,4 +20,13 @@ enum {
     LIGHT_UNIFORM_BUFFER_INDEX = 1,
 };
 
+static const uint32_t NO_TEXTURE_FLAG = 0xFFFFFFFF;
+static const uint32_t NO_MATERIAL_INDEX = 0xFFFFFFFF;
+static const uint32_t NO_ENVIRONMENT_MAP_INDEX = 0xFFFFFFFF;
+static const uint32_t NO_SAMPLER_INDEX = 0xFFFFFFFF;
+static const uint32_t NO_SHADOW_MAP_INDEX = 0xFFFFFFFF;
+static const uint32_t NO_ID = 0xFFFFFFFF;
+
+static const uint32_t MAX_UBO_LIGHTS = 16;
+
 #endif

@@ -1,35 +1,36 @@
-import uniforms;
-import math;
-import common;
+module pbrUtils;
 
-struct PBRProperties
-{
+import sharedTypes;
+import utils.math;
+import utils.sampling;
+
+public struct PBRProperties {
     // geometry properties
-    float NdotL; // cos angle between normal and light direction
-    float NdotV; // cos angle between normal and view direction
-    float NdotH; // cos angle between normal and half vector
-    float LdotH; // cos angle between light direction and half vector
-    float VdotH; // cos angle between view direction and half vector
-    float3 n;    // normal at surface point
-    float3 v;    // vector from surface point to camera
+    public float NdotL; // cos angle between normal and light direction
+    public float NdotV; // cos angle between normal and view direction
+    public float NdotH; // cos angle between normal and half vector
+    public float LdotH; // cos angle between light direction and half vector
+    public float VdotH; // cos angle between view direction and half vector
+    public float3 n;    // normal at surface point
+    public float3 v;    // vector from surface point to camera
 
     // material properties
-    float roughnessFactor; // roughness value, input to shader
-    float3 reflectance0;   // full reflectance color (normal incidence angle)
-    float3 reflectance90;  // reflectance color at grazing angle
-    float alphaRoughness;  // roughness mapped to a more linear change in the roughness
-    float3 diffuseColor;   // color contribution from diffuse lighting
-    float3 specularColor;  // color contribution from specular lighting
+    public float roughnessFactor; // roughness value, input to shader
+    public float3 reflectance0;   // full reflectance color (normal incidence angle)
+    public float3 reflectance90;  // reflectance color at grazing angle
+    public float alphaRoughness;  // roughness mapped to a more linear change in the roughness
+    public float3 diffuseColor;   // color contribution from diffuse lighting
+    public float3 specularColor;  // color contribution from specular lighting
 };
 
-PBRProperties calculatePBRPropertiesMetallicRoughness(
+public PBRProperties calculatePBRPropertiesMetallicRoughness(
     PBRMaterial material,
     float4 albedo,
     float3 normal,
     float3 cameraPos,
     float3 worldPos,
-    float4 metallicRoughnessSample)
-{
+    float4 metallicRoughnessSample
+) {
     PBRProperties pbrProperties;
 
     float roughnessFactor = material.roughnessFactor;
@@ -69,9 +70,8 @@ PBRProperties calculatePBRPropertiesMetallicRoughness(
     return pbrProperties;
 }
 
-float3 getIBLRadianceLambertian(
-    EnvironmentMapData environmentMapData, PBRProperties pbrProperties, float specularWeight
-) {
+public float3
+getIBLRadianceLambertian(EnvironmentMapData environmentMapData, PBRProperties pbrProperties, float specularWeight) {
     if (environmentMapData.envMapTextureIrradiance == NO_TEXTURE_FLAG)
         return float3(0.0f, 0.0f, 0.0f);
     if (environmentMapData.texBRDFLUT == NO_TEXTURE_FLAG)
@@ -80,12 +80,13 @@ float3 getIBLRadianceLambertian(
     float safeNdotV = clamp(pbrProperties.NdotV, 0.001f, 0.999f);
     float safeRoughness = clamp(pbrProperties.roughnessFactor, 0.0f, 1.0f);
     float2 brdfSamplePoint = float2(safeNdotV, safeRoughness);
-    
+
     float2 f_ab = sampleBRDFLUT(brdfSamplePoint, environmentMapData).rg;
 
     float3 irradiance = sampleEnvMapIrradiance(pbrProperties.n, environmentMapData).rgb;
 
-    float3 Fr = max(float3(1.0 - pbrProperties.roughnessFactor), pbrProperties.reflectance0) - pbrProperties.reflectance0;
+    float3 Fr =
+        max(float3(1.0 - pbrProperties.roughnessFactor), pbrProperties.reflectance0) - pbrProperties.reflectance0;
     float3 k_S = pbrProperties.reflectance0 + Fr * pow(1.0 - pbrProperties.NdotV, 5.0);
     float3 FssEss = specularWeight * k_S * f_ab.x + f_ab.y;
 
@@ -97,7 +98,7 @@ float3 getIBLRadianceLambertian(
     return (FmsEms + k_D) * irradiance;
 }
 
-float3 getIBLRadianceContributionGGX(
+public float3 getIBLRadianceContributionGGX(
     EnvironmentMapData environmentMapData, PBRProperties pbrProperties, float specularWeight
 ) {
     if (environmentMapData.envMapTexture == NO_TEXTURE_FLAG)
@@ -117,22 +118,20 @@ float3 getIBLRadianceContributionGGX(
     float3 brdf = sampleBRDFLUT(brdfSamplePoint, environmentMapData).rgb;
     float3 specularLight = sampleEnvMapLod(reflection, lod, environmentMapData).rgb;
 
-    float3 Fr = max(float3(1.0f - pbrProperties.roughnessFactor), pbrProperties.reflectance0) - pbrProperties.reflectance0;
+    float3 Fr =
+        max(float3(1.0f - pbrProperties.roughnessFactor), pbrProperties.reflectance0) - pbrProperties.reflectance0;
     float3 k_S = pbrProperties.reflectance0 + Fr * pow(1.0f - pbrProperties.NdotV, 5.0f);
     float3 FssEss = k_S * brdf.x + brdf.y;
 
     return specularWeight * specularLight * FssEss;
 }
 
-float3 specularReflection(PBRProperties pbrProperties)
-{
-    return pbrProperties.reflectance0 +
-           (pbrProperties.reflectance90 - pbrProperties.reflectance0) *
-               pow(clamp(1.0f - pbrProperties.VdotH, 0.0f, 1.0f), 5.0f);
+public float3 specularReflection(PBRProperties pbrProperties) {
+    return pbrProperties.reflectance0 + (pbrProperties.reflectance90 - pbrProperties.reflectance0) *
+                                            pow(clamp(1.0f - pbrProperties.VdotH, 0.0f, 1.0f), 5.0f);
 }
 
-float geometricOcclusion(PBRProperties pbrProperties)
-{
+public float geometricOcclusion(PBRProperties pbrProperties) {
     float NdotL = pbrProperties.NdotL;
     float NdotV = pbrProperties.NdotV;
     float rSqr = pbrProperties.alphaRoughness * pbrProperties.alphaRoughness;
@@ -142,24 +141,21 @@ float geometricOcclusion(PBRProperties pbrProperties)
     return attenuationL * attenuationV;
 }
 
-float microfacetDistribution(PBRProperties pbrProperties)
-{
+public float microfacetDistribution(PBRProperties pbrProperties) {
     float roughnessSq = pbrProperties.alphaRoughness * pbrProperties.alphaRoughness;
     float f = (pbrProperties.NdotH * roughnessSq - pbrProperties.NdotH) * pbrProperties.NdotH + 1.0f;
     return roughnessSq / (PI_F * f * f);
 }
 
-float3 diffuseBurley(PBRProperties pbrProperties)
-{
+public float3 diffuseBurley(PBRProperties pbrProperties) {
     float f90 = 2.0f * pbrProperties.LdotH * pbrProperties.LdotH * pbrProperties.roughnessFactor - 0.5f;
 
-    return (pbrProperties.diffuseColor / PI_F) *
-           (1.0f + f90 * pow((1.0f - pbrProperties.NdotL), 5.0f)) *
+    return (pbrProperties.diffuseColor / PI_F) * (1.0f + f90 * pow((1.0f - pbrProperties.NdotL), 5.0f)) *
            (1.0f + f90 * pow((1.0f - pbrProperties.NdotV), 5.0f));
 }
 
-float3 calculatePBRLightContribution(inout PBRProperties pbrProperties, float3 lightDirection, float3 lightColor)
-{
+public float3
+calculatePBRLightContribution(inout PBRProperties pbrProperties, float3 lightDirection, float3 lightColor) {
     float3 n = pbrProperties.n;
     float3 v = pbrProperties.v;
     float3 ld = normalize(lightDirection);
@@ -173,8 +169,7 @@ float3 calculatePBRLightContribution(inout PBRProperties pbrProperties, float3 l
 
     float3 color = float3(0.0f, 0.0f, 0.0f);
 
-    if (NdotL > 0.0f || NdotV > 0.0f)
-    {
+    if (NdotL > 0.0f || NdotV > 0.0f) {
         pbrProperties.NdotL = NdotL;
         pbrProperties.NdotH = NdotH;
         pbrProperties.LdotH = LdotH;

@@ -1,6 +1,8 @@
-static const float PI_F = 3.14159265359f;
+module math;
 
-float3 perturbNormal(float3 n, float3 worldPos, float3 normalSample, float2 uv) {
+public static const float PI_F = 3.14159265359f;
+
+public float3 perturbNormal(float3 n, float3 worldPos, float3 normalSample, float2 uv) {
     float3 localNormal = normalSample * 2.0 - 1.0;
 
     float3 dp1 = ddx(worldPos);

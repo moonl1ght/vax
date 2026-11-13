@@ -31,7 +31,7 @@ struct ShaderModuleDescriptor final {
 
     static ShaderModuleDescriptor GraphicsVF(
         const std::string& name,
-        const std::string& vertexName = "vertex_main",
+        const std::string& vertexName = "",
         const std::string& fragmentName = "fragment_main"
     ) {
         return ShaderModuleDescriptor{

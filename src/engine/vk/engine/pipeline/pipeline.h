@@ -16,7 +16,6 @@ enum class PipelineLayoutName : uint32_t {
 
 enum class PipelineName : uint32_t {
     PBR = 1,
-    BASE = 2,
     FINAL_BLEND = 3,
     AGENT_CAMERA = 4,
     AGENT_CAMERA_FB = 5,
@@ -32,8 +31,6 @@ class Pipeline final {
         switch (name) {
         case PipelineName::PBR:
             return "pbr_pipeline";
-        case PipelineName::BASE:
-            return "base_pipeline";
         case PipelineName::FINAL_BLEND:
             return "final_blend_pipeline";
         case PipelineName:: AGENT_CAMERA:

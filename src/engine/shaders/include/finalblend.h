@@ -2,7 +2,7 @@
 #define finalblend_h
 
 #include "shaderResourceHandle.h"
-#include "shaderUniforms.h"
+#include "shaderData.h"
 
 struct FinalBlendPushConstants {
     SAMPLER_HANDLE(SamplerState) inputTextureSampler;
@@ -12,6 +12,11 @@ struct FinalBlendPushConstants {
     STORAGE_IMAGE_HANDLE(RWTexture2D<uint2>) output;
     SAMPLED_IMAGE_HANDLE(Texture2D<uint2>) inputJFATexture;
     STRUCTURED_BUFFER_HANDLE(StructuredBuffer<InstanceData>) instances;
+};
+
+struct FinalBlendCamPushConstants {
+    SAMPLER_HANDLE(SamplerState) inputTextureSampler;
+    SAMPLED_IMAGE_HANDLE(Texture2D<float4>) inputTexture;
 };
 
 #endif

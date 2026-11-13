@@ -29,7 +29,8 @@ class DescriptorRegistry {
         : _device(device)
         , _storageTextures(poolLimits.maxStorageImages)
         , _sampledTextures(poolLimits.maxSampledImages)
-        , _storageBuffers(poolLimits.maxStorageBuffers) {};
+        , _storageBuffers(poolLimits.maxStorageBuffers)
+        , _samplers(poolLimits.maxSamplers) {};
 
     ~DescriptorRegistry() = default;
 
@@ -38,10 +39,7 @@ class DescriptorRegistry {
     DescriptorRegistry& operator=(const DescriptorRegistry&) = delete;
     DescriptorRegistry& operator=(DescriptorRegistry&&) noexcept = delete;
 
-    void use(VkDescriptorSet descriptorSet, VkDescriptorSet uboDescriptorSet) noexcept {
-        _descriptorSet = descriptorSet;
-        _uboDescriptorSet = uboDescriptorSet;
-    }
+    void use(VkDescriptorSet descriptorSet) noexcept { _descriptorSet = descriptorSet; }
 
     RegistrationResult registerBatch(const RegistrationBatch& batch) noexcept;
 
@@ -72,6 +70,8 @@ class DescriptorRegistry {
         return StructuredBufferShaderHandle{.index = index.value()};
     };
 
+    std::optional<SamplerShaderHandle> registerSampler(VkSampler sampler) noexcept;
+
     bool releaseStorageTexture(StorageImageShaderHandle handle) noexcept {
         return _storageTextures.release(handle.index);
     }
@@ -83,6 +83,8 @@ class DescriptorRegistry {
     bool releaseStorageBuffer(StructuredBufferShaderHandle handle) noexcept {
         return _storageBuffers.release(handle.index);
     }
+
+    bool releaseSampler(SamplerShaderHandle handle) noexcept { return _samplers.release(handle.index); }
 
   private:
     template <typename Handle>
@@ -104,9 +106,9 @@ class DescriptorRegistry {
     IndexAllocator _storageTextures;
     IndexAllocator _sampledTextures;
     IndexAllocator _storageBuffers;
+    IndexAllocator _samplers;
 
     VkDescriptorSet _descriptorSet = VK_NULL_HANDLE;
-    VkDescriptorSet _uboDescriptorSet = VK_NULL_HANDLE;
 
     std::vector<VkWriteDescriptorSet> _writes;
 
