@@ -22,7 +22,9 @@ public struct BaseVertexOutput {
         if ((drawData.flags & ObjectFlags::PrecomputedMVP) != 0) {
             output.position = mul(modelMatrix, float4(input.position, 1.0));
         } else {
-            output.position = mul(frameUniformBuffer.proj, mul(frameUniformBuffer.view, mul(modelMatrix, float4(input.position, 1.0))));
+            output.position =
+                mul(frameUniformBuffer.proj,
+                    mul(frameUniformBuffer.view, mul(modelMatrix, float4(input.position, 1.0))));
         }
         output.tangent = input.tangent;
         output.worldPosition = mul(modelMatrix, float4(input.position, 1.0)).xyz;
@@ -34,4 +36,22 @@ public struct BaseVertexOutput {
         output.drawIndex = absoluteDrawIndex;
         return output;
     }
+}
+
+[shader("vertex")]
+VertexOutput base_vertex_main(
+    uniform BasePushConstants pushConstants,
+    uint vertexIndex: SV_VulkanVertexID,
+    uint instanceIndex: SV_VulkanInstanceID,
+    uint drawIndex: SV_DrawIndex
+) {
+    return BaseVertexOutput::calculate(
+        pushConstants.vertices,
+        pushConstants.instances,
+        pushConstants.drawData,
+        vertexIndex,
+        instanceIndex,
+        drawIndex,
+        pushConstants.drawIndexOffset
+    );
 }

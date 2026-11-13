@@ -1,22 +1,13 @@
 #pragma once
 
-#include "descriptorSetLayout.h"
 #include "device.h"
-#include "pipeline.h"
-#include "pipelinev2.h"
+#include "pipelineDescriptor.h"
 #include "shaderModule.h"
 #include <optional>
 #include <vulkan/vulkan_core.h>
+#include "renderPassDescriptor.h"
 
 namespace vax::vk {
-
-struct DepthStencilState {
-    bool depthTestEnable = true;
-    bool depthWriteEnable = true;
-    VkCompareOp depthCompareOp = VK_COMPARE_OP_GREATER;
-    bool depthBoundsTestEnable = false;
-    bool stencilTestEnable = false;
-};
 
 // MARK: - ComputePipelineBuilder
 
@@ -68,25 +59,24 @@ class GraphicsPipelineBuilder final {
     explicit GraphicsPipelineBuilder(const vax::vk::Device& device)
         : _device(device) {};
 
-    std::optional<vax::vk::Pipeline> build(std::string name, VkPipelineLayout pipelineLayout);
-    VkPipelineLayout buildPipelineLayout(std::string name);
+    std::optional<VkPipeline> build(std::string name, VkPipelineLayout pipelineLayout) noexcept;
 
-    void addShaderStage(VkShaderStageFlagBits stage, VkShaderModule module, const char* name);
-    void setInputAssembly(VkPrimitiveTopology topology) { _topology = topology; }
-    void addDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout);
-    void setPushConstantRange(VkPushConstantRange pushConstantRange) { _pushConstantRange = pushConstantRange; }
-    void setRenderPass(VkRenderPass renderPass) { _renderPass = renderPass; }
-    void setDepthStencilState(DepthStencilState depthStencilState) { _depthStencilState = depthStencilState; }
-    void setColorAttachmentCount(uint32_t colorAttachmentCount) { _colorAttachmentCount = colorAttachmentCount; }
+    void addShaderStage(VkShaderStageFlagBits stage, VkShaderModule module, const char* name) noexcept;
+    void setInputAssembly(VkPrimitiveTopology topology) noexcept { _topology = topology; }
+    void setRenderPass(RenderPassDescriptor* renderPassDescriptor) noexcept {
+        _renderPassDescriptor = renderPassDescriptor;
+    }
+    void setDepthStencilState(DepthStencilState depthStencilState) noexcept { _depthStencilState = depthStencilState; }
+    void setColorAttachmentCount(uint32_t colorAttachmentCount) noexcept {
+        _colorAttachmentCount = colorAttachmentCount;
+    }
 
   private:
     vax::Logger _logger = vax::Logger("GraphicsPipelineBuilder");
     std::reference_wrapper<const vax::vk::Device> _device;
     std::vector<VkPipelineShaderStageCreateInfo> _shaderStages;
-    std::vector<VkDescriptorSetLayout> _descriptorSetLayouts;
     VkPrimitiveTopology _topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    VkPushConstantRange _pushConstantRange = {};
-    VkRenderPass _renderPass = VK_NULL_HANDLE;
+    RenderPassDescriptor* _renderPassDescriptor = nullptr;
     DepthStencilState _depthStencilState = {};
     uint32_t _colorAttachmentCount = 1;
 };

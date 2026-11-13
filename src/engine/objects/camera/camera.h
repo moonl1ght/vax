@@ -1,7 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include "shaderUniforms.h"
+#include "shaderData.h"
 #include "vaxMath.h"
 
 #include <glm/gtc/quaternion.hpp>

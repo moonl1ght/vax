@@ -123,7 +123,7 @@ struct PoolDescriptor final {
         return {
             {
             FRAME_UNIFORM_BUFFER_INDEX,
-            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
             1,
             VK_SHADER_STAGE_ALL,
             },
