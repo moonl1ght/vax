@@ -1,6 +1,6 @@
 #pragma once
 
-#include "descriptorManager.h"
+#include "pipelineManager.h"
 #include "renderPassGraph.h"
 #include "renderPassGraphDescriptor.h"
 

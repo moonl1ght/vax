@@ -22,6 +22,8 @@ void JFAPass::update(std::weak_ptr<vax::vk::RenderDestination> inputRenderDestin
             descriptorRegistry.releaseStorageTexture(textureHandle.jfaB);
             descriptorRegistry.releaseSampledTexture(textureHandle.mask);
             descriptorRegistry.releaseSampledTexture(textureHandle.depth);
+            descriptorRegistry.releaseSampledTexture(textureHandle.jfaASampled);
+            descriptorRegistry.releaseSampledTexture(textureHandle.jfaBSampled);
         }
         _createTextures(inputRenderDestinationShared->maskTextures(), inputRenderDestinationShared->depthTexture());
     }
@@ -72,13 +74,16 @@ void JFAPass::_createTextures(const std::vector<vax::vk::Texture>& maskTextures,
         auto& descriptorRegistry = _pipelineManager.get().descriptorRegistry();
         auto registrationResult = descriptorRegistry.registerBatch({
             .storageTextures = std::array<const Texture*, 2>{&_jfaTexturesA[i], &_jfaTexturesB[i]},
-            .sampledTextures = std::array<const Texture*, 2>{&maskTextures[i], &depthTexture},
+            .sampledTextures =
+                std::array<const Texture*, 4>{&maskTextures[i], &depthTexture, &_jfaTexturesA[i], &_jfaTexturesB[i]},
         });
         _textureHandles[i] = TextureHandles{
             .mask = registrationResult.sampledTextures.value()[0],
             .depth = registrationResult.sampledTextures.value()[1],
             .jfaA = registrationResult.storageTextures.value()[0],
             .jfaB = registrationResult.storageTextures.value()[1],
+            .jfaASampled = registrationResult.sampledTextures.value()[2],
+            .jfaBSampled = registrationResult.sampledTextures.value()[3],
         };
     }
 }

@@ -1,7 +1,7 @@
 #include "renderPassGraphBuilder.h"
+#include "finalblend.h"
 #include "jfaPass.h"
 #include "renderPass.h"
-#include "commonDescriptorSets.h"
 
 using namespace vax::engine;
 using namespace vax::vk;
@@ -17,7 +17,6 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildUIOnlyGraph(
         "ui_pass",
         _device.get(),
         _pipelineManager.get(),
-        _descriptorSetManager.get(),
         "UiPass",
         renderDestinations.at("swapchain"),
         renderPassDescriptors.at("swapchain")
@@ -31,6 +30,17 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildUIOnlyGraph(
     return std::make_unique<RenderPassGraph>(uiPass, _uiEngine.get());
 }
 
+namespace {
+template <typename PushConstants>
+void pushConstants(
+    vax::vk::CommandBuffer& commandBuffer, const vax::vk::PipelineManager& pipelineManager, const PushConstants& data
+) {
+    vkCmdPushConstants(
+        commandBuffer.vkCommandBuffer, pipelineManager.pipelineLayout(), VK_SHADER_STAGE_ALL, 0, sizeof(data), &data
+    );
+}
+} // namespace
+
 std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
     const RenderPassGraphDescriptor& graphDescriptor,
     const std::unordered_map<std::string, std::shared_ptr<vax::vk::RenderPassDescriptor>>& renderPassDescriptors,
@@ -42,56 +52,31 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
         "shadow_pass",
         _device.get(),
         _pipelineManager.get(),
-        _descriptorSetManager.get(),
         "ShadowPass",
         renderDestinations.at("shadow_sun"),
         renderPassDescriptors.at("shadow_sun")
     );
     shadowPass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = swapchain->swapchainExtent});
-    shadowPass->setPipeline(vax::vk::PipelineName::SHADOW);
-    shadowPass->setPipelineLayout(vax::vk::PipelineLayoutName::BASE);
+    shadowPass->setPipeline("shadow");
     shadowPass->setDrawWork([](RenderPass::RunPassInfo& runPassInfo, DrawContext& drawContext) {
-        runPassInfo.scene->draw(drawContext);
-    });
-    auto dynamicOffset = static_cast<uint32_t>(_device.get().minUniformBufferOffsetAlignment<UniformBufferObject>());
-    shadowPass->addInputDescriptorSet({
-        .setName = CommonDescriptorSetName::PER_FRAME,
-        .bindingInfo = {
-        .setIndex = MainSetIndices::PER_FRAME_SET_INDEX,
-        .bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-        .dynamicOffsetCount = 1,
-        .dynamicOffsets = {dynamicOffset},
-        },
+        runPassInfo.scene->drawShadow(drawContext);
     });
 
     auto mainPass = std::make_shared<RenderPass>(
         "main_pass",
         _device.get(),
         _pipelineManager.get(),
-        _descriptorSetManager.get(),
         "MainPass",
         renderDestinations.at("main"),
         renderPassDescriptors.at("main")
     );
-    mainPass->addInputDescriptorSet({
-        .setName = CommonDescriptorSetName::PER_FRAME,
-        .bindingInfo = {
-        .setIndex = MainSetIndices::PER_FRAME_SET_INDEX,
-        .bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-        .dynamicOffsetCount = 1,
-        .dynamicOffsets = {0},
-        },
-    });
     mainPass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = swapchain->swapchainExtent});
-    mainPass->setPipeline(vax::vk::PipelineName::PBR);
-    mainPass->setPipelineLayout(vax::vk::PipelineLayoutName::BASE);
+    mainPass->setPipeline("pbr");
     mainPass->setDrawWork([](RenderPass::RunPassInfo& runPassInfo, DrawContext& drawContext) {
-        runPassInfo.scene->draw(drawContext);
+        runPassInfo.scene->draw(drawContext, FrameUniformSlot::MAIN_CAMERA);
     });
 
-    auto gizmoSubpass = std::make_unique<RenderSubpass>(
-        "gizmo_subpass", _device.get(), _pipelineManager.get(), _descriptorSetManager.get()
-    );
+    auto gizmoSubpass = std::make_unique<RenderSubpass>("gizmo_subpass", _device.get(), _pipelineManager.get());
 
     gizmoSubpass->setDrawWork(
         [](RenderSubpass* subpass, RenderPassNode::RunPassInfo& runPassInfo, DrawContext& drawContext) {
@@ -126,7 +111,7 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
             runPassInfo.scene->drawGizmo(drawContext);
         }
     );
-    gizmoSubpass->setPipeline(vax::vk::PipelineName::BASE);
+    gizmoSubpass->setPipeline("simple");
     gizmoSubpass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = {256, 256}});
     gizmoSubpass->setSwapchainExtent(swapchain->swapchainExtent);
 
@@ -137,64 +122,30 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
     auto jfaPass = std::make_shared<JFAPass>("jfa_pass", _device.get(), _pipelineManager.get());
     jfaPass->setup(renderDestinations.at("main"));
 
-    jfaPass->setPostPassWork([](RenderPassNode* passNode, RenderPass::RunPassInfo& runPassInfo) {
-        auto jfaPass = dynamic_cast<JFAPass*>(passNode);
-        if (!jfaPass) {
-            return;
-        }
-        if (jfaPass->next) {
-            auto finalBlendPass = dynamic_cast<RenderPass*>(jfaPass->next.get());
-            if (!finalBlendPass) {
-                return;
-            }
-            auto descriptorSetInfo = finalBlendPass->getInputDescriptorSetAt(1);
-            descriptorSetInfo.setName = jfaPass->outputDescriptorSetName();
-            finalBlendPass->updateInputDescriptorSetAt(1, descriptorSetInfo);
-        }
-    });
-
     auto finalBlendPass = std::make_shared<RenderPass>(
         "final_blend_pass",
         _device.get(),
         _pipelineManager.get(),
-        _descriptorSetManager.get(),
         "FinalBlendPass",
         renderDestinations.at("swapchain"),
         renderPassDescriptors.at("swapchain")
     );
-    finalBlendPass->addInputDescriptorSet({
-        .setName = CommonDescriptorSetName::MAIN_FB,
-        .bindingInfo = {
-        .setIndex = 0,
-        .bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-        .dynamicOffsetCount = 1,
-        .dynamicOffsets = {0},
-        },
-    });
-    finalBlendPass->addInputDescriptorSet({
-        .setName = jfaPass->outputDescriptorSetName(),
-        .bindingInfo = {
-        .setIndex = 1,
-        .bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-        .dynamicOffsetCount = 1,
-        .dynamicOffsets = {0},
-        },
-    });
-    finalBlendPass->addInputDescriptorSet({
-        .setName = CommonDescriptorSetName::PER_FRAME,
-        .bindingInfo = {
-        .setIndex = 2,
-        .bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-        .dynamicOffsetCount = 1,
-        .dynamicOffsets = {0},
-        },
-    });
     finalBlendPass->setRenderToSwapchain(true);
     finalBlendPass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = swapchain->swapchainExtent});
-    finalBlendPass->setPipeline(vax::vk::PipelineName::FINAL_BLEND);
-    finalBlendPass->setPipelineLayout(vax::vk::PipelineLayoutName::FINAL_BLEND);
-    finalBlendPass->setDrawWork([&uiEngine =
-                                     _uiEngine.get()](RenderPass::RunPassInfo& runPassInfo, DrawContext& drawContext) {
+    finalBlendPass->setPipeline("finalblend");
+    finalBlendPass->setDrawWork([&uiEngine = _uiEngine.get(),
+                                 &pipelineManager = _pipelineManager.get(),
+                                 jfa = jfaPass.get()](RenderPass::RunPassInfo& runPassInfo, DrawContext& drawContext) {
+        const auto& frameTextures = runPassInfo.frameTextures;
+        FinalBlendPushConstants finalBlendPushConstants{
+            .inputTextureSampler = runPassInfo.scene->samplerHandle(GlobalSampler::PBRSampler),
+            .inputTexture = frameTextures.mainColor,
+            .inputMask = frameTextures.mainMask,
+            .inputDepth = frameTextures.mainDepth,
+            .inputJFATexture = jfa->outputSampledImage(runPassInfo.frameIndex),
+            .instances = runPassInfo.scene->instanceBufferHandle(runPassInfo.frameIndex),
+        };
+        pushConstants(runPassInfo.commandBuffer, pipelineManager, finalBlendPushConstants);
         runPassInfo.scene->drawBackground(drawContext);
         uiEngine.render(runPassInfo.commandBuffer.vkCommandBuffer);
     });
@@ -205,51 +156,36 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
             "agent_camera_main_pass",
             _device.get(),
             _pipelineManager.get(),
-            _descriptorSetManager.get(),
             "AgentCameraMainPass",
             renderDestinations.at("agent_camera_main"),
             renderPassDescriptors.at("main")
         );
-        agentCameraMainPass->addInputDescriptorSet({
-            .setName = CommonDescriptorSetName::AGENT_CAMERA,
-            .bindingInfo = {
-            .setIndex = MainSetIndices::PER_FRAME_SET_INDEX,
-            .bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-            .dynamicOffsetCount = 1,
-            .dynamicOffsets = {0},
-            },
-        });
         agentCameraMainPass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = agentCameraSwapchain->swapchainExtent});
-        agentCameraMainPass->setPipeline(vax::vk::PipelineName::AGENT_CAMERA);
-        agentCameraMainPass->setPipelineLayout(vax::vk::PipelineLayoutName::BASE);
-        agentCameraMainPass->setDrawWork([this](RenderPass::RunPassInfo& runPassInfo, DrawContext& drawContext) {
-            runPassInfo.scene->draw(drawContext);
+        agentCameraMainPass->setPipeline("pbr");
+        agentCameraMainPass->setDrawWork([](RenderPass::RunPassInfo& runPassInfo, DrawContext& drawContext) {
+            runPassInfo.scene->draw(drawContext, FrameUniformSlot::AGENT_CAMERA);
         });
 
         auto agentCameraFBPass = std::make_shared<RenderPass>(
             "agent_camera_fb_pass",
             _device.get(),
             _pipelineManager.get(),
-            _descriptorSetManager.get(),
             "AgentCameraFBPass",
             renderDestinations.at("agent_camera_swapchain"),
             renderPassDescriptors.at("swapchain")
         );
-        agentCameraFBPass->addInputDescriptorSet({
-            .setName = CommonDescriptorSetName::AGENT_CAMERA_FB,
-            .bindingInfo = {
-            .setIndex = 0,
-            .bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-            .dynamicOffsetCount = 1,
-            .dynamicOffsets = {0},
-            },
-        });
         agentCameraFBPass->setOutputImageIndex(1);
         agentCameraFBPass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = agentCameraSwapchain->swapchainExtent});
-        agentCameraFBPass->setPipeline(vax::vk::PipelineName::AGENT_CAMERA_FB);
-        agentCameraFBPass->setPipelineLayout(vax::vk::PipelineLayoutName::AGENT_CAMERA_FB);
+        agentCameraFBPass->setPipeline("finalblend_cam");
         agentCameraFBPass->setRenderToSwapchain(true);
-        agentCameraFBPass->setDrawWork([this](RenderPass::RunPassInfo& runPassInfo, DrawContext& drawContext) {
+        agentCameraFBPass->setDrawWork([&pipelineManager = _pipelineManager.get()](
+                                           RenderPass::RunPassInfo& runPassInfo, DrawContext& drawContext
+                                       ) {
+            FinalBlendCamPushConstants finalBlendCamPushConstants{
+                .inputTextureSampler = runPassInfo.scene->samplerHandle(GlobalSampler::PBRSampler),
+                .inputTexture = runPassInfo.frameTextures.agentCameraColor,
+            };
+            pushConstants(runPassInfo.commandBuffer, pipelineManager, finalBlendCamPushConstants);
             runPassInfo.scene->drawBackground(drawContext);
         });
 

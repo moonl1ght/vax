@@ -33,19 +33,13 @@ constexpr std::unordered_map<std::string, PipelineDescriptor> defaultPipelines()
         {
         "jfa_init",
         PipelineDescriptor{
-        PipelineDescriptor::Type::COMPUTE, "jfa_init", ShaderModuleDescriptor::Compute("jfa/jfa", "jfa_init")
+        PipelineDescriptor::Type::COMPUTE, "jfa_init", ShaderModuleDescriptor::Compute("compute/jfa", "jfa_init")
         },
         },
         {
         "jfa_step",
         PipelineDescriptor{
-        PipelineDescriptor::Type::COMPUTE, "jfa_step", ShaderModuleDescriptor::Compute("jfa/jfa", "jfa_step")
-        },
-        },
-        {
-        "background",
-        PipelineDescriptor{
-        PipelineDescriptor::Type::GRAPHICS, "background", ShaderModuleDescriptor::GraphicsVF("background")
+        PipelineDescriptor::Type::COMPUTE, "jfa_step", ShaderModuleDescriptor::Compute("compute/jfa", "jfa_step")
         },
         },
         {
@@ -74,7 +68,9 @@ constexpr std::unordered_map<std::string, PipelineDescriptor> defaultPipelines()
         },
         {
         "pbr",
-        PipelineDescriptor{PipelineDescriptor::Type::GRAPHICS, "pbr", ShaderModuleDescriptor::GraphicsVF("pbr")},
+        PipelineDescriptor{
+        PipelineDescriptor::Type::GRAPHICS, "pbr", ShaderModuleDescriptor::GraphicsVF("fragments/pbr/pbr")
+        },
         },
         {
         "base",
@@ -84,7 +80,9 @@ constexpr std::unordered_map<std::string, PipelineDescriptor> defaultPipelines()
         },
         {
         "simple",
-        PipelineDescriptor{PipelineDescriptor::Type::GRAPHICS, "simple", ShaderModuleDescriptor::GraphicsVF("simple")},
+        PipelineDescriptor{
+        PipelineDescriptor::Type::GRAPHICS, "simple", ShaderModuleDescriptor::GraphicsVF("fragments/simple")
+        },
         },
     };
 }

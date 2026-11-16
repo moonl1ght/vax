@@ -4,15 +4,24 @@
 
 #include "commandBuffer.h"
 #include "scene.h"
+#include "shaderResourceHandle.h"
 
 namespace vax::engine {
 class RenderPassNode {
   public:
+    struct FrameTextureHandles final {
+        SampledImageShaderHandle mainColor;
+        SampledImageShaderHandle mainMask;
+        SampledImageShaderHandle mainDepth;
+        SampledImageShaderHandle agentCameraColor;
+    };
+
     struct RunPassInfo final {
         vax::vk::CommandBuffer& commandBuffer;
         vax::engine::Scene* scene;
         std::vector<uint32_t> imageIndices;
         uint32_t frameIndex;
+        FrameTextureHandles frameTextures{};
     };
 
     std::weak_ptr<RenderPassNode> prev;

@@ -56,12 +56,12 @@ bool PipelineManager::prebuildPipelines(const std::vector<PipelineDescriptor>& p
     for (const PipelineDescriptor& pipelineDescriptor : pipelineDescriptors) {
         if (_pipelines.contains(pipelineDescriptor.name)) {
             _logger.warning("Pipeline already built, skipping: ", pipelineDescriptor.name);
-            break;
+            continue;
         }
         auto pipelineModule = _shaderLibrary->loadPipelineModule(pipelineDescriptor.shaderModuleDescriptor);
         if (!pipelineModule || pipelineModule->functions.empty()) [[unlikely]] {
             _logger.error("Failed to load pipeline module: ", pipelineDescriptor.shaderModuleDescriptor.name);
-            break;
+            continue;
         }
         switch (pipelineDescriptor.type) {
         case PipelineDescriptor::Type::COMPUTE: {

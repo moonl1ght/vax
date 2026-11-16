@@ -36,6 +36,11 @@ class JFAPass final : public RenderPassNode {
         }
     }
 
+    const SampledImageShaderHandle& outputSampledImage(uint32_t frameIndex) const {
+        const auto& handles = _textureHandles[frameIndex];
+        return _isFinalImageA ? handles.jfaASampled : handles.jfaBSampled;
+    }
+
     void runPass(RunPassInfo& runPassInfo) override;
 
   private:
@@ -44,6 +49,8 @@ class JFAPass final : public RenderPassNode {
         SampledImageShaderHandle depth;
         StorageImageShaderHandle jfaA;
         StorageImageShaderHandle jfaB;
+        SampledImageShaderHandle jfaASampled;
+        SampledImageShaderHandle jfaBSampled;
     };
 
     vax::Logger _logger = vax::Logger("JFAPass");

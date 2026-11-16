@@ -119,6 +119,14 @@ class Scene final : public vax::InputController::Observer {
 
     vax::engine::Camera& agentCamera() { return _agentCamera; }
 
+    SamplerShaderHandle samplerHandle(vax::vk::GlobalSampler sampler) const {
+        return _samplerHandles[static_cast<size_t>(sampler)];
+    }
+
+    StructuredBufferShaderHandle instanceBufferHandle(uint32_t frameIndex) const {
+        return _instanceBufferHandles[frameIndex];
+    }
+
     void setWorld(std::shared_ptr<vax::ecs::World> world) { _world = std::move(world); }
 
   private:

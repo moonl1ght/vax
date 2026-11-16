@@ -1,7 +1,7 @@
 #include "gwSceneController.h"
 #include "colorPalette.h"
 #include "entityDescriptor.h"
-#include "shaderSharedUtils.h"
+#include "shaderUtils.h"
 
 using namespace vax;
 using namespace vax::math;

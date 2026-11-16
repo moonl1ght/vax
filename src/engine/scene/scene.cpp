@@ -3,6 +3,7 @@
 #include "camera.h"
 #include "components.h"
 #include "pbr.h"
+#include "simple.h"
 #include "profiler.h"
 #include "swapchain.h"
 
@@ -373,10 +374,11 @@ void Scene::drawGizmo(const DrawContext& drawContext) {
     }
     _bindIndexBuffer(drawContext);
 
-    BasePushConstants pushConstants{
+    SimplePushConstants pushConstants{
         .vertices = _vertexBufferHandle,
         .instances = _instanceBufferHandles[drawContext.currentFrame],
         .drawData = _indirectDrawController->perDrawDataHandle(drawContext.currentFrame),
+        .materials = _materialBufferHandle,
         .drawIndexOffset = drawRange->start,
     };
     vkCmdPushConstants(

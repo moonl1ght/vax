@@ -24,7 +24,15 @@ void Renderer::load() {
         *_vkEngine.get().commandManager, *_vkEngine.get().queueManager, *swapchain
     );
     auto defaultPipelines = vax::vk::defaultPipelines();
-    defaultPipelines["background"].renderPassDescriptor = swapchainRenderPassDescriptor;
+    defaultPipelines["finalblend"].renderPassDescriptor = swapchainRenderPassDescriptor;
+    defaultPipelines["finalblend_cam"].renderPassDescriptor = swapchainRenderPassDescriptor;
+    defaultPipelines["pbr"].renderPassDescriptor = mainRenderPassDescriptor;
+    defaultPipelines["simple"].renderPassDescriptor = mainRenderPassDescriptor;
+    defaultPipelines["base"].renderPassDescriptor = mainRenderPassDescriptor;
+    auto shadowPipeline = defaultPipelines["base"];
+    shadowPipeline.name = "shadow";
+    shadowPipeline.renderPassDescriptor = shadowSunRenderPassDescriptor;
+    defaultPipelines.emplace("shadow", shadowPipeline);
     std::vector<vax::vk::PipelineDescriptor> pipelineDescriptors;
     for (const auto& [name, pipelineDescriptor] : defaultPipelines) {
         pipelineDescriptors.push_back(pipelineDescriptor);
@@ -327,11 +335,23 @@ bool Renderer::_drawScene(CommandBuffer& commandBuffer, Scene* scene) {
     if (!_bindDescriptorSets(commandBuffer))
         return false;
 
+    RenderPassNode::FrameTextureHandles frameTextures{};
+    if (_currentFrame < _finalBlendTextures.size()) {
+        const auto& finalBlendTextures = _finalBlendTextures[_currentFrame];
+        frameTextures.mainColor = finalBlendTextures.color;
+        frameTextures.mainMask = finalBlendTextures.mask;
+        frameTextures.mainDepth = finalBlendTextures.depth;
+    }
+    if (_currentFrame < _agentCameraTextures.size()) {
+        frameTextures.agentCameraColor = _agentCameraTextures[_currentFrame];
+    }
+
     RenderPassNode::RunPassInfo runPassInfo{
         .commandBuffer = commandBuffer,
         .scene = scene,
         .imageIndices = _outputImageIndices,
         .frameIndex = _currentFrame,
+        .frameTextures = frameTextures,
     };
 
     scene->beginDrawing(commandBuffer, _currentFrame);
