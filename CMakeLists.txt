@@ -176,6 +176,11 @@ set(IMGUI_BACKEND_SRCS
 )
 
 add_executable(Luna main.cpp ${all_SRCS} ${IMGUI_BACKEND_SRCS})
+
+set(VAX_LOG_LEVEL "" CACHE STRING "Compile-time global log level")
+if(VAX_LOG_LEVEL)
+    target_compile_definitions(Luna PRIVATE VAX_LOG_LEVEL=${VAX_LOG_LEVEL})
+endif()
 target_include_directories(Luna PUBLIC ${header_list})
 target_include_directories(Luna PRIVATE ${CUDA_PATH}/include)
 if(EXISTS ${CUDA_PATH}/include/cccl)

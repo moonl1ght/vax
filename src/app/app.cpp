@@ -1,16 +1,39 @@
 #include "app.h"
-#include <SDL3/SDL_vulkan.h>
 #include "notificationCenter.h"
 #include "physicsEngine.h"
 #include "profiler.h"
 #include "renderdoc.h"
 #include "startingView.h"
 #include <SDL3/SDL_events.h>
+#include <SDL3/SDL_vulkan.h>
 #include <cuda_runtime.h>
 
 using namespace vax;
 
-bool App::run() {
+bool App::setup() noexcept {
+    SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11,wayland,windows,cocoa");
+    if (!SDL_Vulkan_LoadLibrary(NULL)) {
+        _logger.error("Failed to load Vulkan library: {}", SDL_GetError());
+        return false;
+    }
+    RenderDoc::init();
+
+    vax::NotificationCenter::getInstance().setup();
+    _windowController = std::make_unique<WindowController>();
+    _windowController->setupWindow(0, vax::math::SizeUI{1920, 1080}, "VAX");
+    if (!_windowController->getWindow(0)->load(true, true)) {
+        return false;
+    }
+    _engine = std::make_unique<vk::Engine>(*_windowController);
+    _engine->setup();
+    return true;
+}
+
+bool App::load() noexcept {
+    return true;
+}
+
+bool App::run() noexcept {
     if (!_setup()) {
         return false;
     }

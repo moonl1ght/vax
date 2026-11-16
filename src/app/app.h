@@ -1,17 +1,17 @@
 #pragma once
 
+#include "appMode.h"
+#include "frameTime.h"
 #include "inputController.h"
 #include "logger.h"
-#include "vulkanCommon.h"
-#include <memory>
 #include "renderer.h"
 #include "uiEngine.h"
-#include "vkEngine.h"
-#include "frameTime.h"
-#include "windowController.h"
-#include "appMode.h"
 #include "viewBuilder.h"
 #include "viewManager.h"
+#include "vkEngine.h"
+#include "vulkanCommon.h"
+#include "windowController.h"
+#include <memory>
 
 namespace vax {
 
@@ -20,7 +20,11 @@ class App final {
     App() { _inputController = vax::InputController(); };
     ~App() {};
 
-    bool run();
+    bool setup() noexcept;
+
+    bool load() noexcept;
+
+    bool run() noexcept;
 
     vax::vk::Engine* getEngine() const { return _engine.get(); }
 
