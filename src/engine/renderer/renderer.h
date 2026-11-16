@@ -2,12 +2,13 @@
 
 #include "baseRenderer.h"
 #include "commandBuffer.h"
-#include "scene.h"
 #include "frameProfiler.h"
 #include "frameTime.h"
 #include "renderPassDescriptor.h"
 #include "renderPassGraphDescriptor.h"
 #include "renderPassGraphManager.h"
+#include "scene.h"
+#include "shaderResourceHandle.h"
 #include "state_tracker.h"
 #include "uiEngine.h"
 #include "vkEngine.h"
@@ -15,6 +16,12 @@
 namespace vax::engine {
 class Renderer final : public BaseRenderer {
   public:
+    struct FinalBlendTextures final {
+        SampledImageShaderHandle color;
+        SampledImageShaderHandle mask;
+        SampledImageShaderHandle depth;
+    };
+
     state_tracker<RenderPassGraphMode> renderPassGraphMode =
         state_tracker<RenderPassGraphMode>(RenderPassGraphMode::UNKNOWN);
 
@@ -23,7 +30,6 @@ class Renderer final : public BaseRenderer {
         _renderPassGraphManager = std::make_unique<RenderPassGraphManager>(
             *_vkEngine.get().device,
             *_vkEngine.get().pipelineManager,
-            *_vkEngine.get().descriptorSetManager,
             _vkEngine.get().getWindowController(),
             _uiEngine.get()
         );
@@ -54,6 +60,10 @@ class Renderer final : public BaseRenderer {
 
     RenderPassGraphManager* renderPassGraphManager() { return _renderPassGraphManager.get(); }
 
+    const FinalBlendTextures& finalBlendTextures(uint32_t frameIndex) const { return _finalBlendTextures[frameIndex]; }
+
+    SampledImageShaderHandle agentCameraTexture(uint32_t frameIndex) const { return _agentCameraTextures[frameIndex]; }
+
   private:
     struct RenderPassInfo {
         vax::vk::CommandBuffer* commandBuffer;
@@ -71,6 +81,9 @@ class Renderer final : public BaseRenderer {
 
     bool _wasResized = false;
 
+    std::vector<FinalBlendTextures> _finalBlendTextures;
+    std::vector<SampledImageShaderHandle> _agentCameraTextures;
+
     bool _updateCommandBuffer(
         vax::vk::CommandBuffer& commandBuffer,
         uint32_t imageIndex,
@@ -82,14 +95,14 @@ class Renderer final : public BaseRenderer {
 
     void _drawUi(vax::vk::CommandBuffer& commandBuffer);
 
-    bool _bindGlobalDescriptorSet(vax::vk::CommandBuffer& commandBuffer, VkPipelineLayout pipelineLayout);
+    bool _bindDescriptorSets(vax::vk::CommandBuffer& commandBuffer);
 
     void _resize();
 
     void _resizeSecondary();
 
-    void _writeFinalBlendDescriptorSets();
+    void _registerFinalBlendTextures();
 
-    void _writeSecondaryWindowDescriptorSets();
+    void _registerSecondaryWindowTextures();
 };
 } // namespace vax::engine

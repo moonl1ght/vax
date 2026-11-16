@@ -6,7 +6,7 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include "shaderUniforms.h"
+#include "shaderData.h"
 #include "textureLoader.h"
 #include "resourceManager.h"
 

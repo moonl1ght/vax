@@ -38,6 +38,14 @@ class PipelineManager final {
 
     DescriptorRegistry& descriptorRegistry() const noexcept { return _descriptorManager->descriptorRegistry(); }
 
+    VkPipelineLayout pipelineLayout() const noexcept { return _pipelineLayout; }
+
+    VkDescriptorSet bindlessDescriptorSet() const noexcept { return _descriptorManager->descriptorSet(); }
+
+    VkDescriptorSet uboDescriptorSet(uint32_t frameIndex) const noexcept {
+        return _descriptorManager->uboDescriptorSet(frameIndex);
+    }
+
   private:
     vax::Logger _logger = vax::Logger("PipelineManager");
 

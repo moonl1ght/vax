@@ -86,8 +86,4 @@ struct PerDrawData {
     uint32_t materialIndex = NO_MATERIAL_INDEX; // 4 bytes
 };
 
-struct GlobalPushConstants {
-    uint32_t drawIndexOffset;
-};
-
 #endif // shaderUniforms_h

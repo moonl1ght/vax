@@ -87,18 +87,7 @@ bool vax::vk::Engine::setup() {
     _windowController.get().getWindow(0)->createSwapchain(*device, VK_PRESENT_MODE_FIFO_KHR);
     deletionQueue.push_function([&]() { _windowController.get().getWindow(0)->cleanupSwapchain(); });
 
-    descriptorSetManager = std::make_unique<DescriptorSetManager>(*device, MAX_FRAMES_IN_FLIGHT);
-    auto descriptorSetInfos = allDescriptorSets();
-    if (!descriptorSetManager->setup(descriptorSetInfos)) {
-        return false;
-    }
-    deletionQueue.push_function([&]() {
-        _logger.debug("Destroying descriptor set manager...");
-        descriptorSetManager->cleanup();
-        descriptorSetManager = nullptr;
-    });
-
-    pipelineManager = std::make_unique<PipelineManager>(*device, *descriptorSetManager);
+    pipelineManager = std::make_unique<PipelineManager>(*device);
     if (!pipelineManager->setup()) {
         return false;
     }

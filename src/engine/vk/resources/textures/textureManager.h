@@ -2,17 +2,17 @@
 
 #include "device.h"
 #include "logger.h"
-#include <cstdint>
-#include <optional>
-#include <utility>
-#include <vector>
+#include "poolDescriptor.h"
 #include "resourceHandle.h"
 #include "texture.h"
+#include <cstdint>
+#include <optional>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
 namespace vax::vk {
 class TextureFactory;
-class DescriptorSetWriter;
 } // namespace vax::vk
 
 namespace vax::vk {
@@ -23,7 +23,7 @@ class TextureManager final {
 
     explicit TextureManager(const vk::Device& device)
         : _device(device) {
-        _globalSamplers.reserve(vax::vk::MAX_GLOBAL_SAMPLERS);
+        _globalSamplers.reserve(MAX_SAMPLERS);
     };
 
     ~TextureManager() { fullCleanup(); }
@@ -49,8 +49,7 @@ class TextureManager final {
 
     std::optional<SamplerResource> getGlobalSampler(GlobalSampler sampler);
 
-    void
-    updateDescriptorWriterWithAllTextures(vax::vk::DescriptorSetWriter& descriptorWriter, uint32_t binding) const;
+    std::vector<const Texture*> allTextures() const;
 
     void loadAllTextures(vax::vk::CommandBuffer& commandBuffer);
 

@@ -4,6 +4,7 @@
 #include <device.h>
 #include <logger.h>
 #include <poolDescriptor.h>
+#include <array>
 
 namespace vax::vk {
 
@@ -35,7 +36,7 @@ class DescriptorManager final {
 
     VkDescriptorSetLayout uboDescriptorSetLayout() const noexcept { return _uboDescriptorSetLayout; }
 
-    VkDescriptorSet uboDescriptorSet() const noexcept { return _uboDescriptorSet; }
+    VkDescriptorSet uboDescriptorSet(uint32_t frameIndex) const noexcept { return _uboDescriptorSets[frameIndex]; }
 
     DescriptorRegistry& descriptorRegistry() const noexcept { return *_descriptorRegistry; }
 
@@ -54,7 +55,7 @@ class DescriptorManager final {
 
     VkDescriptorPool _uboDescriptorPool = VK_NULL_HANDLE;
     VkDescriptorSetLayout _uboDescriptorSetLayout = VK_NULL_HANDLE;
-    VkDescriptorSet _uboDescriptorSet = VK_NULL_HANDLE;
+    std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> _uboDescriptorSets{};
 
     bool _setupUBOPoolAndDescriptorSet() noexcept;
 };

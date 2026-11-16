@@ -1,5 +1,6 @@
 #include "modelLoader.h"
-#include "shaderSharedUtils.h"
+#include "pbr.h"
+#include "shaderUtils.h"
 #include <assimp/GltfMaterial.h>
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>

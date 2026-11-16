@@ -2,10 +2,11 @@
 
 #include "device.h"
 #include "pipelineDescriptor.h"
+#include "renderPassDescriptor.h"
 #include "shaderModule.h"
 #include <optional>
+#include <vector>
 #include <vulkan/vulkan_core.h>
-#include "renderPassDescriptor.h"
 
 namespace vax::vk {
 
@@ -21,15 +22,15 @@ class PipelineLayoutBuilder final {
 
     VkPipelineLayout build(std::string name) const noexcept;
 
-    void setDescriptorSetLayout(const VkDescriptorSetLayout& descriptorSetLayout) noexcept {
-        _descriptorSetLayout = descriptorSetLayout;
+    void addDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout) noexcept {
+        _descriptorSetLayouts.push_back(descriptorSetLayout);
     }
 
   private:
     vax::Logger _logger = vax::Logger("PipelineLayoutBuilder");
     const uint32_t _pushConstantSize;
     std::reference_wrapper<const vax::vk::Device> _device;
-    VkDescriptorSetLayout _descriptorSetLayout = VK_NULL_HANDLE;
+    std::vector<VkDescriptorSetLayout> _descriptorSetLayouts;
 };
 
 class ComputePipelineBuilder final {

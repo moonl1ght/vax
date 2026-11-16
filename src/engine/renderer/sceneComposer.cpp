@@ -1,6 +1,6 @@
 #include "sceneComposer.h"
 #include "profiler.h"
-#include "shaderUniforms.h"
+#include "shaderData.h"
 #include "transform.h"
 #include <algorithm>
 #include <numeric>

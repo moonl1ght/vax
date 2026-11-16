@@ -2,6 +2,7 @@
 
 #include "buffer.h"
 #include "device.h"
+#include "shaderData.h"
 #include "vkUtils.h"
 #include <array>
 #include <cstdint>

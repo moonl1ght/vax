@@ -1,7 +1,7 @@
 #pragma once
 
-#include "shaderUniforms.h"
 #include "logger.h"
+#include "shaderConstants.h"
 
 namespace vax::vk {
 struct Submesh final {

@@ -25,10 +25,6 @@ void RenderPassGraphManager::setupRenderPassDescriptors(VkFormat imageFormat) {
     auto swapchainRenderPassDescriptorShared =
         std::make_shared<vax::vk::RenderPassDescriptor>(std::move(swapchainRenderPassDescriptor.value()));
 
-    _pipelineManager.get().setup(
-        *mainRenderPassDescriptorShared, *swapchainRenderPassDescriptorShared, *shadowSunRenderPassDescriptorShared
-    );
-
     _renderPassDescriptors["main"] = mainRenderPassDescriptorShared;
     _renderPassDescriptors["shadow_sun"] = shadowSunRenderPassDescriptorShared;
     _renderPassDescriptors["swapchain"] = swapchainRenderPassDescriptorShared;
@@ -117,28 +113,6 @@ void RenderPassGraphManager::buildGraph(
     if (graphMode == RenderPassGraphMode::SCENE_GRAPH) {
         _renderPassGraph =
             _renderPassGraphBuilder->buildSceneGraph(*graphDescriptor, _renderPassDescriptors, _renderDestinations);
-
-        for (uint32_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
-            auto inputMaskDescriptorSetWriter0 =
-                _descriptorSetManager.get().getDescriptorSetWriter(CommonDescriptorSetName::MAIN_FB_INPUT_MASK_0, i);
-            if (!inputMaskDescriptorSetWriter0.has_value()) {
-                _logger.error("Failed to get input mask descriptor set writer 0!");
-                return;
-            }
-            auto inputMaskDescriptorSetWriter1 =
-                _descriptorSetManager.get().getDescriptorSetWriter(CommonDescriptorSetName::MAIN_FB_INPUT_MASK_1, i);
-            if (!inputMaskDescriptorSetWriter1.has_value()) {
-                _logger.error("Failed to get input mask descriptor set writer 1!");
-                return;
-            }
-
-            auto jfaNode = _renderPassGraph->findNode("jfa_pass");
-            auto jfaPass = std::dynamic_pointer_cast<JFAPass>(jfaNode);
-            inputMaskDescriptorSetWriter0->writeTexture(jfaPass->outputATextures()[i], 0, 0, false);
-            inputMaskDescriptorSetWriter0->update();
-            inputMaskDescriptorSetWriter1->writeTexture(jfaPass->outputBTextures()[i], 0, 0, false);
-            inputMaskDescriptorSetWriter1->update();
-        }
     } else {
         _renderPassGraph = _renderPassGraphBuilder->buildUIOnlyGraph(_renderPassDescriptors, _renderDestinations);
     }

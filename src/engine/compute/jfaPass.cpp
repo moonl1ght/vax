@@ -7,8 +7,8 @@ using namespace vax::engine;
 using namespace vax::vk;
 
 void JFAPass::setup(std::weak_ptr<vax::vk::RenderDestination> inputRenderDestination) {
-    _initPipeline = _pipelineManager.get().getPipelineV2("jfa_init");
-    _stepPipeline = _pipelineManager.get().getPipelineV2("jfa_step");
+    _initPipeline = _pipelineManager.get().getPipeline("jfa_init");
+    _stepPipeline = _pipelineManager.get().getPipeline("jfa_step");
 
     update(inputRenderDestination);
 }

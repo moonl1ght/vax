@@ -45,7 +45,8 @@ bool PipelineManager::prebuildPipelines(const std::vector<PipelineDescriptor>& p
 
     ShaderModuleBuilder shaderModuleBuilder(_device.get());
     PipelineLayoutBuilder pipelineLayoutBuilder(_device.get());
-    pipelineLayoutBuilder.setDescriptorSetLayout(_descriptorManager->descriptorSetLayout());
+    pipelineLayoutBuilder.addDescriptorSetLayout(_descriptorManager->descriptorSetLayout());    // BINDLESS_SET_INDEX
+    pipelineLayoutBuilder.addDescriptorSetLayout(_descriptorManager->uboDescriptorSetLayout()); // UBO_SET_INDEX
     VkPipelineLayout layout = pipelineLayoutBuilder.build("bindlessPipelineLayout");
     if (layout == VK_NULL_HANDLE) {
         _logger.error("Failed to create bindless pipeline layout!");

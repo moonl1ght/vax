@@ -56,6 +56,10 @@ class IndirectDrawController final {
         return std::nullopt;
     }
 
+    StructuredBufferShaderHandle perDrawDataHandle(uint32_t frameIndex) const noexcept {
+        return _perDrawDataBufferHandles[frameIndex]->first;
+    }
+
   private:
     vax::Logger _logger = vax::Logger("IndirectDrawController");
 

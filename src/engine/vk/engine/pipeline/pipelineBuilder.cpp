@@ -10,8 +10,8 @@ VkPipelineLayout PipelineLayoutBuilder::build(std::string name) const noexcept {
     };
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-        .setLayoutCount = 1,
-        .pSetLayouts = &_descriptorSetLayout,
+        .setLayoutCount = static_cast<uint32_t>(_descriptorSetLayouts.size()),
+        .pSetLayouts = _descriptorSetLayouts.data(),
         .pushConstantRangeCount = 1,
         .pPushConstantRanges = &pushConstantRange,
     };

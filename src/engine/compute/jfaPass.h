@@ -1,6 +1,5 @@
 #pragma once
 
-#include "commonDescriptorSets.h"
 #include "pipelineManager.h"
 #include "renderDestination.h"
 #include "renderPassNode.h"
@@ -29,11 +28,11 @@ class JFAPass final : public RenderPassNode {
 
     const std::vector<vax::vk::Texture>& outputBTextures() const;
 
-    vax::vk::CommonDescriptorSetName outputDescriptorSetName() const {
+    const StorageImageShaderHandle& outputImage(RunPassInfo& runPassInfo) const {
         if (_isFinalImageA) {
-            return vax::vk::CommonDescriptorSetName::MAIN_FB_INPUT_MASK_0;
+            return _textureHandles[runPassInfo.frameIndex].jfaA;
         } else {
-            return vax::vk::CommonDescriptorSetName::MAIN_FB_INPUT_MASK_1;
+            return _textureHandles[runPassInfo.frameIndex].jfaB;
         }
     }
 
@@ -50,8 +49,8 @@ class JFAPass final : public RenderPassNode {
     vax::Logger _logger = vax::Logger("JFAPass");
     std::reference_wrapper<const vax::vk::Device> _device;
     std::reference_wrapper<const vax::vk::PipelineManager> _pipelineManager;
-    std::optional<vax::vk::PipelineV2> _initPipeline;
-    std::optional<vax::vk::PipelineV2> _stepPipeline;
+    std::optional<vax::vk::Pipeline> _initPipeline;
+    std::optional<vax::vk::Pipeline> _stepPipeline;
     std::vector<vax::vk::Texture> _jfaTexturesA;
     std::vector<vax::vk::Texture> _jfaTexturesB;
     std::weak_ptr<vax::vk::RenderDestination> _inputRenderDestination;

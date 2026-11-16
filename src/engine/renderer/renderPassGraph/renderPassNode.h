@@ -4,24 +4,10 @@
 
 #include "commandBuffer.h"
 #include "scene.h"
-#include "commonDescriptorSets.h"
 
 namespace vax::engine {
 class RenderPassNode {
   public:
-    struct InputDescriptorSetInfo {
-        vax::vk::CommonDescriptorSetName setName;
-
-        struct BindingInfo {
-            uint32_t setIndex;
-            VkPipelineBindPoint bindPoint;
-            uint32_t dynamicOffsetCount;
-            std::vector<uint32_t> dynamicOffsets;
-        };
-
-        BindingInfo bindingInfo;
-    };
-
     struct RunPassInfo final {
         vax::vk::CommandBuffer& commandBuffer;
         vax::engine::Scene* scene;

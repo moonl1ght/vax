@@ -1,7 +1,6 @@
 #pragma once
 
 #include "commandManager.h"
-#include "descriptorSetManager.h"
 #include "device.h"
 #include "logger.h"
 #include "pipelineManager.h"
@@ -20,16 +19,13 @@ class RenderPassGraphManager final {
     RenderPassGraphManager(
         vax::vk::Device& device,
         vax::vk::PipelineManager& pipelineManager,
-        vax::vk::DescriptorSetManager& descriptorSetManager,
         vax::WindowController& windowController,
         vax::ui::UIEngine& uiEngine
     )
         : _device(device)
-        , _pipelineManager(pipelineManager)
-        , _descriptorSetManager(descriptorSetManager) {
-        _renderPassGraphBuilder = std::make_unique<RenderPassGraphBuilder>(
-            _device, windowController, _pipelineManager, _descriptorSetManager, uiEngine
-        );
+        , _pipelineManager(pipelineManager) {
+        _renderPassGraphBuilder =
+            std::make_unique<RenderPassGraphBuilder>(_device, windowController, _pipelineManager, uiEngine);
     }
 
     ~RenderPassGraphManager() = default;
@@ -69,7 +65,6 @@ class RenderPassGraphManager final {
 
     std::reference_wrapper<vax::vk::Device> _device;
     std::reference_wrapper<vax::vk::PipelineManager> _pipelineManager;
-    std::reference_wrapper<vax::vk::DescriptorSetManager> _descriptorSetManager;
 
     std::unordered_map<std::string, std::shared_ptr<vax::vk::RenderPassDescriptor>> _renderPassDescriptors;
     std::unordered_map<std::string, std::shared_ptr<vax::vk::RenderDestination>> _renderDestinations;
