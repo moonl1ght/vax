@@ -48,8 +48,6 @@ class Renderer final : public BaseRenderer {
 
     void load();
 
-    void setup(Scene* scene);
-
     void linkFrameProfiler(vax::FrameProfiler* frameProfiler) noexcept { _frameProfiler = frameProfiler; }
 
     void unlinkFrameProfiler(vax::FrameProfiler* frameProfiler) noexcept {

@@ -20,11 +20,9 @@ class App final {
     App() { _inputController = vax::InputController(); };
     ~App() {};
 
-    bool setup() noexcept;
+    void setup() noexcept;
 
-    bool load() noexcept;
-
-    bool run() noexcept;
+    void run() noexcept;
 
     vax::vk::Engine* getEngine() const { return _engine.get(); }
 

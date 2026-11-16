@@ -1,14 +1,14 @@
 #pragma once
 
-#include "vulkanCommon.h"
+#include "device.h"
 #include "logger.h"
+#include "swapchain.h"
+#include "vulkanCommon.h"
 #include <SDL3/SDL.h>
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <string>
-#include "device.h"
-#include "swapchain.h"
-#include <functional>
 
 namespace vax::vk {
 class Window final {
@@ -33,7 +33,7 @@ class Window final {
     void destroyWindow();
     void destroy();
 
-    void createSwapchain(const vax::vk::Device& device, VkPresentModeKHR presentMode);
+    bool createSwapchain(const vax::vk::Device& device, VkPresentModeKHR presentMode);
 
     void cleanupSwapchain();
 

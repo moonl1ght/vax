@@ -5,7 +5,6 @@
 using namespace vax::vk;
 
 bool vax::vk::SyncObjectsManager::setup() {
-    _logger.info("Creating synchronization objects...");
     _imageAvailableSemaphores["main"] = std::vector<VkSemaphore>(vax::vk::MAX_FRAMES_IN_FLIGHT);
     _renderFinishedSemaphores["main"] = std::vector<VkSemaphore>(vax::vk::MAX_FRAMES_IN_FLIGHT);
     _imageAvailableSemaphores["secondary"] = std::vector<VkSemaphore>(vax::vk::MAX_FRAMES_IN_FLIGHT);

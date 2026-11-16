@@ -42,8 +42,6 @@ void Renderer::load() {
     _registerFinalBlendTextures();
 }
 
-void Renderer::setup(Scene* scene) { _registerFinalBlendTextures(); }
-
 void Renderer::_registerSecondaryWindowTextures() {
     auto& registry = _vkEngine.get().pipelineManager->descriptorRegistry();
     for (auto handle : _agentCameraTextures) {
@@ -105,7 +103,7 @@ void Renderer::prepareForRender(Scene* scene) {
         scene->prepareForDraw(engine::RenderCallContext{.currentFrame = _currentFrame});
 
         if (_wasResized) {
-            setup(scene);
+            // setup(scene);
         }
 
         shouldRebuildGraph |= scene->shouldRebuildRenderPassGraph();

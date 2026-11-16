@@ -1,16 +1,15 @@
 #pragma once
 
 #include "deletionQueue.h"
-#include "vulkanCommon.h"
 #include "logger.h"
+#include "vkDebug.h"
+#include "vkUtils.h"
+#include "vulkanCommon.h"
 #include <SDL3/SDL_vulkan.h>
 #include <cstdint>
 #include <cstring>
 #include <optional>
 #include <vector>
-#include "vkUtils.h"
-#include "vkDebug.h"
-#include "deletionQueue.h"
 
 namespace vax::vk {
 class VkInstanceBuilder {
@@ -29,7 +28,6 @@ class VkInstanceBuilder {
     };
 
     std::optional<VkInstance> build() {
-        _logger.info("Creating instance...");
         if (enableValidationLayers && !checkValidationLayerSupport()) {
             _logger.error("Validation layers requested, but not available!");
             return std::nullopt;

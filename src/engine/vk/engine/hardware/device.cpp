@@ -173,11 +173,11 @@ int Device::_pickPhysicalDevice(
         std::string_view name = props.deviceName;
 
         if (props.apiVersion < VK_API_VERSION_1_4) {
-            _logger.info("Skipping ", name, ": Vulkan 1.4 not supported");
+            _logger.debug("Skipping ", name, ": Vulkan 1.4 not supported");
             continue;
         }
         if (!_isDeviceSuitable(device, surface)) {
-            _logger.info("Skipping ", name, ": not suitable");
+            _logger.debug("Skipping ", name, ": not suitable");
             continue;
         }
 
@@ -217,11 +217,10 @@ int Device::_pickPhysicalDevice(
 bool Device::load(
     VkInstance instance, VkSurfaceKHR surface, bool enableValidationLayers, uint32_t vulkanApiVersion
 ) noexcept {
-    _logger.info("Loading device...");
+    _logger.debug("Loading device...");
     if (_pickPhysicalDevice(instance, surface, _vkPhysicalDevice) == EXIT_SUCCESS) {
         _indices = findQueueFamilies(_vkPhysicalDevice, surface);
         if (_createLogicalDevice(_vkPhysicalDevice, surface, _vkDevice, enableValidationLayers) == EXIT_SUCCESS) {
-            _logger.info("Device loaded successfully!");
             VmaAllocatorCreateInfo allocatorInfo{
                 .flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT,
                 .physicalDevice = _vkPhysicalDevice,
@@ -234,12 +233,12 @@ bool Device::load(
             return true;
         }
     }
-    _logger.error("Failed to load device!");
     return false;
 }
 
 void Device::_loadDeviceProps() {
-    _vulkan12Properties = VkPhysicalDeviceVulkan12Properties{.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES};
+    _vulkan12Properties =
+        VkPhysicalDeviceVulkan12Properties{.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES};
     VkPhysicalDeviceProperties2 properties2{
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
         .pNext = &_vulkan12Properties,

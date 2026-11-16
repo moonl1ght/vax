@@ -19,7 +19,7 @@ template <typename ControllerType> class SceneView : public DebugView {
         bool renderResult = false;
         vax::engine::SceneUpdateContext sceneUpdateContext{.frameTime = frameTime};
         if (!_isScenePrepared) {
-            _renderer.get().setup(&_controller->getScene());
+            _renderer.get().load();
             _isScenePrepared = true;
         }
         _controller->update(sceneUpdateContext);

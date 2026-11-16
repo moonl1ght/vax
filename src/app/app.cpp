@@ -10,11 +10,11 @@
 
 using namespace vax;
 
-bool App::setup() noexcept {
+void App::setup() noexcept {
     SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11,wayland,windows,cocoa");
     if (!SDL_Vulkan_LoadLibrary(NULL)) {
-        _logger.error("Failed to load Vulkan library: {}", SDL_GetError());
-        return false;
+        _logger.failure("Failed to load Vulkan library: {}", SDL_GetError());
+        return;
     }
     RenderDoc::init();
 
@@ -22,53 +22,28 @@ bool App::setup() noexcept {
     _windowController = std::make_unique<WindowController>();
     _windowController->setupWindow(0, vax::math::SizeUI{1920, 1080}, "VAX");
     if (!_windowController->getWindow(0)->load(true, true)) {
-        return false;
+        _logger.failure("Failed to load window!");
+        return;
     }
     _engine = std::make_unique<vk::Engine>(*_windowController);
-    _engine->setup();
-    return true;
-}
-
-bool App::load() noexcept {
-    return true;
-}
-
-bool App::run() noexcept {
-    if (!_setup()) {
-        return false;
+    if (!_engine->setup()) {
+        _logger.failure("Failed to setup engine!");
+        return;
     }
-    _mainLoop();
-    _cleanup();
-    return true;
-}
-
-bool App::_setup() {
-    SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11,wayland,windows,cocoa");
-    if (!SDL_Vulkan_LoadLibrary(NULL)) {
-        _logger.error("Failed to load Vulkan library: {}", SDL_GetError());
-        return false;
-    }
-    RenderDoc::init();
-    vax::NotificationCenter::getInstance().setup();
-    _windowController = std::make_unique<WindowController>();
-    _windowController->setupWindow(0, vax::math::SizeUI{1920, 1080}, "VAX");
-    if (!_windowController->getWindow(0)->load(true, true)) {
-        return false;
-    }
-    _engine = std::make_unique<vk::Engine>(*_windowController);
-    _engine->setup();
 
     _uiEngine = std::make_unique<ui::UIEngine>(*_engine, *_windowController->getWindow(0));
-
     _renderer = std::make_unique<engine::Renderer>(*_engine, *_uiEngine);
-    _renderer->load();
 
     _viewBuilder =
         std::make_unique<ui::ViewBuilder>(*_uiEngine, *_windowController, _inputController, *_renderer, *_engine);
     _viewManager = std::make_unique<ui::ViewManager>(*_uiEngine, *_viewBuilder);
     _viewManager->setRootView(_viewBuilder->buildStartingView());
+    _logger.success("App setup complete!");
+}
 
-    return true;
+void App::run() noexcept {
+    _mainLoop();
+    _cleanup();
 }
 
 void App::_cleanup() {
@@ -85,12 +60,13 @@ void App::_cleanup() {
 
     _windowController->destroyAllWindows();
     SDL_Quit();
-    _logger.info("Cleanup complete!");
+    _logger.success("Cleanup complete!");
 }
 
 void App::_mainLoop() {
+    _logger.debug("Starting main loop...");
     if (_windowController->getWindow(0) == nullptr) {
-        _logger.error("Window not initialized");
+        _logger.failure("Window not initialized");
         return;
     }
     static bool running = true;
@@ -108,10 +84,12 @@ void App::_mainLoop() {
             }
             _uiEngine->processEvents(event);
             if (event.type == SDL_EVENT_QUIT) {
+                _logger.debug("Quitting app...");
                 running = false;
                 return false;
             } else if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
                 if (event.window.windowID == primaryWindowID) {
+                    _logger.debug("Window close requested...");
                     running = false;
                     return false;
                 } else if (_windowController->getWindow(1) != nullptr) {
