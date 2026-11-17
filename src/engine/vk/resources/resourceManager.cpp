@@ -5,10 +5,10 @@ using namespace vax::vk;
 void ResourceManager::_cleanup() {
     _bufferManager.fullCleanup();
     _meshManager.fullCleanup();
-    _textureManager.fullCleanup();
+    _textureManager.cleanup();
     _materialManager.cleanup();
     _ssboManager.cleanup();
-    _logger.debug("ResourceManager cleanup complete");
+    _logger.debug("ResourceManager cleanup completed");
 }
 
 bool ResourceManager::setup(uint32_t maxInstances) {

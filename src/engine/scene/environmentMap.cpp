@@ -3,14 +3,20 @@
 using namespace vax::engine;
 using namespace vax;
 
-void EnvironmentMap::load(const Descriptor& descriptor) {
+bool EnvironmentMap::load(const Descriptor& descriptor) noexcept {
+    auto cubeMapSampler =
+        _resourceManager.get().textureManager().getGlobalSampler(vk::TextureManager::GlobalSampler::CubeMapSampler);
+    if (!cubeMapSampler) {
+        _logger.error("Cube map sampler is missing!");
+        return false;
+    }
     _environmentMapData = EnvironmentMapData{
         .envMapTexture = NO_TEXTURE_FLAG,
-        .envMapTextureSampler = static_cast<uint32_t>(vk::GlobalSampler::CubeMapSampler),
+        .envMapTextureSampler = cubeMapSampler->shaderHandle.index,
         .envMapTextureIrradiance = NO_TEXTURE_FLAG,
-        .envMapTextureIrradianceSampler = static_cast<uint32_t>(vk::GlobalSampler::CubeMapSampler),
+        .envMapTextureIrradianceSampler = cubeMapSampler->shaderHandle.index,
         .texBRDFLUT = NO_TEXTURE_FLAG,
-        .texBRDFLUTSampler = static_cast<uint32_t>(vk::GlobalSampler::CubeMapSampler),
+        .texBRDFLUTSampler = cubeMapSampler->shaderHandle.index,
     };
     for (const auto& texture : descriptor.textures) {
         auto textureResource = _textureLoader->loadTexture(texture.second);
@@ -19,15 +25,15 @@ void EnvironmentMap::load(const Descriptor& descriptor) {
             continue;
         }
         switch (texture.first) {
-            case TextureType::EnvMap:
-                _environmentMapData.envMapTexture = textureResource->first.id();
-                break;
-            case TextureType::EnvMapIrradiance:
-                _environmentMapData.envMapTextureIrradiance = textureResource->first.id();
-                break;
-            case TextureType::BRDFLUT:
-                _environmentMapData.texBRDFLUT = textureResource->first.id();
-                break;
+        case TextureType::EnvMap:
+            _environmentMapData.envMapTexture = textureResource->first.id();
+            break;
+        case TextureType::EnvMapIrradiance:
+            _environmentMapData.envMapTextureIrradiance = textureResource->first.id();
+            break;
+        case TextureType::BRDFLUT:
+            _environmentMapData.texBRDFLUT = textureResource->first.id();
+            break;
         }
     }
     VkDeviceSize bufferSize = sizeof(EnvironmentMapData);
@@ -39,13 +45,18 @@ void EnvironmentMap::load(const Descriptor& descriptor) {
         VMA_MEMORY_USAGE_CPU_TO_GPU,
         VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
     );
-    if (!allocation.has_value())
-        return;
+    if (!allocation.has_value()) {
+        _logger.error("Failed to allocate environment map buffer!");
+        return false;
+    }
     _buffer = std::make_unique<EnvironmentMapBuffer>(std::move(*allocation));
     _buffer->map();
     auto mappedMemory = _buffer->mappedMemory();
-    if (!mappedMemory.has_value())
-        return;
+    if (!mappedMemory.has_value()) {
+        _logger.error("Failed to map environment map buffer!");
+        return false;
+    }
     EnvironmentMapData* environmentMapDataPtr = mappedMemory.value();
     *environmentMapDataPtr = _environmentMapData;
+    return true;
 }

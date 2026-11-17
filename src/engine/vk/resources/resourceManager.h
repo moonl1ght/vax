@@ -2,19 +2,19 @@
 
 #include "bufferManager.h"
 #include "logger.h"
-#include <cstdint>
 #include "materialManager.h"
 #include "meshManager.h"
 #include "ssboManager.h"
 #include "textureManager.h"
+#include <cstdint>
 
 namespace vax::vk {
 class ResourceManager final {
   public:
-    explicit ResourceManager(const vax::vk::Device& device)
+    explicit ResourceManager(const vax::vk::Device& device, DescriptorRegistry& descriptorRegistry)
         : _bufferManager(device)
         , _meshManager(device)
-        , _textureManager(device)
+        , _textureManager(device, descriptorRegistry)
         , _materialManager(device)
         , _ssboManager(device) {};
 
@@ -32,6 +32,8 @@ class ResourceManager final {
     MeshManager& meshManager() { return _meshManager; }
 
     TextureManager& textureManager() { return _textureManager; }
+
+    const TextureManager& textureManager() const { return _textureManager; }
 
     MaterialManager& materialManager() { return _materialManager; }
 

@@ -1,6 +1,6 @@
 #include "sceneLoader.h"
-#include "paths.h"
 #include "environmentMap.h"
+#include "paths.h"
 #include "physicsComponents.h"
 #include "prefabSpawner.h"
 #include "resourceManager.h"
@@ -42,7 +42,8 @@ std::unique_ptr<Scene> SceneLoader::_initScene(ecs::World& world, const SceneDes
     std::unique_ptr<ecs::World> gizmoWorld = std::make_unique<ecs::World>();
     std::unique_ptr<ecs::World> backgroundWorld = std::make_unique<ecs::World>();
     auto maxDrawableInstances = vax::vk::MAX_DRAWABLE_INSTANCES;
-    auto resourceManager = std::make_unique<vax::vk::ResourceManager>(*_vkEngine.get().device);
+    auto& descriptorRegistry = _vkEngine.get().pipelineManager->descriptorRegistry();
+    auto resourceManager = std::make_unique<vax::vk::ResourceManager>(*_vkEngine.get().device, descriptorRegistry);
     resourceManager->setup(maxDrawableInstances);
     auto environmentMap = std::make_unique<EnvironmentMap>(*_vkEngine.get().device, *resourceManager);
     auto assetsLibrary =

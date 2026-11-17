@@ -136,9 +136,15 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
     finalBlendPass->setDrawWork([&uiEngine = _uiEngine.get(),
                                  &pipelineManager = _pipelineManager.get(),
                                  jfa = jfaPass.get()](RenderPass::RunPassInfo& runPassInfo, DrawContext& drawContext) {
+        const auto& pbrSampler = runPassInfo.scene->resourceManager().textureManager().getGlobalSampler(
+            TextureManager::GlobalSampler::PBRSampler
+        );
+        if (!pbrSampler) {
+            return;
+        }
         const auto& frameTextures = runPassInfo.frameTextures;
         FinalBlendPushConstants finalBlendPushConstants{
-            .inputTextureSampler = runPassInfo.scene->samplerHandle(GlobalSampler::PBRSampler),
+            .inputTextureSampler = pbrSampler->shaderHandle,
             .inputTexture = frameTextures.mainColor,
             .inputMask = frameTextures.mainMask,
             .inputDepth = frameTextures.mainDepth,
@@ -181,8 +187,14 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
         agentCameraFBPass->setDrawWork([&pipelineManager = _pipelineManager.get()](
                                            RenderPass::RunPassInfo& runPassInfo, DrawContext& drawContext
                                        ) {
+            const auto& pbrSampler = runPassInfo.scene->resourceManager().textureManager().getGlobalSampler(
+                TextureManager::GlobalSampler::PBRSampler
+            );
+            if (!pbrSampler) {
+                return;
+            }
             FinalBlendCamPushConstants finalBlendCamPushConstants{
-                .inputTextureSampler = runPassInfo.scene->samplerHandle(GlobalSampler::PBRSampler),
+                .inputTextureSampler = pbrSampler->shaderHandle,
                 .inputTexture = runPassInfo.frameTextures.agentCameraColor,
             };
             pushConstants(runPassInfo.commandBuffer, pipelineManager, finalBlendCamPushConstants);

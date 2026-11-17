@@ -119,15 +119,13 @@ class Scene final : public vax::InputController::Observer {
 
     vax::engine::Camera& agentCamera() { return _agentCamera; }
 
-    SamplerShaderHandle samplerHandle(vax::vk::GlobalSampler sampler) const {
-        return _samplerHandles[static_cast<size_t>(sampler)];
-    }
-
     StructuredBufferShaderHandle instanceBufferHandle(uint32_t frameIndex) const {
         return _instanceBufferHandles[frameIndex];
     }
 
     void setWorld(std::shared_ptr<vax::ecs::World> world) { _world = std::move(world); }
+
+    vax::vk::ResourceManager& resourceManager() noexcept { return *_resourceManager; }
 
   private:
     vax::Logger _logger = vax::Logger("DrawableScene");
@@ -151,7 +149,6 @@ class Scene final : public vax::InputController::Observer {
     StructuredBufferShaderHandle _environmentMapBufferHandle;
     std::array<StructuredBufferShaderHandle, vax::vk::MAX_FRAMES_IN_FLIGHT> _instanceBufferHandles;
     std::vector<SampledImageShaderHandle> _textureHandles;
-    std::vector<SamplerShaderHandle> _samplerHandles;
     bool _resourcesRegistered = false;
 
     void _releaseResources() noexcept;

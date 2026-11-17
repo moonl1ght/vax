@@ -1,130 +1,162 @@
 #include "textureManager.h"
-#include "textureFactory.h"
+#include "imageUtils.h"
 
 using namespace vax;
 using namespace vax::vk;
 
-bool TextureManager::setup() {
-    VkPhysicalDeviceProperties properties{};
-    vkGetPhysicalDeviceProperties(_device.get().vkPhysicalDevice(), &properties);
-    VkSamplerCreateInfo globalSamplerInfo{
-        .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-        .magFilter = VK_FILTER_LINEAR,
-        .minFilter = VK_FILTER_LINEAR,
-        .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
-        .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-        .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-        .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-        .anisotropyEnable = VK_TRUE,
-        .maxAnisotropy = properties.limits.maxSamplerAnisotropy,
-        .compareEnable = VK_FALSE,
-        .compareOp = VK_COMPARE_OP_ALWAYS,
-        .minLod = 0.0f,
-        .maxLod = VK_LOD_CLAMP_NONE,
-        .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
-        .unnormalizedCoordinates = VK_FALSE,
-    };
-    VkSamplerCreateInfo globalCubeMapSamplerInfo{
-        .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-        .magFilter = VK_FILTER_LINEAR,
-        .minFilter = VK_FILTER_LINEAR,
-        .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
-        .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-        .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-        .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-        .anisotropyEnable = VK_TRUE,
-        .maxAnisotropy = properties.limits.maxSamplerAnisotropy,
-        .compareEnable = VK_FALSE,
-        .compareOp = VK_COMPARE_OP_ALWAYS,
-        .minLod = 0.0f,
-        .maxLod = VK_LOD_CLAMP_NONE,
-        .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
-        .unnormalizedCoordinates = VK_FALSE,
-    };
-    auto globalSampler = Sampler::createSampler(_device.get(), "global_sampler", globalSamplerInfo);
-    auto globalCubeMapSampler =
-        Sampler::createSampler(_device.get(), "global_cube_map_sampler", globalCubeMapSamplerInfo);
+bool TextureManager::setup() noexcept {
+    auto globalSampler = Sampler::linear(_device.get());
+    auto globalCubeMapSampler = Sampler::cube(_device.get());
     if (!globalSampler.has_value() || !globalCubeMapSampler.has_value()) {
-        _logger.error("Failed to create global sampler");
+        _logger.error("Failed to create global samplers");
         return false;
     }
-    _globalSamplers.push_back(std::move(*globalSampler));
-    _globalSamplers.push_back(std::move(*globalCubeMapSampler));
+    auto linearSamplerHandle = _descriptorRegistry.get().registerSampler(globalSampler.value().vkSampler());
+    auto cubeMapSamplerHandle = _descriptorRegistry.get().registerSampler(globalCubeMapSampler.value().vkSampler());
+    if (!linearSamplerHandle.has_value() || !cubeMapSamplerHandle.has_value()) {
+        _logger.error("Failed to register global samplers");
+        return false;
+    }
+    SamplerResource linearSamplerResource{
+        .sampler = std::move(globalSampler.value()),
+        .shaderHandle = *linearSamplerHandle,
+    };
+    _globalSamplers.emplace_back(std::move(linearSamplerResource));
+    SamplerResource cubeMapSamplerResource{
+        .sampler = std::move(globalCubeMapSampler.value()),
+        .shaderHandle = *cubeMapSamplerHandle,
+    };
+    _globalSamplers.emplace_back(std::move(cubeMapSamplerResource));
     return true;
 }
 
-void TextureManager::fullCleanup() {
-    for (auto& [id, texture] : _pool) {
-        texture._destroy();
+void TextureManager::cleanup() noexcept {
+    for (auto& textureResource : _textures) {
+        textureResource->texture._destroy();
     }
-    _pool.clear();
+    _textures.clear();
 }
 
-TextureFactory TextureManager::createTextureFactory() const {
-    return TextureFactory(_device.get(), const_cast<TextureManager* const>(this));
-}
-
-std::optional<TextureManager::TextureResource> TextureManager::attach(Texture&& texture) {
-    texture._id = _lastId++;
-    auto [it, inserted] = _pool.try_emplace(texture.id(), std::move(texture));
-    if (!inserted) {
-        _logger.error("Failed to attach texture to manager");
-        return std::nullopt;
+TextureManager::TextureResource* TextureManager::findTexture(TextureId id) noexcept {
+    if (id >= _textures.size()) {
+        _logger.warning("Texture id not found");
+        return nullptr;
     }
-    it->second._isDetached = false;
-    return std::make_pair(it->first, &it->second);
+    return _textures[id].get();
 }
 
-std::optional<TextureManager::TextureResource> TextureManager::find(TextureHandle handle) {
-    auto it = _pool.find(handle.id());
-    if (it == _pool.end())
-        return std::nullopt;
-    return std::make_pair(handle, &it->second);
-}
-
-bool TextureManager::deleteTexture(TextureHandle handle) {
-    auto it = _pool.find(handle.id());
-    if (it == _pool.end())
-        return false;
-    it->second._destroy();
-    _pool.erase(it);
-    return true;
-}
-
-std::optional<Texture> TextureManager::detach(TextureHandle handle) {
-    auto it = _pool.find(handle.id());
-    if (it == _pool.end())
-        return std::nullopt;
-    it->second._isDetached = true;
-    _pool.erase(it);
-    return std::move(it->second);
-}
-
-std::vector<const Texture*> TextureManager::allTextures() const {
-    std::vector<const Texture*> textures(_pool.size());
-    for (auto& [id, texture] : _pool) {
-        textures[texture.id()] = &texture;
-    }
-    return textures;
-}
-
-std::optional<TextureManager::SamplerResource> TextureManager::getGlobalSampler(GlobalSampler sampler) {
+const TextureManager::SamplerResource* TextureManager::getGlobalSampler(GlobalSampler sampler) const noexcept {
     auto index = static_cast<uint32_t>(sampler);
     if (index >= _globalSamplers.size()) {
         _logger.error("Global sampler index out of bounds");
-        return std::nullopt;
+        return nullptr;
     }
-    return std::make_pair(SamplerHandle(index), &_globalSamplers[index]);
+    return &_globalSamplers[index];
 }
 
-void TextureManager::loadAllTextures(vax::vk::CommandBuffer& commandBuffer) {
-    for (auto& [id, texture] : _pool) {
-        texture.loadStagingBuffer(commandBuffer);
+void TextureManager::loadAllTextures(vax::vk::CommandBuffer& commandBuffer) noexcept {
+    for (auto& textureResource : _textures) {
+        textureResource->texture.loadStagingBuffer(commandBuffer);
     }
 }
 
-void TextureManager::resetAllTexturesStagingBuffers() {
-    for (auto& [id, texture] : _pool) {
-        texture.resetStagingBuffer();
+void TextureManager::resetAllTexturesStagingBuffers() noexcept {
+    for (auto& textureResource : _textures) {
+        textureResource->texture.resetStagingBuffer();
     }
+}
+
+TextureManager::TextureResource* TextureManager::createDepthTexture(VkFormat format, vax::math::SizeUI size) noexcept {
+    auto imageResult = vax::vk::createImage(
+        _device.get().allocator(),
+        size.toExtent3D(),
+        format,
+        VK_IMAGE_TILING_OPTIMAL,
+        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+    );
+    if (!imageResult) {
+        _logger.error("Failed to create depth texture!");
+        return nullptr;
+    }
+    VkDebugUtilsObjectNameInfoEXT nameInfo{
+        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
+        .objectType = VK_OBJECT_TYPE_IMAGE,
+        .objectHandle = reinterpret_cast<size_t>(imageResult->first),
+        .pObjectName = "depth_texture",
+    };
+    vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &nameInfo);
+    auto [depthImage, allocation] = imageResult.value();
+    _textures.push_back(
+        std::unique_ptr<TextureResource>(new TextureResource{
+        .id = static_cast<TextureId>(_textures.size()),
+        .registrationType = TextureRegistrationType::SampledImage,
+        .texture =
+            Texture(_device.get(), "depth_texture", depthImage, allocation, size, format, VK_IMAGE_ASPECT_DEPTH_BIT),
+        })
+    );
+    if (!_registerLastTexture()) {
+        _logger.error("Failed to register last texture");
+        return nullptr;
+    }
+    return _textures.back().get();
+}
+
+TextureManager::TextureResource* TextureManager::createTexture(const TextureCreateInfo& createInfo) noexcept {
+    auto imageResult = createImage(
+        _device.get().allocator(),
+        createInfo.size.toExtent3D(),
+        createInfo.format,
+        VK_IMAGE_TILING_OPTIMAL,
+        createInfo.imageUsageFlags,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        createInfo.numLayers,
+        createInfo.numMips,
+        createInfo.flags
+    );
+    if (!imageResult) {
+        _logger.error("Failed to create texture!");
+        return nullptr;
+    }
+    auto [image, allocation] = imageResult.value();
+    if (!createInfo.name.empty()) {
+        VkDebugUtilsObjectNameInfoEXT nameInfo{
+            .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
+            .objectType = VK_OBJECT_TYPE_IMAGE,
+            .objectHandle = reinterpret_cast<size_t>(image),
+            .pObjectName = createInfo.name.c_str(),
+        };
+        vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &nameInfo);
+    }
+    _textures.push_back(
+        std::unique_ptr<TextureResource>(new TextureResource{
+        .id = static_cast<TextureId>(_textures.size()),
+        .registrationType = TextureRegistrationType::SampledImage,
+        .texture = Texture(
+            _device.get(),
+            createInfo.name,
+            image,
+            allocation,
+            createInfo.size,
+            createInfo.format,
+            VK_IMAGE_ASPECT_COLOR_BIT
+        )
+        })
+    );
+    if (!_registerLastTexture()) {
+        _logger.error("Failed to register last texture");
+        return nullptr;
+    }
+    return _textures.back().get();
+}
+
+bool TextureManager::_registerLastTexture() noexcept {
+    auto& textureResource = _textures.back();
+    auto textureHandles = _descriptorRegistry.get().registerSampledTextures({&textureResource->texture}, true);
+    if (!textureHandles || textureHandles->empty()) {
+        _logger.error("Failed to register depth texture");
+        return false;
+    }
+    textureResource->sampledShaderHandle = (*textureHandles)[0];
+    return true;
 }

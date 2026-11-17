@@ -5,10 +5,7 @@
 using namespace vax::vk;
 using namespace vax;
 
-void Texture::cleanup() {
-    if (isDetached())
-        _destroy();
-}
+void Texture::cleanup() { _destroy(); }
 
 void Texture::_destroy() {
     if (_imageView != VK_NULL_HANDLE) {
@@ -24,8 +21,6 @@ void Texture::_destroy() {
     _size = math::SizeUI::zero();
     _format = VK_FORMAT_UNDEFINED;
     _aspectMask = VK_IMAGE_ASPECT_NONE;
-    _isDetached = true;
-    _id = NullTextureId;
 }
 
 void Texture::loadImageView(VkImageViewType viewType, uint32_t layerCount, uint32_t levelCount) {

@@ -37,7 +37,7 @@ DescriptorRegistry::RegistrationResult DescriptorRegistry::registerBatch(const R
 }
 
 std::optional<std::vector<StorageImageShaderHandle>>
-DescriptorRegistry::registerStorageTexture(const std::vector<const Texture*>& textures, bool contiguous) noexcept {
+DescriptorRegistry::registerStorageTextures(const std::vector<const Texture*>& textures, bool contiguous) noexcept {
     std::vector<VkDescriptorImageInfo> imageInfos;
     return _toHandles<StorageImageShaderHandle>(_registerTexture(
         textures,
@@ -51,7 +51,7 @@ DescriptorRegistry::registerStorageTexture(const std::vector<const Texture*>& te
 }
 
 std::optional<std::vector<SampledImageShaderHandle>>
-DescriptorRegistry::registerSampledTexture(const std::vector<const Texture*>& textures, bool contiguous) noexcept {
+DescriptorRegistry::registerSampledTextures(const std::vector<const Texture*>& textures, bool contiguous) noexcept {
     std::vector<VkDescriptorImageInfo> imageInfos;
     return _toHandles<SampledImageShaderHandle>(_registerTexture(
         textures,

@@ -1,5 +1,6 @@
 #include "modelLoader.h"
 #include "pbr.h"
+#include "shaderResourceHandle.h"
 #include "shaderUtils.h"
 #include <assimp/GltfMaterial.h>
 #include <assimp/Importer.hpp>
@@ -34,14 +35,14 @@ uint32_t loadTexture(aiString& textureName, vax::vk::TextureLoader& textureLoade
             std::string name =
                 std::string(scene->mRootNode->mName.C_Str()) + "_baseColorTexture_" + std::string(textureName.C_Str());
             auto texture = textureLoader.loadTexture(name, data);
-            if (texture.has_value()) {
-                return texture->first.id();
+            if (texture) {
+                return texture->getShaderResourceIndex();
             }
             return NO_TEXTURE_FLAG;
         } else {
             auto texture = textureLoader.loadTexture(textureName.C_Str());
-            if (texture.has_value()) {
-                return texture->first.id();
+            if (texture) {
+                return texture->getShaderResourceIndex();
             }
             return NO_TEXTURE_FLAG;
         }
@@ -50,7 +51,7 @@ uint32_t loadTexture(aiString& textureName, vax::vk::TextureLoader& textureLoade
 }
 
 PBRMaterial processMaterial(
-    aiMaterial* mat, vax::vk::TextureLoader& textureLoader, const aiScene* scene, vax::vk::SamplerId samplerId
+    aiMaterial* mat, vax::vk::TextureLoader& textureLoader, const aiScene* scene, SamplerShaderHandle samplerId
 ) {
     PBRMaterial material{
         .baseColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
@@ -122,15 +123,15 @@ PBRMaterial processMaterial(
     mat->GetTexture(aiTextureType_EMISSIVE, 0, &emissiveTextureName, nullptr, &material.emissiveTextureUVIndex);
 
     material.baseColorTextureIndex = loadTexture(baseColorTextureName, textureLoader, scene);
-    material.baseColorTextureSamplerIndex = samplerId;
+    material.baseColorTextureSamplerIndex = samplerId.index;
     material.normalMapTextureIndex = loadTexture(normalMapTextureName, textureLoader, scene);
-    material.normalMapTextureSamplerIndex = samplerId;
+    material.normalMapTextureSamplerIndex = samplerId.index;
     material.metallicRoughnessTextureIndex = loadTexture(metallicRoughnessTextureName, textureLoader, scene);
-    material.metallicRoughnessTextureSamplerIndex = samplerId;
+    material.metallicRoughnessTextureSamplerIndex = samplerId.index;
     material.aoTextureIndex = loadTexture(aoTextureName, textureLoader, scene);
-    material.aoTextureSamplerIndex = samplerId;
+    material.aoTextureSamplerIndex = samplerId.index;
     material.emissiveTextureIndex = loadTexture(emissiveTextureName, textureLoader, scene);
-    material.emissiveTextureSamplerIndex = samplerId;
+    material.emissiveTextureSamplerIndex = samplerId.index;
 
     return material;
 }
@@ -238,7 +239,12 @@ std::optional<DrawableModel> ModelLoader::loadModel(const std::string& path, uin
         totalIndexCount += scene->mMeshes[i]->mNumFaces * 3;
     }
 
-    auto pbrSamplerId = static_cast<vax::vk::SamplerId>(vax::vk::GlobalSampler::PBRSampler);
+    auto pbrSamplerId =
+        _resourceManager.get().textureManager().getGlobalSampler(TextureManager::GlobalSampler::PBRSampler);
+    if (!pbrSamplerId) {
+        _logger.error("Failed to get PBR sampler");
+        return std::nullopt;
+    }
 
     std::vector<Vertex> modelVertices;
     modelVertices.reserve(totalVertexCount);
@@ -255,7 +261,7 @@ std::optional<DrawableModel> ModelLoader::loadModel(const std::string& path, uin
     std::vector<PBRMaterial> materials;
     materials.reserve(scene->mNumMaterials);
     for (unsigned int i = 0; i < scene->mNumMaterials; i++) {
-        materials.push_back(processMaterial(scene->mMaterials[i], *_textureLoader, scene, pbrSamplerId));
+        materials.push_back(processMaterial(scene->mMaterials[i], *_textureLoader, scene, pbrSamplerId->shaderHandle));
     }
 
     auto materialIds = _resourceManager.get().materialManager().insertMaterials(materials);

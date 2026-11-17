@@ -44,10 +44,10 @@ class DescriptorRegistry {
     RegistrationResult registerBatch(const RegistrationBatch& batch) noexcept;
 
     std::optional<std::vector<StorageImageShaderHandle>>
-    registerStorageTexture(const std::vector<const Texture*>& textures, bool contiguous = false) noexcept;
+    registerStorageTextures(const std::vector<const Texture*>& textures, bool contiguous = false) noexcept;
 
     std::optional<std::vector<SampledImageShaderHandle>>
-    registerSampledTexture(const std::vector<const Texture*>& textures, bool contiguous = false) noexcept;
+    registerSampledTextures(const std::vector<const Texture*>& textures, bool contiguous = false) noexcept;
 
     template <typename T> std::optional<StructuredBufferShaderHandle> registerStorageBuffer(const Buffer<T>& buffer) {
         VkDescriptorBufferInfo bufferInfo{.buffer = buffer.vkBuffer(), .offset = 0, .range = buffer.size()};
