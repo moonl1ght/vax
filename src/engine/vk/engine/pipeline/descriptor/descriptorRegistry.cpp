@@ -75,7 +75,7 @@ std::optional<std::vector<ShaderResourceIndex>> DescriptorRegistry::_registerTex
 ) noexcept {
     imageInfos.reserve(textures.size());
     for (const auto& texture : textures) {
-        auto imageInfoOpt = texture->descriptorImageInfoNoSampler();
+        auto imageInfoOpt = texture->descriptorImageInfo();
         if (!imageInfoOpt) {
             return std::nullopt;
         }

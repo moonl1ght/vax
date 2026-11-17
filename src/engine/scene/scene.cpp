@@ -3,8 +3,8 @@
 #include "camera.h"
 #include "components.h"
 #include "pbr.h"
-#include "simple.h"
 #include "profiler.h"
+#include "simple.h"
 #include "swapchain.h"
 
 using namespace vax;
@@ -179,18 +179,12 @@ void Scene::registerResources() noexcept {
 
     auto textures = textureManager.allTextures();
     if (!textures.empty()) {
-        auto handles = registry.registerSampledTexture(textures, /*contiguous*/ true);
+        auto handles = registry.registerSampledTexture(textures, true);
         if (!handles) {
             _logger.error("Failed to register scene textures!");
             return;
         }
         _textureHandles = std::move(*handles);
-        if (_textureHandles.front().index != 0) {
-            _logger.warning(
-                "Scene textures don't start at index 0, material texture indices are off by ",
-                _textureHandles.front().index
-            );
-        }
     }
 
     auto vertices = registry.registerStorageBuffer(_resourceManager->meshManager().globalVertexBuffer(0));

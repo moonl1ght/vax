@@ -30,7 +30,8 @@ void Texture::_destroy() {
 
 void Texture::loadImageView(VkImageViewType viewType, uint32_t layerCount, uint32_t levelCount) {
     _imageView =
-        createImageView(_device.get().vkDevice(), _image, _format, _aspectMask, viewType, layerCount, levelCount).value();
+        createImageView(_device.get().vkDevice(), _image, _format, _aspectMask, viewType, layerCount, levelCount)
+            .value();
 }
 
 bool vax::vk::Texture::isValid() const { return _image != VK_NULL_HANDLE && _allocation != VK_NULL_HANDLE; }
@@ -42,7 +43,7 @@ VkImageLayout sampledImageLayoutFor(VkImageAspectFlags aspectMask) {
 }
 } // namespace
 
-std::optional<VkDescriptorImageInfo> Texture::descriptorImageInfoNoSampler() const {
+std::optional<VkDescriptorImageInfo> Texture::descriptorImageInfo() const {
     if (_imageView == VK_NULL_HANDLE) {
         _logger.error("Image view is not set");
         return std::nullopt;
@@ -53,36 +54,6 @@ std::optional<VkDescriptorImageInfo> Texture::descriptorImageInfoNoSampler() con
         .imageLayout = sampledImageLayoutFor(_aspectMask),
         }
     );
-}
-
-std::optional<VkDescriptorImageInfo> Texture::descriptorImageInfoWithSampler() const {
-    if (_imageView == VK_NULL_HANDLE) {
-        _logger.error("Image view is not set");
-        return std::nullopt;
-    }
-    return std::make_optional(
-        VkDescriptorImageInfo{
-        .sampler = _sampler.value().vkSampler,
-        .imageView = _imageView,
-        .imageLayout = sampledImageLayoutFor(_aspectMask),
-        }
-    );
-}
-
-void Texture::createSampler() {
-    if (_sampler.has_value()) {
-        return;
-    }
-    VkSamplerCreateInfo samplerInfo{
-        .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-        .magFilter = VK_FILTER_LINEAR,
-        .minFilter = VK_FILTER_LINEAR,
-        .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
-        .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-        .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-        .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-    };
-    _sampler = Sampler::createSampler(_device.get(), _name, samplerInfo);
 }
 
 void Texture::loadStagingBuffer(vax::vk::CommandBuffer& commandBuffer) {

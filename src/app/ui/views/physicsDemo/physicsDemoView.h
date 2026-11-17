@@ -1,15 +1,15 @@
 #pragma once
 
 #include "inputController.h"
+#include "mainSceneController.h"
 #include "sceneView.h"
 #include "vkEngine.h"
-#include "mainSceneController.h"
 
 namespace vax::ui {
 class PhysicsDemoView final : public SceneView<MainSceneController> {
   public:
-    PhysicsDemoView(vax::engine::Renderer& renderer)
-        : SceneView(renderer) {}
+    PhysicsDemoView(vax::engine::Renderer& renderer, vax::vk::Engine& vkEngine, vax::InputController& inputController)
+        : SceneView(renderer, vkEngine, inputController) {}
 
     ~PhysicsDemoView() = default;
 
@@ -22,8 +22,9 @@ class PhysicsDemoView final : public SceneView<MainSceneController> {
 
     vax::AppMode getAppMode() override { return vax::AppMode::Continous; }
 
-    void load(vax::vk::Engine& engine, vax::InputController& inputController);
+  protected:
+    bool _load() override;
 
-  private:
+    const char* _loadingMessage() const override { return "Loading physics demo"; }
 };
 } // namespace vax::ui

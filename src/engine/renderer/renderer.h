@@ -42,11 +42,13 @@ class Renderer final : public BaseRenderer {
     Renderer(Renderer&& other) noexcept = delete;
     Renderer& operator=(Renderer&& other) noexcept = delete;
 
-    void prepareForRender(Scene* scene);
-
     bool render(Scene* scene, const FrameTime& frameTime);
 
+    void setup();
+
     void load();
+
+    bool isLoaded() const noexcept { return _isLoaded; }
 
     void linkFrameProfiler(vax::FrameProfiler* frameProfiler) noexcept { _frameProfiler = frameProfiler; }
 
@@ -79,6 +81,8 @@ class Renderer final : public BaseRenderer {
 
     bool _wasResized = false;
 
+    bool _isLoaded = false;
+
     std::vector<FinalBlendTextures> _finalBlendTextures;
     std::vector<SampledImageShaderHandle> _agentCameraTextures;
 
@@ -102,5 +106,7 @@ class Renderer final : public BaseRenderer {
     void _registerFinalBlendTextures();
 
     void _registerSecondaryWindowTextures();
+
+    void _prepareForRender(Scene* scene);
 };
 } // namespace vax::engine

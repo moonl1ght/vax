@@ -73,9 +73,9 @@ constexpr std::unordered_map<std::string, PipelineDescriptor> defaultPipelines()
         },
         },
         {
-        "base",
+        "shadow",
         PipelineDescriptor{
-        PipelineDescriptor::Type::GRAPHICS, "base", ShaderModuleDescriptor::GraphicsV("base", "base_vertex_main")
+        PipelineDescriptor::Type::GRAPHICS, "shadow", ShaderModuleDescriptor::GraphicsV("base", "base_vertex_main")
         },
         },
         {

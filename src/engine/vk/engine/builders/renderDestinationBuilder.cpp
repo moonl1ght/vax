@@ -54,7 +54,6 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildMainOffscreen(
             return std::nullopt;
         }
         colorTexture->loadImageView(VK_IMAGE_VIEW_TYPE_2D, 1, 1);
-        colorTexture->createSampler();
 
         auto maskTexture = TextureFactory(_device.get())
                                .makeTextureDetached(

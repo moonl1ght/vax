@@ -1,15 +1,14 @@
 #pragma once
 
-#include "vulkanCommon.h"
+#include "buffer.h"
 #include "logger.h"
+#include "vaxMath.h"
+#include "vulkanCommon.h"
 #include <cstdint>
 #include <optional>
 #include <string>
 #include <utility>
 #include <vector>
-#include "sampler.h"
-#include "vaxMath.h"
-#include "buffer.h"
 
 namespace vax::vk {
 class TextureManager;
@@ -56,7 +55,6 @@ class Texture final {
         , _aspectMask(other._aspectMask)
         , _isDetached(other._isDetached)
         , _id(other._id)
-        , _sampler(std::move(other._sampler))
         , _stagingBuffer(std::move(other._stagingBuffer))
         , _stagingCopyRegions(std::move(other._stagingCopyRegions)) {
         other._name.clear();
@@ -68,7 +66,6 @@ class Texture final {
         other._aspectMask = VK_IMAGE_ASPECT_NONE;
         other._isDetached = true;
         other._id = NullTextureId;
-        other._sampler = std::nullopt;
         other.resetStagingBuffer();
     }
 
@@ -85,7 +82,6 @@ class Texture final {
             _aspectMask = other._aspectMask;
             _isDetached = other._isDetached;
             _id = other._id;
-            _sampler = std::move(other._sampler);
             _stagingBuffer = std::move(other._stagingBuffer);
             _stagingCopyRegions = std::move(other._stagingCopyRegions);
 
@@ -98,7 +94,6 @@ class Texture final {
             other._aspectMask = VK_IMAGE_ASPECT_NONE;
             other._isDetached = true;
             other._id = NullTextureId;
-            other._sampler = std::nullopt;
             other.resetStagingBuffer();
         }
         return *this;
@@ -122,21 +117,13 @@ class Texture final {
 
     VkImageView imageView() const { return _imageView; }
 
-    std::optional<VkDescriptorImageInfo> descriptorImageInfoNoSampler() const;
-
-    std::optional<VkDescriptorImageInfo> descriptorImageInfoWithSampler() const;
+    std::optional<VkDescriptorImageInfo> descriptorImageInfo() const;
 
     vax::math::SizeUI size() const { return _size; }
 
     uint32_t width() const { return _size.width; }
 
     uint32_t height() const { return _size.height; }
-
-    void createSampler();
-
-    void setSampler(Sampler&& sampler) { _sampler = std::move(sampler); }
-
-    const Sampler& sampler() const { return _sampler.value(); }
 
     void setStagingBuffer(Buffer<void> stagingBuffer, std::vector<VkBufferImageCopy> copyRegions = {}) {
         _stagingBuffer = std::move(stagingBuffer);
@@ -168,7 +155,6 @@ class Texture final {
     VkImageView _imageView = VK_NULL_HANDLE;
     VmaAllocation _allocation = VK_NULL_HANDLE;
 
-    std::optional<Sampler> _sampler;
     std::optional<Buffer<void>> _stagingBuffer = std::nullopt;
     std::vector<VkBufferImageCopy> _stagingCopyRegions;
 

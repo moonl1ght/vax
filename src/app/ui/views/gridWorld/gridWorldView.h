@@ -15,10 +15,16 @@
 namespace vax::ui {
 class GridWorldView final : public SceneView<rl::GWSceneController> {
   public:
-    GridWorldView(UIEngine& uiEngine, vax::WindowController& windowController, vax::engine::Renderer& renderer)
-        : _uiEngine(uiEngine)
-        , _windowController(windowController)
-        , SceneView(renderer) {}
+    GridWorldView(
+        UIEngine& uiEngine,
+        vax::WindowController& windowController,
+        vax::engine::Renderer& renderer,
+        vax::vk::Engine& vkEngine,
+        vax::InputController& inputController
+    )
+        : SceneView(renderer, vkEngine, inputController)
+        , _uiEngine(uiEngine)
+        , _windowController(windowController) {}
     ~GridWorldView();
 
     GridWorldView(const GridWorldView& other) = delete;
@@ -30,9 +36,11 @@ class GridWorldView final : public SceneView<rl::GWSceneController> {
 
     vax::AppMode getAppMode() override { return vax::AppMode::Continous; }
 
-    void load(vax::vk::Engine& engine, vax::InputController& inputController);
-
   protected:
+    bool _load() override;
+
+    const char* _loadingMessage() const override { return "Loading grid world"; }
+
     void _showMenuBarItems() override;
 
     bool _isCloseEnabled() const override { return !_isTrainingRunning && !_isDemoRunning; }

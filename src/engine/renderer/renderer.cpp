@@ -1,7 +1,6 @@
 #include "renderer.h"
 #include "imageUtils.h"
 #include "paths.h"
-#include "pipeline.h"
 #include "profiler.h"
 #include "textureFactory.h"
 #include "vkEngine.h"
@@ -11,28 +10,34 @@ using namespace vax::engine;
 using namespace vax;
 using namespace vax::vk;
 
-void Renderer::load() {
-    _vkEngine.get().pipelineManager->load(SRC_PATH("engine/shaders/"));
+void Renderer::setup() {
     auto swapchain = _getSwapchain(0);
     _renderPassGraphManager->setupRenderPassDescriptors(swapchain->swapchainImageFormat);
     auto swapchainRenderPassDescriptor = _renderPassGraphManager->getRenderPassDescriptor("swapchain");
-    auto mainRenderPassDescriptor = _renderPassGraphManager->getRenderPassDescriptor("main");
-    auto shadowSunRenderPassDescriptor = _renderPassGraphManager->getRenderPassDescriptor("shadow_sun");
     _uiEngine.get().setup(swapchainRenderPassDescriptor->getVkRenderPass());
 
     _renderPassGraphManager->setupRenderDestinations(
         *_vkEngine.get().commandManager, *_vkEngine.get().queueManager, *swapchain
     );
+}
+
+void Renderer::load() {
+    if (_isLoaded) {
+        return;
+    }
+    _vkEngine.get().pipelineManager->load(SRC_PATH("engine/shaders/"));
+
+    auto swapchain = _getSwapchain(0);
+    auto swapchainRenderPassDescriptor = _renderPassGraphManager->getRenderPassDescriptor("swapchain");
+    auto mainRenderPassDescriptor = _renderPassGraphManager->getRenderPassDescriptor("main");
+    auto shadowSunRenderPassDescriptor = _renderPassGraphManager->getRenderPassDescriptor("shadow_sun");
+
     auto defaultPipelines = vax::vk::defaultPipelines();
     defaultPipelines["finalblend"].renderPassDescriptor = swapchainRenderPassDescriptor;
     defaultPipelines["finalblend_cam"].renderPassDescriptor = swapchainRenderPassDescriptor;
     defaultPipelines["pbr"].renderPassDescriptor = mainRenderPassDescriptor;
     defaultPipelines["simple"].renderPassDescriptor = mainRenderPassDescriptor;
-    defaultPipelines["base"].renderPassDescriptor = mainRenderPassDescriptor;
-    auto shadowPipeline = defaultPipelines["base"];
-    shadowPipeline.name = "shadow";
-    shadowPipeline.renderPassDescriptor = shadowSunRenderPassDescriptor;
-    defaultPipelines.emplace("shadow", shadowPipeline);
+    defaultPipelines["shadow"].renderPassDescriptor = shadowSunRenderPassDescriptor;
     std::vector<vax::vk::PipelineDescriptor> pipelineDescriptors;
     for (const auto& [name, pipelineDescriptor] : defaultPipelines) {
         pipelineDescriptors.push_back(pipelineDescriptor);
@@ -40,6 +45,7 @@ void Renderer::load() {
     _vkEngine.get().pipelineManager->prebuildPipelines(pipelineDescriptors);
 
     _registerFinalBlendTextures();
+    _isLoaded = true;
 }
 
 void Renderer::_registerSecondaryWindowTextures() {
@@ -96,7 +102,7 @@ void Renderer::_registerFinalBlendTextures() {
     }
 }
 
-void Renderer::prepareForRender(Scene* scene) {
+void Renderer::_prepareForRender(Scene* scene) {
     ZoneScopedN("Renderer::prepareForRender");
     bool shouldRebuildGraph = renderPassGraphMode.is_dirty() || _wasResized;
     if (scene != nullptr) {
@@ -139,6 +145,7 @@ void Renderer::prepareForRender(Scene* scene) {
 }
 
 bool Renderer::render(Scene* scene, const FrameTime& frameTime) {
+    _prepareForRender(scene);
     ZoneScopedN("Renderer::render");
     _waitForFence();
 

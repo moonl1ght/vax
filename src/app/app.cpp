@@ -33,6 +33,7 @@ void App::setup() noexcept {
 
     _uiEngine = std::make_unique<ui::UIEngine>(*_engine, *_windowController->getWindow(0));
     _renderer = std::make_unique<engine::Renderer>(*_engine, *_uiEngine);
+    _renderer->setup();
 
     _viewBuilder =
         std::make_unique<ui::ViewBuilder>(*_uiEngine, *_windowController, _inputController, *_renderer, *_engine);

@@ -41,7 +41,7 @@ class ViewManager final {
 
     std::unique_ptr<ViewNode> _rootNode = nullptr;
 
-    ViewNode* _topViewNode = nullptr; 
+    ViewNode* _topViewNode = nullptr;
 
     std::unique_ptr<ViewNode> _pendingRootViewNode = nullptr;
     std::unique_ptr<ViewNode> _pendingPushViewNode = nullptr;

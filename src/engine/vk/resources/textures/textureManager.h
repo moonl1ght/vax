@@ -4,6 +4,7 @@
 #include "logger.h"
 #include "poolDescriptor.h"
 #include "resourceHandle.h"
+#include "sampler.h"
 #include "texture.h"
 #include <cstdint>
 #include <optional>
