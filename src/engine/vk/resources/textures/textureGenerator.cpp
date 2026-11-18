@@ -4,7 +4,7 @@
 
 using namespace vax::vk;
 
-std::optional<TextureManager::TextureResource> TextureGenerator::generateCheckerboardTexture(
+TextureManager::TextureResource* TextureGenerator::generateCheckerboardTexture(
     const std::string& name, int width, int height, int cellSize
 ) const noexcept {
     std::vector<uint8_t> pixels(width * height * 4);

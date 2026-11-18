@@ -3,8 +3,8 @@
 #include "imgui_impl_vulkan.h"
 #undef Status
 #include "imgui.h"
-#include "vulkanCommon.h"
 #include "paths.h"
+#include "vulkanCommon.h"
 #include <SDL3/SDL.h>
 #include <cstdint>
 #include <string>

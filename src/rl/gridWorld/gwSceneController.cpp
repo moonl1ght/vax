@@ -1,7 +1,7 @@
 #include "gwSceneController.h"
 #include "colorPalette.h"
 #include "entityDescriptor.h"
-#include "shaderSharedUtils.h"
+#include "shaderUtils.h"
 
 using namespace vax;
 using namespace vax::math;
@@ -25,7 +25,7 @@ bool GWSceneController::load(const vax::engine::SceneDescriptor& descriptor) {
     _envEntities.clear();
 
     _world->eachCoreComponentEntity<vax::ecs::InstanceComponent>([&](vax::ecs::Entity entity,
-                                                               vax::ecs::InstanceComponent& instance) {
+                                                                     vax::ecs::InstanceComponent& instance) {
         if (instance.typeIndex >= descriptor.entities.size()) {
             return;
         }
@@ -135,17 +135,34 @@ void GWSceneController::moveAgentTo(
         _logger.warning("Agent not loaded!");
         return;
     }
+    float rotation = 0.0f;
+    glm::vec3 direction = {0.0f, 0.0f, 0.0f};
+    switch (orientation) {
+    case AgentOrientation::NORTH:
+        rotation = 90.0f;
+        direction = {0.0f, 0.0f, 1.0f};
+        break;
+    case AgentOrientation::SOUTH:
+        rotation = 270.0f;
+        direction = {0.0f, 0.0f, -1.0f};
+        break;
+    case AgentOrientation::EAST:
+        rotation = 0.0f;
+        direction = {-1.0f, 0.0f, 0.0f};
+        break;
+    case AgentOrientation::WEST:
+        rotation = 180.0f;
+        direction = {1.0f, 0.0f, 0.0f};
+        break;
+    }
     if (withAnimation) {
-        auto transform = _world->getCoreComponentFor<vax::ecs::TransformComponent>(_agent);
-        auto startRotation = transform ? transform->transform.getEulerAnglesInDegrees().y : 0.0f;
         if (!_animations.has_value()) {
             _animations = std::make_optional(vax::AnimationGroup(vax::AnimationGroup::Mode::SERIAL));
-        } else if (_agentState.latestRotationEnd.has_value()) {
-            startRotation = *_agentState.latestRotationEnd;
         }
         auto previousPosition = _agentState.position.value_or(position);
         auto orientationValue = static_cast<int>(orientation);
         auto previousOrientation = _agentState.orientation.value_or(orientationValue);
+        float startRotation = _agentState.latestRotationEnd.value_or(static_cast<float>(previousOrientation) * 90.0f);
         auto orientationDelta = orientationValue - previousOrientation;
         if (orientationDelta != 0) {
             orientationDelta = orientationDelta == 3 ? -1 : orientationDelta == -3 ? 1 : orientationDelta;
@@ -190,26 +207,7 @@ void GWSceneController::moveAgentTo(
         });
         _animations->pushAnimation(std::move(moveAnimation));
     } else {
-        float rotation = 0.0f;
-        glm::vec3 direction = {0.0f, 0.0f, 0.0f};
-        switch (orientation) {
-        case AgentOrientation::NORTH:
-            rotation = 90.0f;
-            direction = {0.0f, 0.0f, 1.0f};
-            break;
-        case AgentOrientation::SOUTH:
-            rotation = 270.0f;
-            direction = {0.0f, 0.0f, -1.0f};
-            break;
-        case AgentOrientation::EAST:
-            rotation = 0.0f;
-            direction = {-1.0f, 0.0f, 0.0f};
-            break;
-        case AgentOrientation::WEST:
-            rotation = 180.0f;
-            direction = {1.0f, 0.0f, 0.0f};
-            break;
-        }
+        _agentState.latestRotationEnd = rotation;
         _scene->agentCamera().setDirection(direction);
         _scene->agentCamera().setPosition({position.x, 0.5f, position.y});
         _updateAgentTransform([&](Transform& transform) {

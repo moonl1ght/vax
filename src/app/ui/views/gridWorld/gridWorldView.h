@@ -5,20 +5,20 @@
 #include "gwTrainingManager.h"
 #include "inputController.h"
 #include "logger.h"
-#include "renderer.h"
 #include "sceneView.h"
 #include "threadRunner.h"
-#include "uiEngine.h"
-#include "vkEngine.h"
 #include "windowController.h"
 
 namespace vax::ui {
 class GridWorldView final : public SceneView<rl::GWSceneController> {
   public:
-    GridWorldView(UIEngine& uiEngine, vax::WindowController& windowController, vax::engine::Renderer& renderer)
-        : _uiEngine(uiEngine)
-        , _windowController(windowController)
-        , SceneView(renderer) {}
+    GridWorldView(
+        vax::WindowController& windowController,
+        vax::rendering::RenderingEngine& renderingEngine,
+        vax::InputController& inputController
+    )
+        : SceneView(renderingEngine, inputController)
+        , _windowController(windowController) {}
     ~GridWorldView();
 
     GridWorldView(const GridWorldView& other) = delete;
@@ -30,9 +30,11 @@ class GridWorldView final : public SceneView<rl::GWSceneController> {
 
     vax::AppMode getAppMode() override { return vax::AppMode::Continous; }
 
-    void load(vax::vk::Engine& engine, vax::InputController& inputController);
-
   protected:
+    bool _load() override;
+
+    const char* _loadingMessage() const override { return "Loading grid world"; }
+
     void _showMenuBarItems() override;
 
     bool _isCloseEnabled() const override { return !_isTrainingRunning && !_isDemoRunning; }
@@ -41,7 +43,6 @@ class GridWorldView final : public SceneView<rl::GWSceneController> {
 
   private:
     vax::Logger _logger = vax::Logger("GridWorldView");
-    std::reference_wrapper<UIEngine> _uiEngine;
     std::reference_wrapper<vax::WindowController> _windowController;
     std::unique_ptr<vax::rl::GridWorld> _gridWorld;
     std::unique_ptr<vax::rl::GWTrainingManager> _trainingManager;

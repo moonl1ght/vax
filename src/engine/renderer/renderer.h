@@ -2,15 +2,18 @@
 
 #include "baseRenderer.h"
 #include "commandBuffer.h"
-#include "scene.h"
 #include "frameProfiler.h"
 #include "frameTime.h"
 #include "renderPassDescriptor.h"
 #include "renderPassGraphDescriptor.h"
 #include "renderPassGraphManager.h"
+#include "resourceManager.h"
+#include "scene.h"
+#include "shaderResourceHandle.h"
 #include "state_tracker.h"
 #include "uiEngine.h"
 #include "vkEngine.h"
+#include <optional>
 
 namespace vax::engine {
 class Renderer final : public BaseRenderer {
@@ -19,15 +22,7 @@ class Renderer final : public BaseRenderer {
         state_tracker<RenderPassGraphMode>(RenderPassGraphMode::UNKNOWN);
 
     Renderer(vax::vk::Engine& vkEngine, vax::ui::UIEngine& uiEngine)
-        : BaseRenderer(vkEngine, uiEngine) {
-        _renderPassGraphManager = std::make_unique<RenderPassGraphManager>(
-            *_vkEngine.get().device,
-            *_vkEngine.get().pipelineManager,
-            *_vkEngine.get().descriptorSetManager,
-            _vkEngine.get().getWindowController(),
-            _uiEngine.get()
-        );
-    };
+        : BaseRenderer(vkEngine, uiEngine) {};
 
     ~Renderer() {};
 
@@ -36,13 +31,13 @@ class Renderer final : public BaseRenderer {
     Renderer(Renderer&& other) noexcept = delete;
     Renderer& operator=(Renderer&& other) noexcept = delete;
 
-    void prepareForRender(Scene* scene);
-
     bool render(Scene* scene, const FrameTime& frameTime);
+
+    void setup(vax::vk::ResourceManager& resourceManager) noexcept;
 
     void load();
 
-    void setup(Scene* scene);
+    bool isLoaded() const noexcept { return _isLoaded; }
 
     void linkFrameProfiler(vax::FrameProfiler* frameProfiler) noexcept { _frameProfiler = frameProfiler; }
 
@@ -71,6 +66,8 @@ class Renderer final : public BaseRenderer {
 
     bool _wasResized = false;
 
+    bool _isLoaded = false;
+
     bool _updateCommandBuffer(
         vax::vk::CommandBuffer& commandBuffer,
         uint32_t imageIndex,
@@ -82,14 +79,12 @@ class Renderer final : public BaseRenderer {
 
     void _drawUi(vax::vk::CommandBuffer& commandBuffer);
 
-    bool _bindGlobalDescriptorSet(vax::vk::CommandBuffer& commandBuffer, VkPipelineLayout pipelineLayout);
+    bool _bindDescriptorSets(vax::vk::CommandBuffer& commandBuffer);
 
     void _resize();
 
     void _resizeSecondary();
 
-    void _writeFinalBlendDescriptorSets();
-
-    void _writeSecondaryWindowDescriptorSets();
+    void _prepareForRender(Scene* scene);
 };
 } // namespace vax::engine

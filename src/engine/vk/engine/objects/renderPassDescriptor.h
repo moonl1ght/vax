@@ -58,7 +58,7 @@ class RenderPassDescriptor final {
 
     ~RenderPassDescriptor() { vkDestroyRenderPass(_device.get().vkDevice(), _renderPass, nullptr); };
 
-    const VkRenderPass getVkRenderPass() const { return _renderPass; }
+    VkRenderPass getVkRenderPass() const noexcept { return _renderPass; }
 
   private:
     std::reference_wrapper<const vax::vk::Device> _device;

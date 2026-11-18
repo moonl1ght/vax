@@ -10,8 +10,8 @@ VkPipelineLayout PipelineLayoutBuilder::build(std::string name) const noexcept {
     };
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-        .setLayoutCount = 1,
-        .pSetLayouts = &_descriptorSetLayout,
+        .setLayoutCount = static_cast<uint32_t>(_descriptorSetLayouts.size()),
+        .pSetLayouts = _descriptorSetLayouts.data(),
         .pushConstantRangeCount = 1,
         .pPushConstantRanges = &pushConstantRange,
     };
@@ -71,32 +71,7 @@ void ComputePipelineBuilder::setShaderModule(const ShaderModule& module, const c
 
 // MARK: - GraphicsPipelineBuilder
 
-VkPipelineLayout GraphicsPipelineBuilder::buildPipelineLayout(std::string name) {
-    VkPipelineLayoutCreateInfo pipelineLayoutInfo{
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-        .setLayoutCount = static_cast<uint32_t>(_descriptorSetLayouts.size()),
-        .pSetLayouts = _descriptorSetLayouts.data(),
-        .pushConstantRangeCount = 1,
-        .pPushConstantRanges = &_pushConstantRange
-    };
-    VkPipelineLayout pipelineLayout;
-    auto result = vkCreatePipelineLayout(_device.get().vkDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout);
-    if (result != VK_SUCCESS) {
-        _logger.error("failed to create pipeline layout!");
-        return VK_NULL_HANDLE;
-    }
-
-    VkDebugUtilsObjectNameInfoEXT nameInfo{
-        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
-        .objectType = VK_OBJECT_TYPE_PIPELINE_LAYOUT,
-        .objectHandle = reinterpret_cast<size_t>(pipelineLayout),
-        .pObjectName = (name + "_pipeline_layout").c_str(),
-    };
-    vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &nameInfo);
-    return pipelineLayout;
-}
-
-std::optional<vax::vk::Pipeline> GraphicsPipelineBuilder::build(std::string name, VkPipelineLayout pipelineLayout) {
+std::optional<VkPipeline> GraphicsPipelineBuilder::build(std::string name, VkPipelineLayout pipelineLayout) noexcept {
     VkPipelineInputAssemblyStateCreateInfo inputAssembly{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
         .topology = _topology,
@@ -134,7 +109,9 @@ std::optional<vax::vk::Pipeline> GraphicsPipelineBuilder::build(std::string name
         .colorWriteMask =
             VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
     };
-    std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments(_colorAttachmentCount, colorBlendAttachment);
+    std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments(
+        _renderPassDescriptor->colorAttachmentCount, colorBlendAttachment
+    );
     VkPipelineColorBlendStateCreateInfo colorBlending{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
         .logicOpEnable = VK_FALSE,
@@ -169,7 +146,7 @@ std::optional<vax::vk::Pipeline> GraphicsPipelineBuilder::build(std::string name
         .pColorBlendState = &colorBlending,
         .pDynamicState = &dynamicState,
         .layout = pipelineLayout,
-        .renderPass = _renderPass,
+        .renderPass = _renderPassDescriptor->getVkRenderPass(),
         .subpass = 0,
         .basePipelineHandle = VK_NULL_HANDLE,
     };
@@ -189,10 +166,12 @@ std::optional<vax::vk::Pipeline> GraphicsPipelineBuilder::build(std::string name
         .pObjectName = (name + "_pipeline").c_str(),
     };
     vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &baseGraphicsPipelineNameInfo);
-    return vax::vk::Pipeline(_device.get(), name, vax::vk::PipelineType::RENDER, pipelineLayout, pipeline);
+    return pipeline;
 }
 
-void GraphicsPipelineBuilder::addShaderStage(VkShaderStageFlagBits stage, VkShaderModule module, const char* name) {
+void GraphicsPipelineBuilder::addShaderStage(
+    VkShaderStageFlagBits stage, VkShaderModule module, const char* name
+) noexcept {
     VkPipelineShaderStageCreateInfo shaderStageInfo{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
         .stage = stage,
@@ -200,8 +179,4 @@ void GraphicsPipelineBuilder::addShaderStage(VkShaderStageFlagBits stage, VkShad
         .pName = name,
     };
     _shaderStages.push_back(shaderStageInfo);
-}
-
-void GraphicsPipelineBuilder::addDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout) {
-    _descriptorSetLayouts.push_back(descriptorSetLayout);
 }

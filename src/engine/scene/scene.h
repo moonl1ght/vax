@@ -1,28 +1,28 @@
 #pragma once
 
 #include "camera.h"
-#include "descriptorSetWriter.h"
 #include "drawContext.h"
 #include "environmentMap.h"
 #include "frameTime.h"
 #include "indirectDrawController.h"
 #include "inputController.h"
 #include "light.h"
-#include "vulkanCommon.h"
 #include "logger.h"
-#include <cstdint>
-#include <memory>
-#include <optional>
-#include <utility>
-#include <vector>
 #include "renderContext.h"
 #include "renderPassGraphDescriptor.h"
 #include "resourceManager.h"
 #include "sceneComposer.h"
 #include "sceneDescriptor.h"
-#include "shaderUniforms.h"
+#include "shaderData.h"
+#include "shaderResourceHandle.h"
 #include "state_tracker.h"
 #include "vkEngine.h"
+#include <array>
+#include <cstdint>
+#include <memory>
+#include <optional>
+#include <utility>
+#include <vector>
 
 namespace vax::rl {
 struct GridWorldDrawableDescriptor;
@@ -37,6 +37,13 @@ struct SceneUpdateContext {
     FrameTime frameTime;
 };
 
+enum class FrameUniformSlot : uint32_t {
+    MAIN_CAMERA = 0,
+    SUN_LIGHT = 1,
+    AGENT_CAMERA = 2,
+    SLOTS_COUNT = 3,
+};
+
 class Scene final : public vax::InputController::Observer {
   public:
     friend class SceneLoader;
@@ -45,20 +52,21 @@ class Scene final : public vax::InputController::Observer {
         vax::vk::Engine& vkEngine,
         std::unique_ptr<vax::ecs::World> gizmoWorld,
         std::unique_ptr<vax::ecs::World> backgroundWorld,
-        std::unique_ptr<vax::vk::ResourceManager> resourceManager,
         std::unique_ptr<vax::engine::EnvironmentMap> environmentMap,
-        std::unique_ptr<vax::engine::SceneComposer> sceneComposer
+        std::unique_ptr<vax::engine::SceneComposer> sceneComposer,
+        vax::vk::ResourceManager& resourceManager
     )
         : _vkEngine(vkEngine)
         , _gizmoWorld(std::move(gizmoWorld))
         , _backgroundWorld(std::move(backgroundWorld))
-        , _resourceManager(std::move(resourceManager))
         , _environmentMap(std::move(environmentMap))
-        , _sceneComposer(std::move(sceneComposer)) {
+        , _sceneComposer(std::move(sceneComposer))
+        , _resourceManager(resourceManager) {
         _indirectDrawController = std::make_unique<IndirectDrawController>(*_vkEngine.get().device);
     };
 
     ~Scene() {
+        _releaseResources();
         if (_inputController) {
             _inputController->removeObserver(this);
         }
@@ -77,19 +85,15 @@ class Scene final : public vax::InputController::Observer {
 
     void update(vax::engine::SceneUpdateContext sceneUpdateContext);
 
-    bool writeGlobalDescriptorSet(vax::vk::DescriptorSetWriter& descriptorWriter);
-
-    bool writeFrameDescriptorSet(
-        vax::vk::DescriptorSetWriter& descriptorWriter, vax::vk::DescriptorSetWriter& agentCameraDescriptorWriter
-    );
-
-    bool writePerDrawDescriptorSet(vax::vk::DescriptorSetWriter& descriptorWriter);
+    void registerResources() noexcept;
 
     void beginDrawing(vax::vk::CommandBuffer& commandBuffer, uint32_t frameIndex);
 
     void endDrawing(vax::vk::CommandBuffer& commandBuffer, uint32_t frameIndex);
 
-    void draw(const vax::engine::DrawContext& drawContext);
+    void draw(const vax::engine::DrawContext& drawContext, FrameUniformSlot cameraSlot = FrameUniformSlot::MAIN_CAMERA);
+
+    void drawShadow(const vax::engine::DrawContext& drawContext);
 
     void drawBackground(const vax::engine::DrawContext& drawContext);
 
@@ -115,15 +119,19 @@ class Scene final : public vax::InputController::Observer {
 
     vax::engine::Camera& agentCamera() { return _agentCamera; }
 
+    StructuredBufferShaderHandle instanceBufferHandle(uint32_t frameIndex) const {
+        return _instanceBufferHandles[frameIndex];
+    }
+
     void setWorld(std::shared_ptr<vax::ecs::World> world) { _world = std::move(world); }
 
   private:
     vax::Logger _logger = vax::Logger("DrawableScene");
 
+    std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;
     std::reference_wrapper<vax::vk::Engine> _vkEngine;
 
     std::unique_ptr<IndirectDrawController> _indirectDrawController;
-    std::unique_ptr<vax::vk::ResourceManager> _resourceManager;
     std::unique_ptr<vax::engine::EnvironmentMap> _environmentMap;
     std::unique_ptr<vax::engine::SceneComposer> _sceneComposer;
     std::unique_ptr<vax::ecs::World> _gizmoWorld;
@@ -132,8 +140,24 @@ class Scene final : public vax::InputController::Observer {
     std::shared_ptr<vax::ecs::World> _world = nullptr;
 
     std::vector<vax::vk::AnyBuffer*> _sceneUniformBuffers;
-    std::vector<vax::vk::AnyBuffer*> _agentCameraUniformBuffers;
     std::vector<vax::vk::AnyBuffer*> _lightsUniformBuffer;
+
+    StructuredBufferShaderHandle _vertexBufferHandle;
+    StructuredBufferShaderHandle _materialBufferHandle;
+    StructuredBufferShaderHandle _environmentMapBufferHandle;
+    std::array<StructuredBufferShaderHandle, vax::vk::MAX_FRAMES_IN_FLIGHT> _instanceBufferHandles;
+    std::vector<SampledImageShaderHandle> _textureHandles;
+    bool _resourcesRegistered = false;
+
+    void _releaseResources() noexcept;
+
+    void _writeUniformDescriptorSets() noexcept;
+
+    uint32_t _frameUniformStride() const noexcept;
+
+    void _bindFrameUniformSlot(const vax::engine::DrawContext& drawContext, FrameUniformSlot slot) const noexcept;
+
+    void _bindIndexBuffer(const vax::engine::DrawContext& drawContext) const noexcept;
 
     std::optional<vax::engine::SceneDescriptor> _descriptor;
 

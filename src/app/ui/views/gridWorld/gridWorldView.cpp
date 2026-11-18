@@ -1,8 +1,8 @@
 #include "gridWorldView.h"
-#include "paths.h"
 #include "fileSystem.h"
 #include "gridWorldSceneBuilder.h"
 #include "imgui.h"
+#include "paths.h"
 #include "qlConfig.h"
 #include "sceneLoader.h"
 #include "viewManager.h"
@@ -30,6 +30,9 @@ void GridWorldView::updateUI(const vax::engine::FrameTime& frameTime) {
 }
 
 void GridWorldView::_showMenuBarItems() {
+    if (!isLoaded()) {
+        return;
+    }
     if (_isDemoLoaded) {
         ImGui::BeginDisabled(_isDemoRunning);
         if (ImGui::MenuItem("Start demo")) {
@@ -69,7 +72,8 @@ void GridWorldView::_onClose() {
     }
 }
 
-void GridWorldView::load(Engine& engine, InputController& inputController) {
+bool GridWorldView::_load() {
+    _logger.info("Loading grid world...");
     _gridWorld = std::make_unique<GridWorld>(QLearningConfig{
         .learningRate = 0.1,
         .gamma = 0.9,
@@ -78,7 +82,8 @@ void GridWorldView::load(Engine& engine, InputController& inputController) {
     });
     _gridWorld->createRandomGrid();
 
-    auto sceneLoader = vax::engine::SceneLoader(engine);
+    auto sceneLoader =
+        vax::engine::SceneLoader(_renderingEngine.get().vkEngine(), _renderingEngine.get().resourceManager());
     auto gridWorldSceneDescriptor = GridWorldSceneBuilder().buildScene(
         _gridWorld->getGrid(), _gridWorld->getDrawableWorldPosition(), _gridWorld->getAgent()
     );
@@ -90,8 +95,10 @@ void GridWorldView::load(Engine& engine, InputController& inputController) {
     _controller->getScene().resize();
 
     _gridWorld->linkSceneController(_controller.get());
-    inputController.addObserver(&_controller->getScene());
-    inputController.addObserver(_gridWorld.get());
+    _inputController.get().addObserver(&_controller->getScene());
+    _inputController.get().addObserver(_gridWorld.get());
+    _logger.success("Grid world loaded");
+    return true;
 }
 
 void GridWorldView::_startTraining() {
@@ -160,9 +167,9 @@ void GridWorldView::_showAgentCamera() {
     } else {
         _windowController.get().setupWindow(1, vax::math::SizeUI{640, 480}, "Agent camera");
         _windowController.get().getWindow(1)->load(true, false);
-        _windowController.get().getWindow(1)->createSurface(_uiEngine.get().engine().instance);
+        _windowController.get().getWindow(1)->createSurface(_renderingEngine.get().vkEngine().instance);
         _windowController.get().getWindow(1)->createSwapchain(
-            *_uiEngine.get().engine().device, VK_PRESENT_MODE_MAILBOX_KHR
+            *_renderingEngine.get().vkEngine().device, VK_PRESENT_MODE_MAILBOX_KHR
         );
     }
     _windowController.get().getWindow(1)->setWindowWillHideCallback([this]() {

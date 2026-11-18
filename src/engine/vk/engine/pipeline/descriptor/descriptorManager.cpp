@@ -60,7 +60,7 @@ bool DescriptorManager::setup() noexcept {
         _logger.error("Failed to setup UBO descriptor pool and set!");
         return false;
     }
-    _descriptorRegistry->use(_descriptorSet, _uboDescriptorSet);
+    _descriptorRegistry->use(_descriptorSet);
     return true;
 }
 
@@ -93,13 +93,15 @@ bool DescriptorManager::_setupUBOPoolAndDescriptorSet() noexcept {
     }
     _uboDescriptorSetLayout = layout.value();
 
+    std::array<VkDescriptorSetLayout, MAX_FRAMES_IN_FLIGHT> layouts;
+    layouts.fill(_uboDescriptorSetLayout);
     VkDescriptorSetAllocateInfo allocInfo{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
         .descriptorPool = descriptorPool,
-        .descriptorSetCount = 1,
-        .pSetLayouts = &_uboDescriptorSetLayout,
+        .descriptorSetCount = static_cast<uint32_t>(layouts.size()),
+        .pSetLayouts = layouts.data(),
     };
-    auto result = vkAllocateDescriptorSets(_device.get().vkDevice(), &allocInfo, &_uboDescriptorSet);
+    auto result = vkAllocateDescriptorSets(_device.get().vkDevice(), &allocInfo, _uboDescriptorSets.data());
     if (result != VK_SUCCESS) {
         _logger.error("Failed to allocate descriptor set!");
         return false;

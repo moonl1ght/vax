@@ -4,7 +4,7 @@ using namespace vax::engine;
 using namespace vax::vk;
 using namespace vax;
 
-void IndirectDrawController::setup(uint32_t maxCommands) {
+void IndirectDrawController::setup(uint32_t maxCommands, vk::DescriptorRegistry& descriptorRegistry) noexcept {
     _maxCommands = maxCommands;
     _commands.reserve(maxCommands);
     for (uint32_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; i++) {
@@ -34,11 +34,18 @@ void IndirectDrawController::setup(uint32_t maxCommands) {
             _logger.error("Failed to allocate per draw data buffer");
             return;
         }
-        _perDrawDataBuffers.push_back(std::make_unique<PerDrawDataBuffer>(std::move(*perDrawDataBuffer)));
+        auto handle = descriptorRegistry.registerStorageBuffer(*perDrawDataBuffer);
+        if (!handle) {
+            _logger.error("Failed to register per draw data buffer");
+            return;
+        }
+        _perDrawDataBufferHandles.push_back(
+            std::make_unique<PerDrawDataBufferHandle>(std::move(handle.value()), std::move(*perDrawDataBuffer))
+        );
     }
 }
 
-void IndirectDrawController::draw(CommandBuffer& commandBuffer, uint32_t frameIndex) {
+void IndirectDrawController::draw(CommandBuffer& commandBuffer, uint32_t frameIndex) noexcept {
     if (!_submitted[frameIndex]) {
         _logger.error("Commands not submitted");
         return;
@@ -52,7 +59,9 @@ void IndirectDrawController::draw(CommandBuffer& commandBuffer, uint32_t frameIn
     );
 }
 
-void IndirectDrawController::drawRange(CommandBuffer& commandBuffer, uint32_t frameIndex, const std::string& name) {
+void IndirectDrawController::drawRange(
+    CommandBuffer& commandBuffer, uint32_t frameIndex, const std::string& name
+) noexcept {
     auto& drawRange = _drawRanges.at(name);
     if (!_submitted[frameIndex]) {
         _logger.error("Commands not submitted");
@@ -67,7 +76,9 @@ void IndirectDrawController::drawRange(CommandBuffer& commandBuffer, uint32_t fr
     );
 }
 
-void IndirectDrawController::pushCommand(VkDrawIndexedIndirectCommand command, const PerDrawData& perDrawData) {
+void IndirectDrawController::pushCommand(
+    VkDrawIndexedIndirectCommand command, const PerDrawData& perDrawData
+) noexcept {
     if (_commands.size() >= _maxCommands) {
         _logger.error("Max commands reached");
         return;
@@ -76,28 +87,17 @@ void IndirectDrawController::pushCommand(VkDrawIndexedIndirectCommand command, c
     _perDrawData.push_back(perDrawData);
 }
 
-void IndirectDrawController::submitCommands(uint32_t frameIndex) {
+void IndirectDrawController::submitCommands(uint32_t frameIndex) noexcept {
     if (_commands.empty()) {
         return;
     }
     _commandBuffers[frameIndex]->fill(_commands.data(), _commands.size() * sizeof(VkDrawIndexedIndirectCommand));
-    _perDrawDataBuffers[frameIndex]->fill(_perDrawData.data(), _perDrawData.size() * sizeof(PerDrawData));
+    _perDrawDataBufferHandles[frameIndex]->second.fill(_perDrawData.data(), _perDrawData.size() * sizeof(PerDrawData));
     _submitted[frameIndex] = true;
 }
 
-void IndirectDrawController::prepareForDraw(uint32_t frameIndex) {
+void IndirectDrawController::prepareForDraw(uint32_t frameIndex) noexcept {
     _commands.clear();
     _perDrawData.clear();
     _submitted[frameIndex] = false;
-}
-
-void IndirectDrawController::writePerDrawDescriptorSet(
-    vax::vk::DescriptorSetWriter& descriptorWriter, uint32_t frameIndex
-) {
-    descriptorWriter.writeBuffer(
-        *_perDrawDataBuffers[frameIndex],
-        DrawBindingIndices::DRAW_DATA_BUFFER_INDEX,
-        0,
-        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-    );
 }

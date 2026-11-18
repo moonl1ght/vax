@@ -2,7 +2,6 @@
 
 #include "commandManager.h"
 #include "deletionQueue.h"
-#include "descriptorSetManager.h"
 #include "device.h"
 #include "logger.h"
 #include "pipelineManager.h"
@@ -39,7 +38,6 @@ class Engine final {
     std::unique_ptr<vax::vk::Device> device;
 
     std::unique_ptr<vax::vk::QueueManager> queueManager;
-    std::unique_ptr<vax::vk::DescriptorSetManager> descriptorSetManager;
     std::unique_ptr<vax::vk::PipelineManager> pipelineManager;
     std::unique_ptr<vax::vk::CommandManager> commandManager;
     std::unique_ptr<vax::vk::SyncObjectsManager> syncObjectsManager;

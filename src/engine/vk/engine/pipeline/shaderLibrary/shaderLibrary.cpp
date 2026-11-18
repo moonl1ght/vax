@@ -19,9 +19,23 @@ void ShaderLibrary::startSession(const std::string& shaderDirectory, Profile pro
     const std::string includeDirectory = shaderDirectory + "/include";
     const char* searchPaths[] = {srcDirectory.c_str(), includeDirectory.c_str()};
 
+    const slang::CompilerOptionEntry compilerOptions[] = {
+        {
+        .name = slang::CompilerOptionName::DebugInformation,
+        .value = {.kind = slang::CompilerOptionValueKind::Int, .intValue0 = SLANG_DEBUG_INFO_LEVEL_STANDARD},
+        },
+        {
+        .name = slang::CompilerOptionName::Optimization,
+        .value = {.kind = slang::CompilerOptionValueKind::Int, .intValue0 = SLANG_OPTIMIZATION_LEVEL_NONE},
+        },
+    };
+
     slang::SessionDesc sessionDesc = {};
     sessionDesc.searchPaths = searchPaths;
     sessionDesc.searchPathCount = 2;
+    sessionDesc.compilerOptionEntries = compilerOptions;
+    sessionDesc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
+    sessionDesc.compilerOptionEntryCount = static_cast<uint32_t>(std::size(compilerOptions));
 
     slang::TargetDesc targetDesc = {};
     targetDesc.format = SLANG_SPIRV;

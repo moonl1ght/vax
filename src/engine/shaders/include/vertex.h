@@ -1,10 +1,9 @@
-#pragma once
-#include <cstdint>
-#include <glm/glm.hpp>
-#include "shaderUniforms.h"
-#include <array>
+#ifndef vertex_h
+#define vertex_h
 
-#include <glm/gtx/hash.hpp>
+#ifdef __cplusplus
+
+#include <glm/glm.hpp>
 
 namespace vax::vk {
 struct alignas(16) Vertex {
@@ -29,3 +28,25 @@ struct alignas(16) Vertex {
     glm::vec2 uv2;
 };
 } // namespace vax::vk
+
+#else // Slang
+
+struct Vertex {
+    float3 position;
+
+    uint packedColor;
+
+    float4 tangent;
+
+    float3 normal;
+
+    uint padding;
+
+    float2 uv;
+
+    float2 uv2;
+};
+
+#endif
+
+#endif // vertex_h

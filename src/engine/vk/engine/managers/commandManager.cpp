@@ -22,7 +22,6 @@ void vax::vk::CommandManager::cleanup() {
 }
 
 bool vax::vk::CommandManager::_createCommandPool() {
-    _logger.info("Creating command pool...");
     QueueFamilyIndices queueFamilyIndices = _device.get().queueFamilyIndices();
 
     VkCommandPoolCreateInfo poolInfo{
@@ -40,7 +39,6 @@ bool vax::vk::CommandManager::_createCommandPool() {
 }
 
 bool vax::vk::CommandManager::_createCommandBuffer() {
-    _logger.info("Creating command buffer...");
     std::vector<VkCommandBuffer> commandBuffers;
     commandBuffers.resize(vax::vk::MAX_FRAMES_IN_FLIGHT);
     _commandBuffers.reserve(commandBuffers.size());
@@ -77,6 +75,4 @@ CommandBuffer vax::vk::CommandManager::createSingleTimeCommandBuffer() {
     return CommandBuffer(_device.get(), _commandPool, commandBuffer);
 }
 
-CommandBuffer& vax::vk::CommandManager::getCommandBuffer(uint32_t index) {
-    return _commandBuffers[index];
-}
+CommandBuffer& vax::vk::CommandManager::getCommandBuffer(uint32_t index) { return _commandBuffers[index]; }

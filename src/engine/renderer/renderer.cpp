@@ -1,122 +1,70 @@
 #include "renderer.h"
-#include "descriptorSetManager.h"
 #include "imageUtils.h"
-#include "jfaPass.h"
 #include "paths.h"
-#include "pipeline.h"
 #include "profiler.h"
-#include "textureFactory.h"
 #include "vkEngine.h"
+#include <array>
 
 using namespace vax::engine;
 using namespace vax;
 using namespace vax::vk;
 
-void Renderer::load() {
-    _vkEngine.get().pipelineManager->load(SRC_PATH("engine/shaders/"));
+void Renderer::setup(vax::vk::ResourceManager& resourceManager) noexcept {
+    _renderPassGraphManager = std::make_unique<RenderPassGraphManager>(
+        *_vkEngine.get().device,
+        *_vkEngine.get().pipelineManager,
+        resourceManager,
+        _vkEngine.get().getWindowController(),
+        _uiEngine.get()
+    );
     auto swapchain = _getSwapchain(0);
     _renderPassGraphManager->setupRenderPassDescriptors(swapchain->swapchainImageFormat);
     auto swapchainRenderPassDescriptor = _renderPassGraphManager->getRenderPassDescriptor("swapchain");
-    auto mainRenderPassDescriptor = _renderPassGraphManager->getRenderPassDescriptor("main");
-    auto shadowSunRenderPassDescriptor = _renderPassGraphManager->getRenderPassDescriptor("shadow_sun");
     _uiEngine.get().setup(swapchainRenderPassDescriptor->getVkRenderPass());
 
     _renderPassGraphManager->setupRenderDestinations(
         *_vkEngine.get().commandManager, *_vkEngine.get().queueManager, *swapchain
     );
+}
+
+void Renderer::load() {
+    if (_isLoaded) {
+        return;
+    }
+    _vkEngine.get().pipelineManager->load(SRC_PATH("engine/shaders/"));
+
+    auto swapchain = _getSwapchain(0);
+    auto swapchainRenderPassDescriptor = _renderPassGraphManager->getRenderPassDescriptor("swapchain");
+    auto mainRenderPassDescriptor = _renderPassGraphManager->getRenderPassDescriptor("main");
+    auto shadowSunRenderPassDescriptor = _renderPassGraphManager->getRenderPassDescriptor("shadow_sun");
+
     auto defaultPipelines = vax::vk::defaultPipelines();
-    defaultPipelines["background"].renderPassDescriptor = swapchainRenderPassDescriptor;
+    defaultPipelines["finalblend"].renderPassDescriptor = swapchainRenderPassDescriptor;
+    defaultPipelines["finalblend_cam"].renderPassDescriptor = swapchainRenderPassDescriptor;
+    defaultPipelines["pbr"].renderPassDescriptor = mainRenderPassDescriptor;
+    defaultPipelines["simple"].renderPassDescriptor = mainRenderPassDescriptor;
+    defaultPipelines["shadow"].renderPassDescriptor = shadowSunRenderPassDescriptor;
     std::vector<vax::vk::PipelineDescriptor> pipelineDescriptors;
     for (const auto& [name, pipelineDescriptor] : defaultPipelines) {
         pipelineDescriptors.push_back(pipelineDescriptor);
     }
     _vkEngine.get().pipelineManager->prebuildPipelines(pipelineDescriptors);
+
+    _isLoaded = true;
 }
 
-void Renderer::setup(Scene* scene) {
-    for (uint32_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
-        if (scene != nullptr) {
-            scene->prepareForDraw(engine::RenderCallContext{.currentFrame = i});
-        }
-        auto globalDescriptorSetWriter =
-            _vkEngine.get().descriptorSetManager->getDescriptorSetWriter(CommonDescriptorSetName::GLOBAL, i);
-        if (!globalDescriptorSetWriter.has_value()) {
-            _logger.error("Failed to get global descriptor set writer!");
-            return;
-        }
-        scene->writeGlobalDescriptorSet(*globalDescriptorSetWriter);
-        auto shadowSunRenderDestination = _renderPassGraphManager->getRenderDestination("shadow_sun");
-        globalDescriptorSetWriter->writeTexture(
-            shadowSunRenderDestination->depthTexture(), GlobalDescriptorSetResourceIndex::GLOBAL_SHADOW_TEXTURE_INDEX
-        );
-        globalDescriptorSetWriter->update();
-        auto frameDescriptorSetWriter =
-            _vkEngine.get().descriptorSetManager->getDescriptorSetWriter(CommonDescriptorSetName::PER_FRAME, i);
-        if (!frameDescriptorSetWriter.has_value()) {
-            _logger.error("Failed to get frame descriptor set writer!");
-            return;
-        }
-        auto agentCameraDescriptorSetWriter =
-            _vkEngine.get().descriptorSetManager->getDescriptorSetWriter(CommonDescriptorSetName::AGENT_CAMERA, i);
-        if (!agentCameraDescriptorSetWriter.has_value()) {
-            _logger.error("Failed to get agent camera descriptor set writer!");
-            return;
-        }
-        scene->writeFrameDescriptorSet(*frameDescriptorSetWriter, *agentCameraDescriptorSetWriter);
-        agentCameraDescriptorSetWriter->update();
-        frameDescriptorSetWriter->update();
-
-        auto perDrawDescriptorSetWriter =
-            _vkEngine.get().descriptorSetManager->getDescriptorSetWriter(CommonDescriptorSetName::PER_DRAW, i);
-        if (!perDrawDescriptorSetWriter.has_value()) {
-            _logger.error("Failed to get per draw descriptor set writer!");
-            return;
-        }
-        scene->writePerDrawDescriptorSet(*perDrawDescriptorSetWriter);
-        perDrawDescriptorSetWriter->update();
-    }
-    _writeFinalBlendDescriptorSets();
-}
-
-void Renderer::_writeSecondaryWindowDescriptorSets() {
-    auto agentCameraRenderDestination = _renderPassGraphManager->getRenderDestination("agent_camera_main");
-    for (uint32_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
-        auto agentCameraFBDescriptorSetWriter =
-            _vkEngine.get().descriptorSetManager->getDescriptorSetWriter(CommonDescriptorSetName::AGENT_CAMERA_FB, i);
-        if (!agentCameraFBDescriptorSetWriter.has_value()) {
-            _logger.error("Failed to get agent camera FB descriptor set writer!");
-            return;
-        }
-        agentCameraFBDescriptorSetWriter->writeTexture(agentCameraRenderDestination->textures()[i], 0, 0, true);
-        agentCameraFBDescriptorSetWriter->update();
-    }
-}
-
-void Renderer::_writeFinalBlendDescriptorSets() {
-    auto mainRenderDestination = _renderPassGraphManager->getRenderDestination("main");
-    for (uint32_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
-        auto finalBlendDescriptorSetWriter =
-            _vkEngine.get().descriptorSetManager->getDescriptorSetWriter(CommonDescriptorSetName::MAIN_FB, i);
-        if (!finalBlendDescriptorSetWriter.has_value()) {
-            _logger.error("Failed to get post process descriptor set writer!");
-            return;
-        }
-        finalBlendDescriptorSetWriter->writeTexture(mainRenderDestination->textures()[i], 0, 0, true);
-        finalBlendDescriptorSetWriter->writeTexture(mainRenderDestination->maskTextures()[i], 1, 0, false);
-        finalBlendDescriptorSetWriter->writeTexture(mainRenderDestination->depthTexture(), 2, 0, false);
-        finalBlendDescriptorSetWriter->update();
-    }
-}
-
-void Renderer::prepareForRender(Scene* scene) {
+void Renderer::_prepareForRender(Scene* scene) {
     ZoneScopedN("Renderer::prepareForRender");
     bool shouldRebuildGraph = renderPassGraphMode.is_dirty() || _wasResized;
     if (scene != nullptr) {
-        scene->prepareForDraw(engine::RenderCallContext{.currentFrame = _currentFrame});
-
-        if (_wasResized) {
-            setup(scene);
-        }
+        auto shadowMapResource = _renderPassGraphManager->getRenderDestination("shadow_sun")->depthTexture();
+        scene->prepareForDraw(
+            engine::RenderCallContext{
+            .currentFrame = _currentFrame,
+            .shadowMapIndex =
+                shadowMapResource ? shadowMapResource->sampledShaderHandle.index : NullShaderResourceIndex,
+            }
+        );
 
         shouldRebuildGraph |= scene->shouldRebuildRenderPassGraph();
     }
@@ -136,7 +84,6 @@ void Renderer::prepareForRender(Scene* scene) {
                     _renderPassGraphManager->setupRenderDestinationsForAgentCamera(
                         *_vkEngine.get().commandManager, *_vkEngine.get().queueManager, *_getSwapchain(1)
                     );
-                    _writeSecondaryWindowDescriptorSets();
                 }
                 _renderPassGraphManager->buildGraph(
                     RenderPassGraphMode::SCENE_GRAPH, scene != nullptr ? &scene->renderPassGraphDescriptor() : nullptr
@@ -151,6 +98,7 @@ void Renderer::prepareForRender(Scene* scene) {
 }
 
 bool Renderer::render(Scene* scene, const FrameTime& frameTime) {
+    _prepareForRender(scene);
     ZoneScopedN("Renderer::render");
     _waitForFence();
 
@@ -342,19 +290,35 @@ void Renderer::_drawUi(CommandBuffer& commandBuffer) {
 
 bool Renderer::_drawScene(CommandBuffer& commandBuffer, Scene* scene) {
     ZoneScopedN("Renderer::_drawScene");
-    auto pipelineLayout = _vkEngine.get().pipelineManager->getPipelineLayout(vax::vk::PipelineLayoutName::BASE);
-    if (!pipelineLayout) {
-        _logger.error("Failed to get base pipeline layout!");
+    if (!_bindDescriptorSets(commandBuffer))
         return false;
+
+    RenderPassNode::FrameTextureHandles frameTextures{};
+    auto mainRenderDestination = _renderPassGraphManager->getRenderDestination("main");
+    bool drawSecondaryWindow = scene->renderPassGraphDescriptor().withSecondaryWindow;
+    if (_currentFrame < mainRenderDestination->colorTextures().size()) {
+        frameTextures.mainColor =
+            SampledImageShaderHandle(mainRenderDestination->colorTextures()[_currentFrame]->sampledShaderHandle.index);
+        frameTextures.mainMask =
+            SampledImageShaderHandle(mainRenderDestination->maskTextures()[_currentFrame]->sampledShaderHandle.index);
+        frameTextures.mainDepth =
+            SampledImageShaderHandle(mainRenderDestination->depthTexture()->sampledShaderHandle.index);
     }
-    if (!_bindGlobalDescriptorSet(commandBuffer, pipelineLayout))
-        return false;
+    if (drawSecondaryWindow) {
+        auto agentCameraRenderDestination = _renderPassGraphManager->getRenderDestination("agent_camera_main");
+        if (_currentFrame < agentCameraRenderDestination->colorTextures().size()) {
+            frameTextures.agentCameraColor = SampledImageShaderHandle(
+                agentCameraRenderDestination->colorTextures()[_currentFrame]->sampledShaderHandle.index
+            );
+        }
+    }
 
     RenderPassNode::RunPassInfo runPassInfo{
         .commandBuffer = commandBuffer,
         .scene = scene,
         .imageIndices = _outputImageIndices,
         .frameIndex = _currentFrame,
+        .frameTextures = frameTextures,
     };
 
     scene->beginDrawing(commandBuffer, _currentFrame);
@@ -363,14 +327,29 @@ bool Renderer::_drawScene(CommandBuffer& commandBuffer, Scene* scene) {
     return true;
 }
 
-bool Renderer::_bindGlobalDescriptorSet(CommandBuffer& commandBuffer, VkPipelineLayout pipelineLayout) {
-    auto globalDescriptorSetHandler =
-        _vkEngine.get().descriptorSetManager->getDescriptorSetHandler(CommonDescriptorSetName::GLOBAL, _currentFrame);
-    if (!globalDescriptorSetHandler.has_value()) {
-        _logger.error("Failed to get global descriptor set writer!");
+bool Renderer::_bindDescriptorSets(CommandBuffer& commandBuffer) {
+    auto& pipelineManager = *_vkEngine.get().pipelineManager;
+    VkPipelineLayout pipelineLayout = pipelineManager.pipelineLayout();
+    std::array<VkDescriptorSet, 2> descriptorSets{
+        pipelineManager.bindlessDescriptorSet(),
+        pipelineManager.uboDescriptorSet(_currentFrame),
+    };
+    if (pipelineLayout == VK_NULL_HANDLE || descriptorSets[BINDLESS_SET_INDEX] == VK_NULL_HANDLE ||
+        descriptorSets[UBO_SET_INDEX] == VK_NULL_HANDLE) {
+        _logger.error("Pipeline layout or descriptor sets are not created!");
         return false;
     }
-    globalDescriptorSetHandler->bind(commandBuffer.vkCommandBuffer, pipelineLayout, MainSetIndices::GLOBAL_SET_INDEX);
+    uint32_t frameUniformBufferOffset = 0;
+    vkCmdBindDescriptorSets(
+        commandBuffer.vkCommandBuffer,
+        VK_PIPELINE_BIND_POINT_GRAPHICS,
+        pipelineLayout,
+        BINDLESS_SET_INDEX,
+        static_cast<uint32_t>(descriptorSets.size()),
+        descriptorSets.data(),
+        1,
+        &frameUniformBufferOffset
+    );
     return true;
 }
 

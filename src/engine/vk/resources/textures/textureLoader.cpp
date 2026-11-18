@@ -4,7 +4,6 @@
 #include "./deps/stb_image.h"
 #include "buffer.h"
 #include "glTokens.h"
-#include "textureFactory.h"
 #include "textureTaskScheduler.h"
 #include <ktx.h>
 
@@ -98,31 +97,31 @@ VkFormat getVkFormatFromGlInternalFormat(uint32_t glInternalFormat) noexcept {
     }
 }
 
-std::optional<TextureManager::TextureResource>
+TextureManager::TextureResource*
 TextureLoader::loadTexture(std::string name, std::span<unsigned char> data) const noexcept {
     int texWidth, texHeight, texChannels;
     stbi_uc* pixels =
         stbi_load_from_memory(data.data(), data.size(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
     if (!pixels) {
         _logger.error("Failed to load pixels");
-        return std::nullopt;
+        return nullptr;
     }
     auto texture = _loadTexture(name, pixels, texWidth, texHeight);
     stbi_image_free(pixels);
     return texture;
 }
 
-std::optional<TextureManager::TextureResource> TextureLoader::loadRawRGBATexture(
+TextureManager::TextureResource* TextureLoader::loadRawRGBATexture(
     std::string name, std::span<const unsigned char> pixels, int width, int height
 ) const noexcept {
     if (width <= 0 || height <= 0 || pixels.size() != static_cast<size_t>(width) * height * 4) {
         _logger.error("Invalid raw RGBA texture data for: ", name);
-        return std::nullopt;
+        return nullptr;
     }
     return _loadTexture(name, pixels.data(), width, height);
 }
 
-std::optional<TextureManager::TextureResource> TextureLoader::loadTexture(std::string path) const noexcept {
+TextureManager::TextureResource* TextureLoader::loadTexture(std::string path) const noexcept {
     if (path.ends_with(".ktx")) {
         return _loadKTXTexture(path);
     }
@@ -130,19 +129,19 @@ std::optional<TextureManager::TextureResource> TextureLoader::loadTexture(std::s
     stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
     if (!pixels) {
         _logger.error("Failed to load pixels");
-        return std::nullopt;
+        return nullptr;
     }
     auto texture = _loadTexture(path, pixels, texWidth, texHeight);
     stbi_image_free(pixels);
     return texture;
 }
 
-std::optional<TextureManager::TextureResource> TextureLoader::_loadKTXTexture(std::string path) const noexcept {
+TextureManager::TextureResource* TextureLoader::_loadKTXTexture(std::string path) const noexcept {
     ktxTexture* ktxTex = nullptr;
     ktxResult result = ktxTexture_CreateFromNamedFile(path.c_str(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &ktxTex);
     if (result != KTX_SUCCESS) {
         _logger.error("Failed to create ktx texture, ktxResult= ", static_cast<int>(result));
-        return std::nullopt;
+        return nullptr;
     }
 
     VkFormat format = VK_FORMAT_UNDEFINED;
@@ -155,7 +154,7 @@ std::optional<TextureManager::TextureResource> TextureLoader::_loadKTXTexture(st
     if (format == VK_FORMAT_UNDEFINED) {
         _logger.error("Unsupported or unknown format in KTX file: {}", path);
         ktxTexture_Destroy(ktxTex);
-        return std::nullopt;
+        return nullptr;
     }
 
     const uint32_t width = ktxTex->baseWidth;
@@ -177,7 +176,7 @@ std::optional<TextureManager::TextureResource> TextureLoader::_loadKTXTexture(st
     );
     if (!stagingBuffer.has_value()) {
         ktxTexture_Destroy(ktxTex);
-        return std::nullopt;
+        return nullptr;
     }
 
     std::vector<VkBufferImageCopy> copyRegions;
@@ -207,9 +206,8 @@ std::optional<TextureManager::TextureResource> TextureLoader::_loadKTXTexture(st
 
     ktxTexture_Destroy(ktxTex);
 
-    auto textureFactory = _textureManager.get().createTextureFactory();
-    auto texture = textureFactory.makeTexture(
-        TextureFactory::TextureCreateInfo{
+    auto textureResource = _textureManager.get().createTexture(
+        TextureManager::TextureCreateInfo{
         .name = path,
         .format = format,
         .size = math::SizeUI(width, height),
@@ -219,16 +217,16 @@ std::optional<TextureManager::TextureResource> TextureLoader::_loadKTXTexture(st
         .numMips = numMips
         }
     );
-    if (!texture.has_value()) {
+    if (!textureResource) {
         stagingBuffer->cleanup();
-        return std::nullopt;
+        return nullptr;
     }
 
-    texture->second->setStagingBuffer(std::move(*stagingBuffer), std::move(copyRegions));
-    return texture;
+    textureResource->texture.setStagingBuffer(std::move(*stagingBuffer), std::move(copyRegions));
+    return textureResource;
 }
 
-std::optional<TextureManager::TextureResource>
+TextureManager::TextureResource*
 TextureLoader::_loadTexture(std::string name, const unsigned char* pixels, int texWidth, int texHeight) const noexcept {
     VkDeviceSize imageSize = texWidth * texHeight * 4;
     auto stagingBuffer = vk::AnyBuffer::allocateAndFillData(
@@ -242,13 +240,11 @@ TextureLoader::_loadTexture(std::string name, const unsigned char* pixels, int t
     );
 
     if (!stagingBuffer.has_value()) {
-        return std::nullopt;
+        return nullptr;
     }
 
-    auto textureFactory = _textureManager.get().createTextureFactory();
-
-    auto texture = textureFactory.makeTexture(
-        TextureFactory::TextureCreateInfo{
+    auto textureResource = _textureManager.get().createTexture(
+        TextureManager::TextureCreateInfo{
         .name = name,
         .format = VK_FORMAT_R8G8B8A8_SRGB,
         .size = math::SizeUI(texWidth, texHeight),
@@ -256,10 +252,10 @@ TextureLoader::_loadTexture(std::string name, const unsigned char* pixels, int t
         }
     );
 
-    if (!texture.has_value()) {
-        return std::nullopt;
+    if (!textureResource) {
+        return nullptr;
     }
 
-    texture->second->setStagingBuffer(std::move(*stagingBuffer));
-    return texture;
+    textureResource->texture.setStagingBuffer(std::move(*stagingBuffer));
+    return textureResource;
 }

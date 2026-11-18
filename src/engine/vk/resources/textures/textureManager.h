@@ -1,69 +1,101 @@
 #pragma once
 
+#include "descriptorRegistry.h"
 #include "device.h"
 #include "logger.h"
-#include <cstdint>
-#include <optional>
-#include <utility>
-#include <vector>
-#include "resourceHandle.h"
+#include "poolDescriptor.h"
+#include "sampler.h"
+#include "shaderResourceHandle.h"
 #include "texture.h"
-#include <unordered_map>
+#include <memory>
+#include <vector>
 
 namespace vax::vk {
 class TextureFactory;
-class DescriptorSetWriter;
 } // namespace vax::vk
 
 namespace vax::vk {
 class TextureManager final {
   public:
-    using TextureResource = std::pair<TextureHandle, Texture*>;
-    using SamplerResource = std::pair<SamplerHandle, Sampler*>;
+    enum class GlobalSampler : uint32_t { PBRSampler = 0, CubeMapSampler = 1 };
 
-    explicit TextureManager(const vk::Device& device)
-        : _device(device) {
-        _globalSamplers.reserve(vax::vk::MAX_GLOBAL_SAMPLERS);
+    enum class TextureRegistrationType : uint32_t {
+        SampledImage = 0,
+        StorageImage = 1,
+        Both = 2,
     };
 
-    ~TextureManager() { fullCleanup(); }
+    struct TextureResource final {
+        TextureId id;
+        TextureRegistrationType registrationType;
+        Texture texture;
+        SampledImageShaderHandle sampledShaderHandle = {};
+        StorageImageShaderHandle storageShaderHandle = {};
+    };
+
+    struct SamplerResource final {
+        Sampler sampler;
+        SamplerShaderHandle shaderHandle;
+    };
+
+    struct TextureCreateInfo final {
+        TextureRegistrationType registrationType = TextureRegistrationType::SampledImage;
+        std::string name;
+        VkFormat format;
+        math::SizeUI size;
+        VkImageUsageFlags imageUsageFlags;
+        VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D;
+        VkImageCreateFlags flags = 0;
+        uint32_t numLayers = 1;
+        uint32_t numMips = 1;
+    };
+
+    explicit TextureManager(const vk::Device& device, DescriptorRegistry& descriptorRegistry) noexcept
+        : _device(device)
+        , _descriptorRegistry(descriptorRegistry) {
+        _globalSamplers.reserve(MAX_SAMPLERS);
+    };
+
+    ~TextureManager() { cleanup(); }
 
     TextureManager(const TextureManager& other) = delete;
     TextureManager(TextureManager&& other) noexcept = delete;
     TextureManager& operator=(const TextureManager& other) = delete;
     TextureManager& operator=(TextureManager&& other) noexcept = delete;
 
-    void fullCleanup();
+    void cleanup() noexcept;
 
-    bool setup();
+    bool setup() noexcept;
 
-    TextureFactory createTextureFactory() const;
+    TextureResource* findTexture(TextureId id) noexcept;
 
-    std::optional<TextureResource> find(TextureHandle handle);
+    const SamplerResource* getGlobalSampler(GlobalSampler sampler) const noexcept;
 
-    bool deleteTexture(TextureHandle handle);
+    void loadAllTextures(vax::vk::CommandBuffer& commandBuffer) noexcept;
 
-    std::optional<Texture> detach(TextureHandle handle);
+    void resetAllTexturesStagingBuffers() noexcept;
 
-    std::optional<TextureResource> attach(Texture&& texture);
+    TextureResource* createDepthTexture(
+        VkFormat format,
+        vax::math::SizeUI size,
+        TextureRegistrationType registrationType = TextureRegistrationType::SampledImage
+    ) noexcept;
 
-    std::optional<SamplerResource> getGlobalSampler(GlobalSampler sampler);
-
-    void
-    updateDescriptorWriterWithAllTextures(vax::vk::DescriptorSetWriter& descriptorWriter, uint32_t binding) const;
-
-    void loadAllTextures(vax::vk::CommandBuffer& commandBuffer);
-
-    void resetAllTexturesStagingBuffers();
+    TextureResource* createTexture(const TextureCreateInfo& createInfo) noexcept;
 
   private:
     vax::Logger _logger = vax::Logger("TextureManager");
 
     std::reference_wrapper<const vk::Device> _device;
-    // TODO: change to vector + use generation for stability
-    // maybe vector of vectors of buffers?
-    std::unordered_map<TextureId, Texture> _pool;
-    std::vector<Sampler> _globalSamplers;
-    TextureId _lastId = 0;
+    std::reference_wrapper<DescriptorRegistry> _descriptorRegistry;
+
+    std::vector<std::unique_ptr<TextureResource>> _textures;
+    std::vector<SamplerResource> _globalSamplers;
+
+    bool _registerLastTexture() noexcept;
+
+    bool _registerLastStorageTexture() noexcept;
+
+    bool _registerLastSampledTexture() noexcept;
 };
 } // namespace vax::vk

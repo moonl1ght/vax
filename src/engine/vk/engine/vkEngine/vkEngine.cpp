@@ -42,6 +42,7 @@ bool vax::vk::Engine::setup() {
     if (instanceOptional.has_value()) {
         instance = *instanceOptional;
     } else {
+        _logger.error("Failed to create Vulkan instance!");
         return false;
     }
     deletionQueue.push_function([&]() {
@@ -51,8 +52,10 @@ bool vax::vk::Engine::setup() {
     });
     vax::vk::setPfnSetDebugUtilsObjectNameEXT(instance);
 
-    if (!setupDebugMessenger())
+    if (!setupDebugMessenger()) {
+        _logger.error("Failed to setup debug messenger!");
         return false;
+    }
 
     _windowController.get().getWindow(0)->createSurface(instance);
     deletionQueue.push_function([&]() { _windowController.get().getWindow(0)->destroySurface(); });
@@ -61,6 +64,7 @@ bool vax::vk::Engine::setup() {
     auto deviceLoadResult =
         device->load(instance, _windowController.get().getWindow(0)->surface, enableValidationLayers, vulkanApiVersion);
     if (!deviceLoadResult) {
+        _logger.error("Failed to load device!");
         return false;
     }
 
@@ -75,31 +79,28 @@ bool vax::vk::Engine::setup() {
     deletionQueue.push_function([&]() { queueManager = nullptr; });
 
     commandManager = std::make_unique<CommandManager>(*device);
-    if (!commandManager->setup())
+    if (!commandManager->setup()) {
+        _logger.error("Failed to setup command manager!");
         return false;
+    }
     deletionQueue.push_function([&]() { commandManager->cleanup(); });
 
     syncObjectsManager = std::make_unique<SyncObjectsManager>(*device);
-    if (!syncObjectsManager->setup())
-        return false;
-    deletionQueue.push_function([&]() { syncObjectsManager->cleanup(); });
-
-    _windowController.get().getWindow(0)->createSwapchain(*device, VK_PRESENT_MODE_FIFO_KHR);
-    deletionQueue.push_function([&]() { _windowController.get().getWindow(0)->cleanupSwapchain(); });
-
-    descriptorSetManager = std::make_unique<DescriptorSetManager>(*device, MAX_FRAMES_IN_FLIGHT);
-    auto descriptorSetInfos = allDescriptorSets();
-    if (!descriptorSetManager->setup(descriptorSetInfos)) {
+    if (!syncObjectsManager->setup()) {
+        _logger.error("Failed to setup sync objects manager!");
         return false;
     }
-    deletionQueue.push_function([&]() {
-        _logger.debug("Destroying descriptor set manager...");
-        descriptorSetManager->cleanup();
-        descriptorSetManager = nullptr;
-    });
+    deletionQueue.push_function([&]() { syncObjectsManager->cleanup(); });
 
-    pipelineManager = std::make_unique<PipelineManager>(*device, *descriptorSetManager);
+    if (!_windowController.get().getWindow(0)->createSwapchain(*device, VK_PRESENT_MODE_FIFO_KHR)) {
+        _logger.error("Failed to create swapchain!");
+        return false;
+    }
+    deletionQueue.push_function([&]() { _windowController.get().getWindow(0)->cleanupSwapchain(); });
+
+    pipelineManager = std::make_unique<PipelineManager>(*device);
     if (!pipelineManager->setup()) {
+        _logger.error("Failed to setup pipeline manager!");
         return false;
     }
     deletionQueue.push_function([&]() {
@@ -107,17 +108,17 @@ bool vax::vk::Engine::setup() {
         pipelineManager = nullptr; // TODO: remove from destructor
     });
 
-    _logger.info("Engine setup complete!");
+    _logger.success("Engine setup complete!");
     return true;
 }
 
 void vax::vk::Engine::cleanup() {
     deletionQueue.flush();
-    _logger.info("Engine cleanup complete!");
+    _logger.success("Engine cleanup complete!");
 }
 
 void vax::vk::Engine::resize() {
-    _logger.info("Resizing engine...");
+    _logger.debug("Resizing engine...");
     int width = 0, height = 0;
     SDL_GetWindowSizeInPixels(_windowController.get().getWindow(0)->window, &width, &height);
     while (width == 0 || height == 0) {
@@ -130,7 +131,6 @@ void vax::vk::Engine::resize() {
 }
 
 bool vax::vk::Engine::setupDebugMessenger() {
-    LOG_INFO("Setting up debug messenger...");
     if (!enableValidationLayers)
         return false;
 
@@ -138,12 +138,12 @@ bool vax::vk::Engine::setupDebugMessenger() {
     vax::vk::populateDebugMessengerCreateInfo(createInfo);
 
     if (!VK_CHECK(CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger))) {
-        LOG_ERROR("Failed to set up debug messenger!");
+        _logger.error("Failed to set up debug messenger!");
         return false;
     }
 
     deletionQueue.push_function([&]() {
-        LOG_INFO("Destroying debug messenger...");
+        _logger.debug("Destroying debug messenger...");
         DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
     });
 

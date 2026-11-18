@@ -1,73 +1,69 @@
 #include "app.h"
-#include <SDL3/SDL_vulkan.h>
 #include "notificationCenter.h"
-#include "physicsEngine.h"
 #include "profiler.h"
 #include "renderdoc.h"
 #include "startingView.h"
 #include <SDL3/SDL_events.h>
+#include <SDL3/SDL_vulkan.h>
 #include <cuda_runtime.h>
 
 using namespace vax;
 
-bool App::run() {
-    if (!_setup()) {
-        return false;
-    }
-    _mainLoop();
-    _cleanup();
-    return true;
-}
-
-bool App::_setup() {
+void App::setup() noexcept {
     SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11,wayland,windows,cocoa");
     if (!SDL_Vulkan_LoadLibrary(NULL)) {
-        _logger.error("Failed to load Vulkan library: {}", SDL_GetError());
-        return false;
+        _logger.failure("Failed to load Vulkan library: {}", SDL_GetError());
+        return;
     }
     RenderDoc::init();
+
     vax::NotificationCenter::getInstance().setup();
     _windowController = std::make_unique<WindowController>();
     _windowController->setupWindow(0, vax::math::SizeUI{1920, 1080}, "VAX");
     if (!_windowController->getWindow(0)->load(true, true)) {
-        return false;
+        _logger.failure("Failed to load window!");
+        return;
     }
-    _engine = std::make_unique<vk::Engine>(*_windowController);
-    _engine->setup();
+    _renderingEngine = std::make_unique<rendering::RenderingEngine>();
+    if (!_renderingEngine->setup(*_windowController)) {
+        _logger.failure("Failed to setup rendering engine!");
+        return;
+    }
 
-    _uiEngine = std::make_unique<ui::UIEngine>(*_engine, *_windowController->getWindow(0));
-
-    _renderer = std::make_unique<engine::Renderer>(*_engine, *_uiEngine);
-    _renderer->load();
-
-    _viewBuilder =
-        std::make_unique<ui::ViewBuilder>(*_uiEngine, *_windowController, _inputController, *_renderer, *_engine);
-    _viewManager = std::make_unique<ui::ViewManager>(*_uiEngine, *_viewBuilder);
+    _viewBuilder = std::make_unique<ui::ViewBuilder>(
+        *_windowController,
+        _inputController,
+        *_renderingEngine
+    );
+    _viewManager = std::make_unique<ui::ViewManager>(_renderingEngine->uiEngine(), *_viewBuilder);
     _viewManager->setRootView(_viewBuilder->buildStartingView());
+    _logger.success("App setup complete!");
+}
 
-    return true;
+void App::run() noexcept {
+    _mainLoop();
+    _cleanup();
 }
 
 void App::_cleanup() {
-    _logger.info("Cleaning up...");
-    vkDeviceWaitIdle(_engine->device->vkDevice());
-    _uiEngine->cleanup();
+    _logger.info("Starting app cleanup...");
 
-    _renderer = nullptr;
-    _uiEngine = nullptr;
+    _renderingEngine->waitIdle();
+
     _viewManager = nullptr;
     _viewBuilder = nullptr;
 
-    _engine->cleanup();
+    _renderingEngine->cleanup();
 
     _windowController->destroyAllWindows();
     SDL_Quit();
-    _logger.info("Cleanup complete!");
+    _logger.success("App cleanup complete!");
 }
 
 void App::_mainLoop() {
+    _logger.debug("Starting main loop...");
     if (_windowController->getWindow(0) == nullptr) {
-        _logger.error("Window not initialized");
+        _logger.failure("Window not initialized");
         return;
     }
     static bool running = true;
@@ -79,16 +75,18 @@ void App::_mainLoop() {
         auto processEvent = [&](SDL_Event& event) {
             bool isSecondaryMouseInput = (event.type == SDL_EVENT_MOUSE_MOTION || event.type == SDL_EVENT_MOUSE_WHEEL ||
                                           event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) &&
-                                         _uiEngine->isSecondaryViewportEvent(event);
+                                         _renderingEngine->uiEngine().isSecondaryViewportEvent(event);
             if (!isSecondaryMouseInput) {
                 _inputController.handleEvent(event);
             }
-            _uiEngine->processEvents(event);
+            _renderingEngine->uiEngine().processEvents(event);
             if (event.type == SDL_EVENT_QUIT) {
+                _logger.debug("Quitting app...");
                 running = false;
                 return false;
             } else if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
                 if (event.window.windowID == primaryWindowID) {
+                    _logger.debug("Window close requested...");
                     running = false;
                     return false;
                 } else if (_windowController->getWindow(1) != nullptr) {

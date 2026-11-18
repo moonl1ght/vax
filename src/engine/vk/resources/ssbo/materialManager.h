@@ -3,11 +3,11 @@
 #include "buffer.h"
 #include "device.h"
 #include "logger.h"
+#include "pbr.h"
+#include "resourceUtils.h"
 #include <memory>
 #include <optional>
 #include <vector>
-#include "resourceUtils.h"
-#include "shaderUniforms.h"
 
 namespace vax::vk {
 using MaterialBuffer = Buffer<PBRMaterial>;

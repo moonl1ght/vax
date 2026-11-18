@@ -4,22 +4,16 @@
 
 #include "commandBuffer.h"
 #include "scene.h"
-#include "commonDescriptorSets.h"
+#include "shaderResourceHandle.h"
 
 namespace vax::engine {
 class RenderPassNode {
   public:
-    struct InputDescriptorSetInfo {
-        vax::vk::CommonDescriptorSetName setName;
-
-        struct BindingInfo {
-            uint32_t setIndex;
-            VkPipelineBindPoint bindPoint;
-            uint32_t dynamicOffsetCount;
-            std::vector<uint32_t> dynamicOffsets;
-        };
-
-        BindingInfo bindingInfo;
+    struct FrameTextureHandles final {
+        SampledImageShaderHandle mainColor;
+        SampledImageShaderHandle mainMask;
+        SampledImageShaderHandle mainDepth;
+        SampledImageShaderHandle agentCameraColor;
     };
 
     struct RunPassInfo final {
@@ -27,6 +21,7 @@ class RenderPassNode {
         vax::engine::Scene* scene;
         std::vector<uint32_t> imageIndices;
         uint32_t frameIndex;
+        FrameTextureHandles frameTextures{};
     };
 
     std::weak_ptr<RenderPassNode> prev;

@@ -13,38 +13,15 @@ void RenderPass::runPass(RunPassInfo& runPassInfo) {
     } else {
         _pass(runPassInfo, [&]() {
             auto pipeline = _pipelineManager.get().getPipeline(_pipelineName);
-            auto pipelineLayout = _pipelineManager.get().getPipelineLayout(_pipelineLayoutName);
             if (!pipeline) {
                 _logger.error("Failed to get pipeline!");
                 return;
             }
-            if (!pipelineLayout) {
-                _logger.error("Failed to get pipeline layout!");
-                return;
-            }
-            for (const auto& inputDescriptorSetInfo : _inputDescriptorSetInfos) {
-                auto descriptorSetHandler = _descriptorSetManager.get().getDescriptorSetHandler(
-                    inputDescriptorSetInfo.setName, runPassInfo.frameIndex
-                );
-                if (!descriptorSetHandler.has_value()) {
-                    _logger.error("Failed to get descriptor set handler!");
-                    return;
-                }
-                descriptorSetHandler->bind(
-                    runPassInfo.commandBuffer.vkCommandBuffer,
-                    pipelineLayout,
-                    inputDescriptorSetInfo.bindingInfo.setIndex,
-                    inputDescriptorSetInfo.bindingInfo.bindPoint,
-                    inputDescriptorSetInfo.bindingInfo.dynamicOffsetCount,
-                    inputDescriptorSetInfo.bindingInfo.dynamicOffsets.data()
-                );
-            }
 
-            if (!runPassInfo.commandBuffer.bindPipeline(pipeline, VK_PIPELINE_BIND_POINT_GRAPHICS))
+            if (!runPassInfo.commandBuffer.bindPipeline(&pipeline.value(), VK_PIPELINE_BIND_POINT_GRAPHICS))
                 return;
             DrawContext drawContext{
                 .commandBuffer = runPassInfo.commandBuffer,
-                .pipelineLayout = pipeline->vkPipelineLayout,
                 .currentFrame = runPassInfo.frameIndex,
             };
             if (_drawWork) {

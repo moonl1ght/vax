@@ -1,11 +1,11 @@
 #pragma once
 
 #include "device.h"
-#include "vulkanCommon.h"
 #include "logger.h"
+#include "resourceUtils.h"
+#include "shaderResourceHandle.h"
 #include <optional>
 #include <string>
-#include "resourceUtils.h"
 
 namespace vax::vk {
 class CommandBuffer;
@@ -13,6 +13,7 @@ class BufferManager;
 } // namespace vax::vk
 
 namespace vax::vk {
+
 template <typename T> class Buffer final {
   public:
     friend class vax::vk::BufferManager;
@@ -155,5 +156,8 @@ template <typename T> class Buffer final {
     void _detach();
 };
 
-using AnyBuffer= Buffer<void>;
+using AnyBuffer = Buffer<void>;
+
+template <typename T> using ShaderBufferHandle = std::pair<StructuredBufferShaderHandle, Buffer<T>>;
+
 } // namespace vax::vk

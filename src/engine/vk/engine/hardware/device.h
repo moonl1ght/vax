@@ -43,6 +43,8 @@ class Device final {
 
     VkPhysicalDevice vkPhysicalDevice() const noexcept { return _vkPhysicalDevice; }
 
+    void waitIdle() const noexcept { vkDeviceWaitIdle(_vkDevice); }
+
   private:
     vax::Logger _logger = vax::Logger("Device");
 

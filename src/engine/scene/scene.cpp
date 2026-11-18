@@ -1,7 +1,10 @@
 #include "scene.h"
+#include "base.h"
 #include "camera.h"
 #include "components.h"
+#include "pbr.h"
 #include "profiler.h"
+#include "simple.h"
 #include "swapchain.h"
 
 using namespace vax;
@@ -18,19 +21,14 @@ void Scene::load(const vax::engine::SceneDescriptor& descriptor) {
     });
 
     _sceneUniformBuffers.reserve(vax::vk::MAX_FRAMES_IN_FLIGHT);
-    _agentCameraUniformBuffers.reserve(vax::vk::MAX_FRAMES_IN_FLIGHT);
     _lightsUniformBuffer.reserve(vax::vk::MAX_FRAMES_IN_FLIGHT);
 
-    uint32_t lightCount = 1;
-    VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-
     for (size_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
-        auto& bufferManager = _resourceManager->bufferManager();
-        auto passUboStride = _vkEngine.get().device->minUniformBufferOffsetAlignment<UniformBufferObject>();
+        auto& bufferManager = _resourceManager.get().bufferManager();
         auto allocation = bufferManager
                               .allocateBuffer(
                                   "frame_uniform_buffer",
-                                  passUboStride * (lightCount + 1),
+                                  _frameUniformStride() * static_cast<uint32_t>(FrameUniformSlot::SLOTS_COUNT),
                                   VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                                   VMA_MEMORY_USAGE_CPU_TO_GPU,
                                   VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
@@ -38,17 +36,6 @@ void Scene::load(const vax::engine::SceneDescriptor& descriptor) {
                               .value();
         allocation.second->map();
         _sceneUniformBuffers.push_back(allocation.second);
-        auto agentCameraAllocation = bufferManager
-                                         .allocateBuffer(
-                                             "agent_camera_uniform_buffer",
-                                             bufferSize,
-                                             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                                             VMA_MEMORY_USAGE_CPU_TO_GPU,
-                                             VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
-                                         )
-                                         .value();
-        agentCameraAllocation.second->map();
-        _agentCameraUniformBuffers.push_back(agentCameraAllocation.second);
         auto lightAllocation = bufferManager
                                    .allocateBuffer(
                                        "light_uniform_buffer",
@@ -62,19 +49,21 @@ void Scene::load(const vax::engine::SceneDescriptor& descriptor) {
         _lightsUniformBuffer.push_back(lightAllocation.second);
     }
 
-    _indirectDrawController->setup(10000);
+    _indirectDrawController->setup(10000, _vkEngine.get().pipelineManager->descriptorRegistry());
 
     auto loadQueue = _vkEngine.get().queueManager->graphicsQueue;
     auto loadCommandBuffer = _vkEngine.get().commandManager->createSingleTimeCommandBuffer();
 
     loadCommandBuffer.begin();
 
-    _resourceManager->textureManager().loadAllTextures(loadCommandBuffer);
+    _resourceManager.get().textureManager().loadAllTextures(loadCommandBuffer);
 
     loadCommandBuffer.end();
     loadCommandBuffer.submitAndWait(loadQueue);
 
-    _resourceManager->textureManager().resetAllTexturesStagingBuffers();
+    _resourceManager.get().textureManager().resetAllTexturesStagingBuffers();
+
+    registerResources();
 
     auto sunCamera = Camera();
     sunCamera.setPosition(glm::vec3(1.0f, 5.0f, 3.0f));
@@ -102,15 +91,11 @@ void Scene::prepareForDraw(engine::RenderCallContext renderCallContext) {
     _renderCallContext = renderCallContext;
     if (auto mappedMemory = _sceneUniformBuffers[renderCallContext.currentFrame]->mappedMemory()) {
         uint8_t* mappedPtr = static_cast<uint8_t*>(mappedMemory.value());
-        auto passUboStride = _vkEngine.get().device->minUniformBufferOffsetAlignment<UniformBufferObject>();
-        memcpy(mappedPtr + (0 * passUboStride), &_ubo, sizeof(_ubo));
-        memcpy(mappedPtr + (1 * passUboStride), &_sunLightUbo, sizeof(_sunLightUbo));
-    } else {
-        _logger.error("Failed to get mapped memory!");
-    }
-
-    if (auto mappedMemory = _agentCameraUniformBuffers[renderCallContext.currentFrame]->mappedMemory()) {
-        memcpy(mappedMemory.value(), &_agentCameraUbo, sizeof(_agentCameraUbo));
+        auto stride = _frameUniformStride();
+        auto slotOffset = [stride](FrameUniformSlot slot) { return static_cast<uint32_t>(slot) * stride; };
+        memcpy(mappedPtr + slotOffset(FrameUniformSlot::MAIN_CAMERA), &_ubo, sizeof(_ubo));
+        memcpy(mappedPtr + slotOffset(FrameUniformSlot::SUN_LIGHT), &_sunLightUbo, sizeof(_sunLightUbo));
+        memcpy(mappedPtr + slotOffset(FrameUniformSlot::AGENT_CAMERA), &_agentCameraUbo, sizeof(_agentCameraUbo));
     } else {
         _logger.error("Failed to get mapped memory!");
     }
@@ -124,9 +109,15 @@ void Scene::prepareForDraw(engine::RenderCallContext renderCallContext) {
             _sunLight.camera().projectionMatrix() * _sunLight.camera().viewMatrix();
         lightData->lights[sunLightUbo].position = glm::vec4(_sunLight.camera().position(), 1.0f);
         lightData->lights[sunLightUbo].color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-        lightData->lights[sunLightUbo].shadowMapIndex = 0;
+        lightData->lights[sunLightUbo].shadowMapIndex = renderCallContext.shadowMapIndex;
         lightData->lights[sunLightUbo].radius = 10.0f;
-        lightData->lights[sunLightUbo].shadowMapSamplerIndex = 0;
+        auto pbrSampler =
+            _resourceManager.get().textureManager().getGlobalSampler(TextureManager::GlobalSampler::PBRSampler);
+        if (pbrSampler) {
+            lightData->lights[sunLightUbo].shadowMapSamplerIndex = pbrSampler->shaderHandle.index;
+        } else {
+            _logger.error("PBR sampler is missing!");
+        }
     } else {
         _logger.error("Failed to get mapped memory!");
     }
@@ -165,120 +156,172 @@ void Scene::resize() {
     _sunLight.camera().setViewPortSize(vax::math::SizeUI(swapchainExtent));
 }
 
-bool Scene::writePerDrawDescriptorSet(vax::vk::DescriptorSetWriter& descriptorWriter) {
-    _indirectDrawController->writePerDrawDescriptorSet(descriptorWriter, _renderCallContext.currentFrame);
-    return true;
-}
+void Scene::registerResources() noexcept {
+    auto& registry = _vkEngine.get().pipelineManager->descriptorRegistry();
+    auto& textureManager = _resourceManager.get().textureManager();
 
-bool Scene::writeGlobalDescriptorSet(vax::vk::DescriptorSetWriter& descriptorWriter) {
-    auto globalSampler = _resourceManager->textureManager().getGlobalSampler(GlobalSampler::PBRSampler);
-    auto globalCubeMapSampler = _resourceManager->textureManager().getGlobalSampler(GlobalSampler::CubeMapSampler);
-    if (!globalSampler.has_value() || !globalCubeMapSampler.has_value()) {
-        return false;
+    if (_resourcesRegistered) {
+        _releaseResources();
     }
-    descriptorWriter.writeBuffer(
-        _resourceManager->meshManager().globalVertexBuffer(0),
-        GlobalDescriptorSetResourceIndex::GLOBAL_VERTEX_BUFFER_INDEX,
-        0,
-        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-    );
-    descriptorWriter.writeBuffer(
-        _resourceManager->materialManager().materialBuffer(),
-        GlobalDescriptorSetResourceIndex::GLOBAL_MATERIAL_BUFFER_INDEX,
-        0,
-        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-    );
-    descriptorWriter.writeBuffer(
-        _environmentMap->environmentMapBuffer(),
-        GlobalDescriptorSetResourceIndex::GLOBAL_ENVIRONMENT_MAP_BUFFER_INDEX,
-        0,
-        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-    );
-    descriptorWriter.writeSampler(*globalSampler->second, GlobalDescriptorSetResourceIndex::GLOBAL_SAMPLER_INDEX, 0);
-    descriptorWriter.writeSampler(
-        *globalCubeMapSampler->second, GlobalDescriptorSetResourceIndex::GLOBAL_SAMPLER_INDEX, 1
-    );
-    _resourceManager->textureManager().updateDescriptorWriterWithAllTextures(
-        descriptorWriter, GlobalDescriptorSetResourceIndex::GLOBAL_TEXTURE_INDEX
-    );
-    return true;
+
+    auto vertices = registry.registerStorageBuffer(_resourceManager.get().meshManager().globalVertexBuffer(0));
+    auto materials = registry.registerStorageBuffer(_resourceManager.get().materialManager().materialBuffer());
+    auto environmentMaps = registry.registerStorageBuffer(_environmentMap->environmentMapBuffer());
+    if (!vertices || !materials || !environmentMaps) {
+        _logger.error("Failed to register scene storage buffers!");
+        return;
+    }
+    _vertexBufferHandle = *vertices;
+    _materialBufferHandle = *materials;
+    _environmentMapBufferHandle = *environmentMaps;
+
+    for (uint32_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
+        auto instances = registry.registerStorageBuffer(_resourceManager.get().ssboManager().instanceBuffer(i));
+        if (!instances) {
+            _logger.error("Failed to register instance buffer ", i);
+            return;
+        }
+        _instanceBufferHandles[i] = *instances;
+    }
+
+    _writeUniformDescriptorSets();
+
+    _resourcesRegistered = true;
 }
 
-bool Scene::writeFrameDescriptorSet(
-    vax::vk::DescriptorSetWriter& descriptorWriter, vax::vk::DescriptorSetWriter& agentCameraDescriptorWriter
-) {
-    descriptorWriter.writeBuffer(
-        *_sceneUniformBuffers[_renderCallContext.currentFrame],
-        PerFrameDescriptorSetResourceIndex::FRAME_UNIFORM_BUFFER_INDEX_,
-        0,
-        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC
-    );
-    descriptorWriter.writeBuffer(
-        *_lightsUniformBuffer[_renderCallContext.currentFrame],
-        PerFrameDescriptorSetResourceIndex::FRAME_LIGHT_BUFFER_INDEX,
-        0,
-        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
-    );
-    descriptorWriter.writeBuffer(
-        _resourceManager->ssboManager().instanceBuffer(_renderCallContext.currentFrame),
-        PerFrameDescriptorSetResourceIndex::FRAME_INSTANCE_BUFFER_INDEX,
-        0,
-        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-    );
-
-    agentCameraDescriptorWriter.writeBuffer(
-        *_agentCameraUniformBuffers[_renderCallContext.currentFrame],
-        PerFrameDescriptorSetResourceIndex::FRAME_UNIFORM_BUFFER_INDEX_,
-        0,
-        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC
-    );
-    agentCameraDescriptorWriter.writeBuffer(
-        *_lightsUniformBuffer[_renderCallContext.currentFrame],
-        PerFrameDescriptorSetResourceIndex::FRAME_LIGHT_BUFFER_INDEX,
-        0,
-        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
-    );
-    agentCameraDescriptorWriter.writeBuffer(
-        _resourceManager->ssboManager().instanceBuffer(_renderCallContext.currentFrame),
-        PerFrameDescriptorSetResourceIndex::FRAME_INSTANCE_BUFFER_INDEX,
-        0,
-        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-    );
-    return true;
+void Scene::_writeUniformDescriptorSets() noexcept {
+    auto& pipelineManager = *_vkEngine.get().pipelineManager;
+    for (uint32_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
+        VkDescriptorBufferInfo frameBufferInfo{
+            .buffer = _sceneUniformBuffers[i]->vkBuffer(),
+            .offset = 0,
+            .range = sizeof(UniformBufferObject),
+        };
+        VkDescriptorBufferInfo lightBufferInfo{
+            .buffer = _lightsUniformBuffer[i]->vkBuffer(),
+            .offset = 0,
+            .range = sizeof(LightUBO),
+        };
+        VkDescriptorSet uboDescriptorSet = pipelineManager.uboDescriptorSet(i);
+        std::array<VkWriteDescriptorSet, 2> writes{
+            VkWriteDescriptorSet{
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = uboDescriptorSet,
+            .dstBinding = FRAME_UNIFORM_BUFFER_INDEX,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
+            .pBufferInfo = &frameBufferInfo,
+            },
+            VkWriteDescriptorSet{
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = uboDescriptorSet,
+            .dstBinding = LIGHT_UNIFORM_BUFFER_INDEX,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .pBufferInfo = &lightBufferInfo,
+            },
+        };
+        vkUpdateDescriptorSets(
+            _vkEngine.get().device->vkDevice(), static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr
+        );
+    }
 }
 
-void Scene::draw(const DrawContext& drawContext) {
-    VkDeviceSize offsets[] = {0};
+uint32_t Scene::_frameUniformStride() const noexcept {
+    return static_cast<uint32_t>(_vkEngine.get().device->minUniformBufferOffsetAlignment<UniformBufferObject>());
+}
+
+void Scene::_releaseResources() noexcept {
+    if (!_resourcesRegistered) {
+        return;
+    }
+    auto& registry = _vkEngine.get().pipelineManager->descriptorRegistry();
+    registry.releaseStorageBuffer(_vertexBufferHandle);
+    registry.releaseStorageBuffer(_materialBufferHandle);
+    registry.releaseStorageBuffer(_environmentMapBufferHandle);
+    for (auto handle : _instanceBufferHandles) {
+        registry.releaseStorageBuffer(handle);
+    }
+    _resourcesRegistered = false;
+}
+
+void Scene::_bindIndexBuffer(const DrawContext& drawContext) const noexcept {
     vkCmdBindIndexBuffer(
         drawContext.commandBuffer.vkCommandBuffer,
-        _resourceManager->meshManager().globalIndexBuffer(0).vkBuffer(),
+        _resourceManager.get().meshManager().globalIndexBuffer(0).vkBuffer(),
         0,
         VK_INDEX_TYPE_UINT32
     );
+}
 
-    auto perDrawDescriptorSetHandler = _vkEngine.get().descriptorSetManager->getDescriptorSetHandler(
-        CommonDescriptorSetName::PER_DRAW, drawContext.currentFrame
+void Scene::_bindFrameUniformSlot(const DrawContext& drawContext, FrameUniformSlot slot) const noexcept {
+    auto& pipelineManager = *_vkEngine.get().pipelineManager;
+    VkDescriptorSet uboDescriptorSet = pipelineManager.uboDescriptorSet(drawContext.currentFrame);
+    uint32_t dynamicOffset = static_cast<uint32_t>(slot) * _frameUniformStride();
+    vkCmdBindDescriptorSets(
+        drawContext.commandBuffer.vkCommandBuffer,
+        VK_PIPELINE_BIND_POINT_GRAPHICS,
+        pipelineManager.pipelineLayout(),
+        UBO_SET_INDEX,
+        1,
+        &uboDescriptorSet,
+        1,
+        &dynamicOffset
     );
-    if (!perDrawDescriptorSetHandler.has_value()) {
-        _logger.error("Failed to get per draw descriptor set handler!");
+}
+
+void Scene::draw(const DrawContext& drawContext, FrameUniformSlot cameraSlot) {
+    auto drawRange = _indirectDrawController->drawRange("scene");
+    if (!drawRange) {
         return;
     }
-    perDrawDescriptorSetHandler->bind(
-        drawContext.commandBuffer.vkCommandBuffer, drawContext.pipelineLayout, MainSetIndices::PER_DRAW_SET_INDEX
-    );
+    _bindIndexBuffer(drawContext);
+    _bindFrameUniformSlot(drawContext, cameraSlot);
 
-    if (auto drawRange = _indirectDrawController->drawRange("scene")) {
-        GlobalPushConstants pushConstants{.drawIndexOffset = drawRange->start};
-        vkCmdPushConstants(
-            drawContext.commandBuffer.vkCommandBuffer,
-            drawContext.pipelineLayout,
-            VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-            0,
-            sizeof(pushConstants),
-            &pushConstants
-        );
-        _indirectDrawController->drawRange(drawContext.commandBuffer, drawContext.currentFrame, "scene");
+    PBRPushConstants pushConstants{
+        .vertices = _vertexBufferHandle,
+        .instances = _instanceBufferHandles[drawContext.currentFrame],
+        .drawData = _indirectDrawController->perDrawDataHandle(drawContext.currentFrame),
+        .materials = _materialBufferHandle,
+        .environmentMaps = _environmentMapBufferHandle,
+        .drawIndexOffset = drawRange->start,
+    };
+    vkCmdPushConstants(
+        drawContext.commandBuffer.vkCommandBuffer,
+        _vkEngine.get().pipelineManager->pipelineLayout(),
+        VK_SHADER_STAGE_ALL,
+        0,
+        sizeof(pushConstants),
+        &pushConstants
+    );
+    _indirectDrawController->drawRange(drawContext.commandBuffer, drawContext.currentFrame, "scene");
+}
+
+void Scene::drawShadow(const DrawContext& drawContext) {
+    auto drawRange = _indirectDrawController->drawRange("scene");
+    if (!drawRange) {
+        return;
     }
+    _bindIndexBuffer(drawContext);
+    _bindFrameUniformSlot(drawContext, FrameUniformSlot::SUN_LIGHT);
+
+    BasePushConstants pushConstants{
+        .vertices = _vertexBufferHandle,
+        .instances = _instanceBufferHandles[drawContext.currentFrame],
+        .drawData = _indirectDrawController->perDrawDataHandle(drawContext.currentFrame),
+        .drawIndexOffset = drawRange->start,
+    };
+    vkCmdPushConstants(
+        drawContext.commandBuffer.vkCommandBuffer,
+        _vkEngine.get().pipelineManager->pipelineLayout(),
+        VK_SHADER_STAGE_ALL,
+        0,
+        sizeof(pushConstants),
+        &pushConstants
+    );
+    _indirectDrawController->drawRange(drawContext.commandBuffer, drawContext.currentFrame, "scene");
 }
 
 void Scene::drawBackground(const DrawContext& drawContext) {
@@ -288,36 +331,28 @@ void Scene::drawBackground(const DrawContext& drawContext) {
 void Scene::drawGizmo(const DrawContext& drawContext) {
     if (!_descriptor->shouldDrawGizmo)
         return;
-    VkDeviceSize offsets[] = {0};
-    vkCmdBindIndexBuffer(
-        drawContext.commandBuffer.vkCommandBuffer,
-        _resourceManager->meshManager().globalIndexBuffer(0).vkBuffer(),
-        0,
-        VK_INDEX_TYPE_UINT32
-    );
-    auto perDrawDescriptorSetHandler = _vkEngine.get().descriptorSetManager->getDescriptorSetHandler(
-        CommonDescriptorSetName::PER_DRAW, drawContext.currentFrame
-    );
-    if (!perDrawDescriptorSetHandler.has_value()) {
-        _logger.error("Failed to get per draw descriptor set handler!");
+    auto drawRange = _indirectDrawController->drawRange("gizmo");
+    if (!drawRange) {
         return;
     }
-    // TODO: fix this
-    perDrawDescriptorSetHandler->bind(
-        drawContext.commandBuffer.vkCommandBuffer, drawContext.pipelineLayout, MainSetIndices::PER_DRAW_SET_INDEX
+    _bindIndexBuffer(drawContext);
+
+    SimplePushConstants pushConstants{
+        .vertices = _vertexBufferHandle,
+        .instances = _instanceBufferHandles[drawContext.currentFrame],
+        .drawData = _indirectDrawController->perDrawDataHandle(drawContext.currentFrame),
+        .materials = _materialBufferHandle,
+        .drawIndexOffset = drawRange->start,
+    };
+    vkCmdPushConstants(
+        drawContext.commandBuffer.vkCommandBuffer,
+        _vkEngine.get().pipelineManager->pipelineLayout(),
+        VK_SHADER_STAGE_ALL,
+        0,
+        sizeof(pushConstants),
+        &pushConstants
     );
-    if (auto drawRange = _indirectDrawController->drawRange("gizmo")) {
-        GlobalPushConstants pushConstants{.drawIndexOffset = drawRange->start};
-        vkCmdPushConstants(
-            drawContext.commandBuffer.vkCommandBuffer,
-            drawContext.pipelineLayout,
-            VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-            0,
-            sizeof(pushConstants),
-            &pushConstants
-        );
-        _indirectDrawController->drawRange(drawContext.commandBuffer, drawContext.currentFrame, "gizmo");
-    }
+    _indirectDrawController->drawRange(drawContext.commandBuffer, drawContext.currentFrame, "gizmo");
 }
 
 void Scene::onMouseMove(const vax::MouseMoveValue& value) {

@@ -37,7 +37,7 @@ DescriptorRegistry::RegistrationResult DescriptorRegistry::registerBatch(const R
 }
 
 std::optional<std::vector<StorageImageShaderHandle>>
-DescriptorRegistry::registerStorageTexture(const std::vector<const Texture*>& textures, bool contiguous) noexcept {
+DescriptorRegistry::registerStorageTextures(const std::vector<const Texture*>& textures, bool contiguous) noexcept {
     std::vector<VkDescriptorImageInfo> imageInfos;
     return _toHandles<StorageImageShaderHandle>(_registerTexture(
         textures,
@@ -51,7 +51,7 @@ DescriptorRegistry::registerStorageTexture(const std::vector<const Texture*>& te
 }
 
 std::optional<std::vector<SampledImageShaderHandle>>
-DescriptorRegistry::registerSampledTexture(const std::vector<const Texture*>& textures, bool contiguous) noexcept {
+DescriptorRegistry::registerSampledTextures(const std::vector<const Texture*>& textures, bool contiguous) noexcept {
     std::vector<VkDescriptorImageInfo> imageInfos;
     return _toHandles<SampledImageShaderHandle>(_registerTexture(
         textures,
@@ -75,7 +75,7 @@ std::optional<std::vector<ShaderResourceIndex>> DescriptorRegistry::_registerTex
 ) noexcept {
     imageInfos.reserve(textures.size());
     for (const auto& texture : textures) {
-        auto imageInfoOpt = texture->descriptorImageInfoNoSampler();
+        auto imageInfoOpt = texture->descriptorImageInfo();
         if (!imageInfoOpt) {
             return std::nullopt;
         }
@@ -131,4 +131,22 @@ std::optional<std::vector<ShaderResourceIndex>> DescriptorRegistry::_registerTex
         _writes.insert(_writes.end(), writes.begin(), writes.end());
     }
     return indices;
+}
+
+std::optional<SamplerShaderHandle> DescriptorRegistry::registerSampler(VkSampler sampler) noexcept {
+    auto index = _samplers.allocate();
+    if (!index)
+        return std::nullopt;
+    VkDescriptorImageInfo info{.sampler = sampler};
+    VkWriteDescriptorSet write{
+        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        .dstSet = _descriptorSet,
+        .dstBinding = SAMPLER_BINDING_INDEX,
+        .dstArrayElement = *index,
+        .descriptorCount = 1,
+        .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER,
+        .pImageInfo = &info,
+    };
+    vkUpdateDescriptorSets(_device.get().vkDevice(), 1, &write, 0, nullptr);
+    return SamplerShaderHandle{.index = *index};
 }

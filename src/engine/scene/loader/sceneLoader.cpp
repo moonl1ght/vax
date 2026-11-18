@@ -1,6 +1,6 @@
 #include "sceneLoader.h"
-#include "paths.h"
 #include "environmentMap.h"
+#include "paths.h"
 #include "physicsComponents.h"
 #include "prefabSpawner.h"
 #include "resourceManager.h"
@@ -42,11 +42,10 @@ std::unique_ptr<Scene> SceneLoader::_initScene(ecs::World& world, const SceneDes
     std::unique_ptr<ecs::World> gizmoWorld = std::make_unique<ecs::World>();
     std::unique_ptr<ecs::World> backgroundWorld = std::make_unique<ecs::World>();
     auto maxDrawableInstances = vax::vk::MAX_DRAWABLE_INSTANCES;
-    auto resourceManager = std::make_unique<vax::vk::ResourceManager>(*_vkEngine.get().device);
-    resourceManager->setup(maxDrawableInstances);
-    auto environmentMap = std::make_unique<EnvironmentMap>(*_vkEngine.get().device, *resourceManager);
+    _resourceManager.get().load(maxDrawableInstances);
+    auto environmentMap = std::make_unique<EnvironmentMap>(*_vkEngine.get().device, _resourceManager.get());
     auto assetsLibrary =
-        std::make_unique<AssetsLibrary>(*_vkEngine.get().device, maxDrawableInstances, *resourceManager);
+        std::make_unique<AssetsLibrary>(*_vkEngine.get().device, maxDrawableInstances, _resourceManager.get());
 
     environmentMap->load({
         .textures = {
@@ -155,15 +154,16 @@ std::unique_ptr<Scene> SceneLoader::_initScene(ecs::World& world, const SceneDes
         gizmoWorld->addCoreComponentFor<GizmoComponent>(gizmo);
     }
 
-    auto sceneComposer =
-        std::make_unique<SceneComposer>(std::move(assetsLibrary), resourceManager->ssboManager(), maxDrawableInstances);
+    auto sceneComposer = std::make_unique<SceneComposer>(
+        std::move(assetsLibrary), _resourceManager.get().ssboManager(), maxDrawableInstances
+    );
 
     return std::make_unique<Scene>(
         _vkEngine.get(),
         std::move(gizmoWorld),
         std::move(backgroundWorld),
-        std::move(resourceManager),
         std::move(environmentMap),
-        std::move(sceneComposer)
+        std::move(sceneComposer),
+        _resourceManager.get()
     );
 }

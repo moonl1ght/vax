@@ -7,6 +7,14 @@ namespace vax::vk {
 
 struct RenderPassDescriptor;
 
+struct DepthStencilState {
+    bool depthTestEnable = true;
+    bool depthWriteEnable = true;
+    VkCompareOp depthCompareOp = VK_COMPARE_OP_GREATER;
+    bool depthBoundsTestEnable = false;
+    bool stencilTestEnable = false;
+};
+
 struct PipelineDescriptor final {
     enum class Type {
         GRAPHICS,
@@ -16,7 +24,8 @@ struct PipelineDescriptor final {
     Type type;
     std::string name;
     ShaderModuleDescriptor shaderModuleDescriptor;
-    const RenderPassDescriptor* renderPassDescriptor = nullptr;
+    DepthStencilState depthStencilState = {};
+    RenderPassDescriptor* renderPassDescriptor = nullptr;
 };
 
 constexpr std::unordered_map<std::string, PipelineDescriptor> defaultPipelines() {
@@ -24,19 +33,55 @@ constexpr std::unordered_map<std::string, PipelineDescriptor> defaultPipelines()
         {
         "jfa_init",
         PipelineDescriptor{
-        PipelineDescriptor::Type::COMPUTE, "jfa_init", ShaderModuleDescriptor::Compute("jfa/jfa", "jfa_init")
+        PipelineDescriptor::Type::COMPUTE, "jfa_init", ShaderModuleDescriptor::Compute("compute/jfa", "jfa_init")
         },
         },
         {
         "jfa_step",
         PipelineDescriptor{
-        PipelineDescriptor::Type::COMPUTE, "jfa_step", ShaderModuleDescriptor::Compute("jfa/jfa", "jfa_step")
+        PipelineDescriptor::Type::COMPUTE, "jfa_step", ShaderModuleDescriptor::Compute("compute/jfa", "jfa_step")
         },
         },
         {
-        "background",
+        "finalblend",
         PipelineDescriptor{
-        PipelineDescriptor::Type::GRAPHICS, "background", ShaderModuleDescriptor::GraphicsVF("background")
+        PipelineDescriptor::Type::GRAPHICS,
+        "finalblend",
+        ShaderModuleDescriptor::GraphicsVF("finalblend"),
+        DepthStencilState{
+        .depthWriteEnable = false,
+        .depthCompareOp = VK_COMPARE_OP_GREATER_OR_EQUAL,
+        }
+        },
+        },
+        {
+        "finalblend_cam",
+        PipelineDescriptor{
+        PipelineDescriptor::Type::GRAPHICS,
+        "finalblend_cam",
+        ShaderModuleDescriptor::GraphicsVF("finalblend", "vertex_main", "fragment_cam_main"),
+        DepthStencilState{
+        .depthWriteEnable = false,
+        .depthCompareOp = VK_COMPARE_OP_GREATER_OR_EQUAL,
+        }
+        },
+        },
+        {
+        "pbr",
+        PipelineDescriptor{
+        PipelineDescriptor::Type::GRAPHICS, "pbr", ShaderModuleDescriptor::GraphicsVF("fragments/pbr/pbr")
+        },
+        },
+        {
+        "shadow",
+        PipelineDescriptor{
+        PipelineDescriptor::Type::GRAPHICS, "shadow", ShaderModuleDescriptor::GraphicsV("base", "base_vertex_main")
+        },
+        },
+        {
+        "simple",
+        PipelineDescriptor{
+        PipelineDescriptor::Type::GRAPHICS, "simple", ShaderModuleDescriptor::GraphicsVF("fragments/simple")
         },
         },
     };

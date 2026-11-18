@@ -1,6 +1,5 @@
 #pragma once
 
-#include "descriptorSetManager.h"
 #include "device.h"
 #include "drawContext.h"
 #include "pipelineManager.h"
@@ -10,15 +9,9 @@
 namespace vax::engine {
 class RenderSubpass final {
   public:
-    RenderSubpass(
-        const std::string& name,
-        vax::vk::Device& device,
-        vax::vk::PipelineManager& pipelineManager,
-        vax::vk::DescriptorSetManager& descriptorSetManager
-    )
+    RenderSubpass(const std::string& name, vax::vk::Device& device, vax::vk::PipelineManager& pipelineManager)
         : _device(device)
-        , _pipelineManager(pipelineManager)
-        , _descriptorSetManager(descriptorSetManager) {}
+        , _pipelineManager(pipelineManager) {}
 
     ~RenderSubpass() = default;
 
@@ -36,11 +29,10 @@ class RenderSubpass final {
             auto pipeline = _pipelineManager.get().getPipeline(_pipelineName);
             if (!pipeline)
                 return;
-            if (!runPassInfo.commandBuffer.bindPipeline(pipeline, VK_PIPELINE_BIND_POINT_GRAPHICS))
+            if (!runPassInfo.commandBuffer.bindPipeline(&pipeline.value(), VK_PIPELINE_BIND_POINT_GRAPHICS))
                 return;
             DrawContext drawContext{
                 .commandBuffer = runPassInfo.commandBuffer,
-                .pipelineLayout = pipeline->vkPipelineLayout,
                 .currentFrame = runPassInfo.frameIndex,
             };
             _drawWork(this, runPassInfo, drawContext);
@@ -55,16 +47,15 @@ class RenderSubpass final {
 
     VkExtent2D getSwapchainExtent() const { return _swapchainExtent; }
 
-    void setPipeline(vax::vk::PipelineName pipelineName) { _pipelineName = pipelineName; }
+    void setPipeline(std::string pipelineName) { _pipelineName = pipelineName; }
 
   private:
     std::string _name;
     std::reference_wrapper<vax::vk::Device> _device;
     std::reference_wrapper<vax::vk::PipelineManager> _pipelineManager;
-    std::reference_wrapper<vax::vk::DescriptorSetManager> _descriptorSetManager;
     VkExtent2D _swapchainExtent{};
     VkRect2D _renderArea{};
-    vax::vk::PipelineName _pipelineName = vax::vk::PipelineName::UNKNOWN;
+    std::string _pipelineName;
 
     std::function<void(RenderSubpass*, RenderPassNode::RunPassInfo&, DrawContext&)> _drawWork;
 };

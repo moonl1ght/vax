@@ -29,6 +29,10 @@ void StatsView::updateUI(const vax::engine::FrameTime& frameTime) {
     ImGui::Separator();
     ImGui::Spacing();
     _showFrameInfo();
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+    _showFrameResourcesInfo();
     ImGui::End();
 }
 
@@ -65,6 +69,18 @@ void StatsView::_showFrameInfo() const {
             ImGui::Text("Used FT: %.2fms / %.2fms", workloadDuration, duration);
         }
     }
+}
+
+void StatsView::_showFrameResourcesInfo() const noexcept {
+    auto& descriptorRegistry = _renderingEngine.get().vkEngine().pipelineManager->descriptorRegistry();
+
+    ImGui::Text("Pipeline state:");
+
+    ImGui::Text("Descriptor registry state:");
+    ImGui::Text("Storage textures: %d", descriptorRegistry.stats().storageTextures);
+    ImGui::Text("Sampled textures: %d", descriptorRegistry.stats().sampledTextures);
+    ImGui::Text("Storage buffers: %d", descriptorRegistry.stats().storageBuffers);
+    ImGui::Text("Samplers: %d", descriptorRegistry.stats().samplers);
 }
 
 void StatsView::_updateStats() {

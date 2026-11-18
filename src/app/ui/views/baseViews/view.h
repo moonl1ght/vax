@@ -22,10 +22,7 @@ class View {
 
     virtual void update(const vax::engine::FrameTime& frameTime) = 0;
 
-    virtual bool draw(const vax::engine::FrameTime& frameTime) {
-        _renderer.get().prepareForRender(nullptr);
-        return _renderer.get().render(nullptr, frameTime);
-    }
+    virtual bool draw(const vax::engine::FrameTime& frameTime) { return _renderer.get().render(nullptr, frameTime); }
 
     virtual void viewWillShow() { _renderer.get().renderPassGraphMode.set(engine::RenderPassGraphMode::UI_ONLY); }
 

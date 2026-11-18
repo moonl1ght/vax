@@ -31,6 +31,8 @@ void WindowController::destroyWindow(uint32_t index) {
 
 void WindowController::destroyAllWindows() {
     for (uint32_t i = 0; i < maxWindows; ++i) {
-        destroyWindow(i);
+        if (_windows[i] != nullptr) {
+            destroyWindow(i);
+        }
     }
 }

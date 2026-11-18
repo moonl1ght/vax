@@ -6,13 +6,14 @@
 #include <algorithm>
 #include <imgui.h>
 #include <imgui_internal.h>
+#include "renderingEngine.h"
 
 namespace vax::ui {
 class DebugView : public View {
   public:
-    DebugView(vax::engine::Renderer& renderer)
-        : View(renderer) {
-        _statsView = std::make_unique<StatsView>(renderer);
+    DebugView(vax::rendering::RenderingEngine& renderingEngine)
+        : View(renderingEngine.renderer()) {
+        _statsView = std::make_unique<StatsView>(renderingEngine);
         _frameProfiler = std::make_unique<vax::FrameProfiler>();
         _statsView->linkFrameProfiler(_frameProfiler.get());
     }

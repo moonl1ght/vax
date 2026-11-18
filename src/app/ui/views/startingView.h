@@ -5,8 +5,8 @@
 namespace vax::ui {
 class StartingView final : public DebugView {
   public:
-    StartingView(vax::engine::Renderer& renderer)
-        : DebugView(renderer) {};
+    StartingView(vax::rendering::RenderingEngine& renderingEngine)
+        : DebugView(renderingEngine) {};
 
     ~StartingView() override = default;
 

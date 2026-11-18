@@ -16,7 +16,6 @@ class RenderPass : public RenderPassNode {
         std::string_view id,
         vax::vk::Device& device,
         vax::vk::PipelineManager& pipelineManager,
-        vax::vk::DescriptorSetManager& descriptorSetManager,
         std::string_view debugName,
         std::weak_ptr<vax::vk::RenderDestination> renderDestination,
         std::weak_ptr<vax::vk::RenderPassDescriptor> renderDescriptor
@@ -24,7 +23,6 @@ class RenderPass : public RenderPassNode {
         : RenderPassNode(id)
         , _device(device)
         , _pipelineManager(pipelineManager)
-        , _descriptorSetManager(descriptorSetManager)
         , _logger(vax::Logger(std::string(debugName)))
         , _debugName(debugName)
         , _renderDestination(std::move(renderDestination))
@@ -46,23 +44,7 @@ class RenderPass : public RenderPassNode {
 
     void setRenderArea(VkRect2D renderArea) { _renderArea = renderArea; }
 
-    void addInputDescriptorSet(InputDescriptorSetInfo inputDescriptorSetInfo) {
-        _inputDescriptorSetInfos.push_back(inputDescriptorSetInfo);
-    }
-
-    void updateInputDescriptorSetAt(size_t index, InputDescriptorSetInfo inputDescriptorSetInfo) {
-        _inputDescriptorSetInfos[index] = inputDescriptorSetInfo;
-    }
-
-    const InputDescriptorSetInfo& getInputDescriptorSetAt(size_t index) const {
-        return _inputDescriptorSetInfos[index];
-    }
-
-    InputDescriptorSetInfo& getInputDescriptorSetAt(size_t index) { return _inputDescriptorSetInfos[index]; }
-
-    void setPipeline(vax::vk::PipelineName pipelineName) { _pipelineName = pipelineName; }
-
-    void setPipelineLayout(vax::vk::PipelineLayoutName pipelineLayoutName) { _pipelineLayoutName = pipelineLayoutName; }
+    void setPipeline(std::string pipelineName) { _pipelineName = pipelineName; }
 
     void setDrawWork(std::function<void(RunPassInfo&, DrawContext&)> drawWork) { _drawWork = drawWork; }
 
@@ -82,12 +64,10 @@ class RenderPass : public RenderPassNode {
     vax::Logger _logger;
     std::reference_wrapper<vax::vk::Device> _device;
     std::reference_wrapper<vax::vk::PipelineManager> _pipelineManager;
-    std::reference_wrapper<vax::vk::DescriptorSetManager> _descriptorSetManager;
 
     std::weak_ptr<vax::vk::RenderDestination> _renderDestination;
     std::weak_ptr<vax::vk::RenderPassDescriptor> _renderDescriptor;
 
-    std::vector<InputDescriptorSetInfo> _inputDescriptorSetInfos;
     std::vector<std::unique_ptr<RenderSubpass>> _subpasses;
 
     std::string _debugName;
@@ -95,8 +75,7 @@ class RenderPass : public RenderPassNode {
     std::function<void(RunPassInfo&, DrawContext&)> _drawWork;
     std::function<void(RunPassInfo&)> _outsideDrawWork;
     VkRect2D _renderArea{};
-    vax::vk::PipelineName _pipelineName = vax::vk::PipelineName::UNKNOWN;
-    vax::vk::PipelineLayoutName _pipelineLayoutName = vax::vk::PipelineLayoutName::UNKNOWN;
+    std::string _pipelineName;
     bool _renderToSwapchain = false;
     bool _outsideRenderPass = false;
     vax::math::Position2DFloat _offset = {0.0f, 0.0f};
@@ -130,7 +109,7 @@ class RenderPass : public RenderPassNode {
                 .objectHandle = reinterpret_cast<size_t>(renderDescriptorShared->getVkRenderPass()),
                 .pObjectName = _debugName.data(),
             };
-                vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &nameInfo);
+            vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &nameInfo);
 
             VkDebugUtilsLabelEXT label{
                 .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,

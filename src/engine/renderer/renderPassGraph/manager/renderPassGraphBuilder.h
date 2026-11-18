@@ -1,5 +1,6 @@
 #pragma once
 
+#include "pipelineManager.h"
 #include "renderPassGraph.h"
 #include "renderPassGraphDescriptor.h"
 
@@ -10,14 +11,14 @@ class RenderPassGraphBuilder final {
         vax::vk::Device& device,
         vax::WindowController& windowController,
         vax::vk::PipelineManager& pipelineManager,
-        vax::vk::DescriptorSetManager& descriptorSetManager,
-        vax::ui::UIEngine& uiEngine
+        vax::ui::UIEngine& uiEngine,
+        vax::vk::ResourceManager& resourceManager
     )
         : _device(device)
         , _windowController(windowController)
         , _pipelineManager(pipelineManager)
-        , _descriptorSetManager(descriptorSetManager)
-        , _uiEngine(uiEngine) {}
+        , _uiEngine(uiEngine)
+        , _resourceManager(resourceManager) {}
 
     ~RenderPassGraphBuilder() = default;
 
@@ -41,7 +42,7 @@ class RenderPassGraphBuilder final {
     std::reference_wrapper<vax::vk::Device> _device;
     std::reference_wrapper<vax::WindowController> _windowController;
     std::reference_wrapper<vax::vk::PipelineManager> _pipelineManager;
-    std::reference_wrapper<vax::vk::DescriptorSetManager> _descriptorSetManager;
     std::reference_wrapper<vax::ui::UIEngine> _uiEngine;
+    std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;
 };
 } // namespace vax::engine

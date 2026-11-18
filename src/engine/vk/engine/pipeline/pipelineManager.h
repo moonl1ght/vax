@@ -1,32 +1,19 @@
 #pragma once
 
 #include "descriptorManager.h"
-#include "descriptorSetManager.h"
 #include "device.h"
 #include "pipeline.h"
-#include "pipelineBuilder.h"
 #include "pipelineDescriptor.h"
-#include "pipelinev2.h"
-#include "renderPassDescriptor.h"
 #include "shaderLibrary.h"
-#include "shaderModule.h"
 #include <vector>
 
 namespace vax::vk {
 class PipelineManager final {
   public:
-    PipelineManager(const Device& device, const DescriptorSetManager& descriptorSetManager)
-        : _device(device)
-        , _descriptorSetManager(descriptorSetManager)
-        , _shaderModuleBuilder(device) {};
+    PipelineManager(const Device& device)
+        : _device(device) {};
 
-    ~PipelineManager() {
-        _destroyPipelinesV2();
-        _destroyPipelineLayoutsV2();
-        for (auto& [name, pipelineLayout] : _pipelineLayouts) {
-            vkDestroyPipelineLayout(_device.get().vkDevice(), pipelineLayout, nullptr);
-        }
-    };
+    ~PipelineManager() { _destroy(); };
 
     PipelineManager(const PipelineManager&) = delete;
     PipelineManager& operator=(const PipelineManager&) = delete;
@@ -41,9 +28,9 @@ class PipelineManager final {
 
     bool prebuildPipelines(const std::vector<PipelineDescriptor>& pipelineDescriptors) noexcept;
 
-    std::optional<PipelineV2> getPipelineV2(const std::string& pipelineName) const noexcept {
-        auto it = _pipelinesV3.find(pipelineName);
-        if (it == _pipelinesV3.end()) {
+    std::optional<Pipeline> getPipeline(const std::string& pipelineName) const noexcept {
+        auto it = _pipelines.find(pipelineName);
+        if (it == _pipelines.end()) {
             return std::nullopt;
         }
         return it->second;
@@ -51,20 +38,18 @@ class PipelineManager final {
 
     DescriptorRegistry& descriptorRegistry() const noexcept { return _descriptorManager->descriptorRegistry(); }
 
-    // Legacy
+    VkPipelineLayout pipelineLayout() const noexcept { return _pipelineLayout; }
 
-    bool setup(
-        const RenderPassDescriptor& renderPassDescriptor,
-        const RenderPassDescriptor& postProcessRenderPassDescriptor,
-        const RenderPassDescriptor& shadowRenderPassDescriptor
-    );
+    VkDescriptorSet bindlessDescriptorSet() const noexcept { return _descriptorManager->descriptorSet(); }
 
-    const Pipeline* getPipeline(PipelineName pipelineName) const;
-
-    VkPipelineLayout getPipelineLayout(PipelineLayoutName pipelineLayoutName) const;
+    VkDescriptorSet uboDescriptorSet(uint32_t frameIndex) const noexcept {
+        return _descriptorManager->uboDescriptorSet(frameIndex);
+    }
 
   private:
     vax::Logger _logger = vax::Logger("PipelineManager");
+
+    std::reference_wrapper<const Device> _device;
 
     bool _isLoaded = false;
 
@@ -73,39 +58,8 @@ class PipelineManager final {
 
     VkPipelineLayout _pipelineLayout = VK_NULL_HANDLE;
 
-    std::unordered_map<std::string, PipelineV2> _pipelinesV3;
-
-    void _destroyPipelinesV2() noexcept;
-
-    void _destroyPipelineLayoutsV2() noexcept;
-
-    // LEGACY:
-    std::reference_wrapper<const Device> _device;
-    std::reference_wrapper<const DescriptorSetManager> _descriptorSetManager;
-
-    ShaderModuleBuilder _shaderModuleBuilder;
-
     std::unordered_map<std::string, Pipeline> _pipelines;
-    std::unordered_map<std::string, VkPipelineLayout> _pipelineLayouts;
 
-    bool _createBasePipelineLayout(PipelineLayoutName pipelineLayoutName);
-    bool _createFinalBlendPipelineLayout(PipelineLayoutName pipelineLayoutName);
-    bool _createAgentCameraFBPipelineLayout(PipelineLayoutName pipelineLayoutName);
-
-    bool _createPBRPipeline(const RenderPassDescriptor& renderPassDescriptor);
-    bool _createAgentCameraPipeline(const RenderPassDescriptor& renderPassDescriptor);
-    bool _createAgentCameraFBPipeline(const RenderPassDescriptor& renderPassDescriptor);
-    bool _createBasePipeline(const RenderPassDescriptor& renderPassDescriptor);
-    bool _createFinalBlendPipeline(const RenderPassDescriptor& renderPassDescriptor);
-    bool _createShadowPipeline(const RenderPassDescriptor& renderPassDescriptor);
-
-    bool _createPipeline(
-        const RenderPassDescriptor& renderPassDescriptor,
-        std::string vertShaderPath,
-        std::string fragShaderPath,
-        PipelineName pipelineName,
-        PipelineLayoutName pipelineLayoutName,
-        std::function<void(GraphicsPipelineBuilder&)> builder
-    );
+    void _destroy() noexcept;
 };
 } // namespace vax::vk

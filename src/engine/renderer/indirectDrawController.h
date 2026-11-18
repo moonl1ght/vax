@@ -2,60 +2,62 @@
 
 #include "buffer.h"
 #include "commandBuffer.h"
-#include "descriptorSetWriter.h"
+#include "descriptorRegistry.h"
 #include "device.h"
 #include "logger.h"
-#include "vulkanCommon.h"
+#include "shaderData.h"
 #include <cstdint>
 #include <memory>
 #include <optional>
 #include <string>
-#include <vector>
-#include "shaderUniforms.h"
 #include <unordered_map>
+#include <vector>
 
 namespace vax::engine {
 class IndirectDrawController final {
   public:
     using IndirectDrawCommandBuffer = vk::Buffer<VkDrawIndexedIndirectCommand>;
     using PerDrawDataBuffer = vk::Buffer<PerDrawData>;
+    using PerDrawDataBufferHandle = vk::ShaderBufferHandle<PerDrawData>;
 
     struct DrawRange final {
         uint32_t start;
         uint32_t count;
     };
 
-    IndirectDrawController(const vk::Device& device)
+    explicit IndirectDrawController(const vk::Device& device) noexcept
         : _device(device) {};
 
     ~IndirectDrawController() = default;
 
-    void setup(uint32_t maxCommands);
+    void setup(uint32_t maxCommands, vk::DescriptorRegistry& descriptorRegistry) noexcept;
 
-    void writePerDrawDescriptorSet(vax::vk::DescriptorSetWriter& descriptorWriter, uint32_t frameIndex);
+    void prepareForDraw(uint32_t frameIndex) noexcept;
 
-    void prepareForDraw(uint32_t frameIndex);
+    void pushCommand(VkDrawIndexedIndirectCommand command, const PerDrawData& perDrawData) noexcept;
 
-    void pushCommand(VkDrawIndexedIndirectCommand command, const PerDrawData& perDrawData);
-
-    template <typename Function> void addDrawScope(const std::string& name, Function function) {
+    template <typename Function> void addDrawScope(const std::string& name, Function function) noexcept {
         auto start = _commands.size();
         function();
         auto count = _commands.size() - start;
         _drawRanges[name] = DrawRange{.start = static_cast<uint32_t>(start), .count = static_cast<uint32_t>(count)};
     }
 
-    void submitCommands(uint32_t frameIndex);
+    void submitCommands(uint32_t frameIndex) noexcept;
 
-    void draw(vk::CommandBuffer& commandBuffer, uint32_t frameIndex);
+    void draw(vk::CommandBuffer& commandBuffer, uint32_t frameIndex) noexcept;
 
-    void drawRange(vk::CommandBuffer& commandBuffer, uint32_t frameIndex, const std::string& name);
+    void drawRange(vk::CommandBuffer& commandBuffer, uint32_t frameIndex, const std::string& name) noexcept;
 
-    std::optional<DrawRange> drawRange(const std::string& name) const {
-      if (auto it = _drawRanges.find(name); it != _drawRanges.end()) {
-        return it->second;
-      }
-      return std::nullopt;
+    std::optional<DrawRange> drawRange(const std::string& name) const noexcept {
+        if (auto it = _drawRanges.find(name); it != _drawRanges.end()) {
+            return it->second;
+        }
+        return std::nullopt;
+    }
+
+    StructuredBufferShaderHandle perDrawDataHandle(uint32_t frameIndex) const noexcept {
+        return _perDrawDataBufferHandles[frameIndex]->first;
     }
 
   private:
@@ -69,7 +71,7 @@ class IndirectDrawController final {
 
     std::vector<std::unique_ptr<IndirectDrawCommandBuffer>> _commandBuffers;
 
-    std::vector<std::unique_ptr<PerDrawDataBuffer>> _perDrawDataBuffers;
+    std::vector<std::unique_ptr<PerDrawDataBufferHandle>> _perDrawDataBufferHandles;
 
     std::unordered_map<std::string, DrawRange> _drawRanges;
 
