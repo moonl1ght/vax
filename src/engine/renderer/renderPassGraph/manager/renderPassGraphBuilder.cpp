@@ -119,7 +119,9 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
         mainPass->addSubpass(std::move(gizmoSubpass));
     }
 
-    auto jfaPass = std::make_shared<JFAPass>("jfa_pass", _device.get(), _pipelineManager.get());
+    auto jfaPass = std::make_shared<JFAPass>(
+        "jfa_pass", _device.get(), _pipelineManager.get(), _resourceManager.get().textureManager()
+    );
     jfaPass->setup(renderDestinations.at("main"));
 
     auto finalBlendPass = std::make_shared<RenderPass>(
@@ -135,10 +137,10 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
     finalBlendPass->setPipeline("finalblend");
     finalBlendPass->setDrawWork([&uiEngine = _uiEngine.get(),
                                  &pipelineManager = _pipelineManager.get(),
+                                 &resourceManager = _resourceManager.get(),
                                  jfa = jfaPass.get()](RenderPass::RunPassInfo& runPassInfo, DrawContext& drawContext) {
-        const auto& pbrSampler = runPassInfo.scene->resourceManager().textureManager().getGlobalSampler(
-            TextureManager::GlobalSampler::PBRSampler
-        );
+        const auto& pbrSampler =
+            resourceManager.textureManager().getGlobalSampler(TextureManager::GlobalSampler::PBRSampler);
         if (!pbrSampler) {
             return;
         }
@@ -148,7 +150,7 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
             .inputTexture = frameTextures.mainColor,
             .inputMask = frameTextures.mainMask,
             .inputDepth = frameTextures.mainDepth,
-            .inputJFATexture = jfa->outputSampledImage(runPassInfo.frameIndex),
+            .inputJFATexture = jfa->outputImage(runPassInfo),
             .instances = runPassInfo.scene->instanceBufferHandle(runPassInfo.frameIndex),
         };
         pushConstants(runPassInfo.commandBuffer, pipelineManager, finalBlendPushConstants);
@@ -184,12 +186,12 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
         agentCameraFBPass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = agentCameraSwapchain->swapchainExtent});
         agentCameraFBPass->setPipeline("finalblend_cam");
         agentCameraFBPass->setRenderToSwapchain(true);
-        agentCameraFBPass->setDrawWork([&pipelineManager = _pipelineManager.get()](
+        agentCameraFBPass->setDrawWork([&pipelineManager = _pipelineManager.get(),
+                                        &resourceManager = _resourceManager.get()](
                                            RenderPass::RunPassInfo& runPassInfo, DrawContext& drawContext
                                        ) {
-            const auto& pbrSampler = runPassInfo.scene->resourceManager().textureManager().getGlobalSampler(
-                TextureManager::GlobalSampler::PBRSampler
-            );
+            const auto& pbrSampler =
+                resourceManager.textureManager().getGlobalSampler(TextureManager::GlobalSampler::PBRSampler);
             if (!pbrSampler) {
                 return;
             }

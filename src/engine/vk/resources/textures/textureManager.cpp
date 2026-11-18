@@ -32,6 +32,11 @@ bool TextureManager::setup() noexcept {
 
 void TextureManager::cleanup() noexcept {
     for (auto& textureResource : _textures) {
+        if (textureResource->registrationType == TextureRegistrationType::SampledImage) {
+            _descriptorRegistry.get().releaseSampledTexture(textureResource->sampledShaderHandle);
+        } else if (textureResource->registrationType == TextureRegistrationType::StorageImage) {
+            _descriptorRegistry.get().releaseStorageTexture(textureResource->storageShaderHandle);
+        }
         textureResource->texture._destroy();
     }
     _textures.clear();
@@ -66,7 +71,9 @@ void TextureManager::resetAllTexturesStagingBuffers() noexcept {
     }
 }
 
-TextureManager::TextureResource* TextureManager::createDepthTexture(VkFormat format, vax::math::SizeUI size) noexcept {
+TextureManager::TextureResource* TextureManager::createDepthTexture(
+    VkFormat format, vax::math::SizeUI size, TextureRegistrationType registrationType
+) noexcept {
     auto imageResult = vax::vk::createImage(
         _device.get().allocator(),
         size.toExtent3D(),
@@ -90,7 +97,7 @@ TextureManager::TextureResource* TextureManager::createDepthTexture(VkFormat for
     _textures.push_back(
         std::unique_ptr<TextureResource>(new TextureResource{
         .id = static_cast<TextureId>(_textures.size()),
-        .registrationType = TextureRegistrationType::SampledImage,
+        .registrationType = registrationType,
         .texture =
             Texture(_device.get(), "depth_texture", depthImage, allocation, size, format, VK_IMAGE_ASPECT_DEPTH_BIT),
         })
@@ -131,7 +138,7 @@ TextureManager::TextureResource* TextureManager::createTexture(const TextureCrea
     _textures.push_back(
         std::unique_ptr<TextureResource>(new TextureResource{
         .id = static_cast<TextureId>(_textures.size()),
-        .registrationType = TextureRegistrationType::SampledImage,
+        .registrationType = createInfo.registrationType,
         .texture = Texture(
             _device.get(),
             createInfo.name,
@@ -152,11 +159,33 @@ TextureManager::TextureResource* TextureManager::createTexture(const TextureCrea
 
 bool TextureManager::_registerLastTexture() noexcept {
     auto& textureResource = _textures.back();
-    auto textureHandles = _descriptorRegistry.get().registerSampledTextures({&textureResource->texture}, true);
+    switch (textureResource->registrationType) {
+    case TextureRegistrationType::SampledImage:
+        return _registerLastSampledTexture();
+    case TextureRegistrationType::StorageImage:
+        return _registerLastStorageTexture();
+    case TextureRegistrationType::Both:
+        return _registerLastSampledTexture() && _registerLastStorageTexture();
+    }
+    return false;
+}
+
+bool TextureManager::_registerLastStorageTexture() noexcept {
+    auto& textureResource = _textures.back();
+    auto textureHandles = _descriptorRegistry.get().registerStorageTextures({&textureResource->texture}, true);
     if (!textureHandles || textureHandles->empty()) {
-        _logger.error("Failed to register depth texture");
+        _logger.error("Failed to register storage texture");
         return false;
     }
-    textureResource->sampledShaderHandle = (*textureHandles)[0];
+    return true;
+}
+
+bool TextureManager::_registerLastSampledTexture() noexcept {
+    auto& textureResource = _textures.back();
+    auto textureHandles = _descriptorRegistry.get().registerSampledTextures({&textureResource->texture}, true);
+    if (!textureHandles || textureHandles->empty()) {
+        _logger.error("Failed to register sampled texture");
+        return false;
+    }
     return true;
 }

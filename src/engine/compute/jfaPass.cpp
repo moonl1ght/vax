@@ -1,6 +1,5 @@
 #include "jfaPass.h"
 #include "jfa.h"
-#include "textureFactory.h"
 #include <vulkan/vulkan_core.h>
 
 using namespace vax::engine;
@@ -17,74 +16,46 @@ void JFAPass::update(std::weak_ptr<vax::vk::RenderDestination> inputRenderDestin
     _inputRenderDestination = std::move(inputRenderDestination);
     if (auto inputRenderDestinationShared = _inputRenderDestination.lock()) {
         auto& descriptorRegistry = _pipelineManager.get().descriptorRegistry();
-        for (const auto& textureHandle : _textureHandles) {
-            descriptorRegistry.releaseStorageTexture(textureHandle.jfaA);
-            descriptorRegistry.releaseStorageTexture(textureHandle.jfaB);
-            descriptorRegistry.releaseSampledTexture(textureHandle.mask);
-            descriptorRegistry.releaseSampledTexture(textureHandle.depth);
-            descriptorRegistry.releaseSampledTexture(textureHandle.jfaASampled);
-            descriptorRegistry.releaseSampledTexture(textureHandle.jfaBSampled);
-        }
+        _inputMaskTextures = inputRenderDestinationShared->maskTextures();
+        _inputDepthTextures = inputRenderDestinationShared->depthTexture();
         _createTextures(inputRenderDestinationShared->maskTextures(), inputRenderDestinationShared->depthTexture());
     }
 }
 
-void JFAPass::_createTextures(const std::vector<vax::vk::Texture>& maskTextures, const vax::vk::Texture& depthTexture) {
+void JFAPass::_createTextures(
+    const std::vector<vax::vk::TextureManager::TextureResource*>& maskTextures,
+    const vax::vk::TextureManager::TextureResource* depthTexture
+) {
     _jfaTexturesA.clear();
     _jfaTexturesB.clear();
-    _textureHandles.clear();
-    _textureHandles.resize(vax::vk::MAX_FRAMES_IN_FLIGHT);
-    auto textureFactory = TextureFactory(_device.get());
     for (int i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
 
-        auto inputTextureSize = maskTextures[i].size();
-        auto textureA = textureFactory.makeTextureDetached(
-            TextureFactory::TextureCreateInfo{
+        auto inputTextureSize = maskTextures[i]->texture.size();
+        auto textureCreateInfo = TextureManager::TextureCreateInfo{
+            .registrationType = vax::vk::TextureManager::TextureRegistrationType::Both,
             .name = "jfa_texture_a_" + std::to_string(i),
             .format = VK_FORMAT_R16G16_UINT,
             .size = inputTextureSize,
             .imageUsageFlags = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
             .viewType = VK_IMAGE_VIEW_TYPE_2D,
             .flags = 0,
-            }
-        );
+        };
+        auto textureA = _textureManager.get().createTexture(textureCreateInfo);
         if (!textureA) {
             _logger.error("Failed to create JFA texture A!");
             return;
         }
-        textureA->loadImageView(VK_IMAGE_VIEW_TYPE_2D, 1, 1);
-        _jfaTexturesA.push_back(std::move(*textureA));
+        textureA->texture.loadImageView(VK_IMAGE_VIEW_TYPE_2D, 1, 1);
+        _jfaTexturesA.push_back(textureA);
 
-        auto textureB = textureFactory.makeTextureDetached(
-            TextureFactory::TextureCreateInfo{
-            .name = "jfa_texture_b_" + std::to_string(i),
-            .format = VK_FORMAT_R16G16_UINT,
-            .size = inputTextureSize,
-            .imageUsageFlags = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-            .viewType = VK_IMAGE_VIEW_TYPE_2D,
-            .flags = 0,
-            }
-        );
+        textureCreateInfo.name = "jfa_texture_b_" + std::to_string(i);
+        auto textureB = _textureManager.get().createTexture(textureCreateInfo);
         if (!textureB) {
             _logger.error("Failed to create JFA texture B!");
             return;
         }
-        textureB->loadImageView(VK_IMAGE_VIEW_TYPE_2D, 1, 1);
-        _jfaTexturesB.push_back(std::move(*textureB));
-        auto& descriptorRegistry = _pipelineManager.get().descriptorRegistry();
-        auto registrationResult = descriptorRegistry.registerBatch({
-            .storageTextures = std::array<const Texture*, 2>{&_jfaTexturesA[i], &_jfaTexturesB[i]},
-            .sampledTextures =
-                std::array<const Texture*, 4>{&maskTextures[i], &depthTexture, &_jfaTexturesA[i], &_jfaTexturesB[i]},
-        });
-        _textureHandles[i] = TextureHandles{
-            .mask = registrationResult.sampledTextures.value()[0],
-            .depth = registrationResult.sampledTextures.value()[1],
-            .jfaA = registrationResult.storageTextures.value()[0],
-            .jfaB = registrationResult.storageTextures.value()[1],
-            .jfaASampled = registrationResult.sampledTextures.value()[2],
-            .jfaBSampled = registrationResult.sampledTextures.value()[3],
-        };
+        textureB->texture.loadImageView(VK_IMAGE_VIEW_TYPE_2D, 1, 1);
+        _jfaTexturesB.push_back(textureB);
     }
 }
 
@@ -93,8 +64,6 @@ void JFAPass::runPass(RunPassInfo& runPassInfo) {
         _logger.error("JFA pipelines are not initialized!");
         return;
     }
-
-    auto& textureHandle = _textureHandles[runPassInfo.frameIndex];
 
     VkPipelineLayout layout = _initPipeline.value().pipelineLayout;
     VkDescriptorSet set = _initPipeline.value().descriptorSetLayout;
@@ -111,7 +80,7 @@ void JFAPass::runPass(RunPassInfo& runPassInfo) {
         .dstAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT,
         .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
         .newLayout = VK_IMAGE_LAYOUT_GENERAL,
-        .image = _jfaTexturesA[runPassInfo.frameIndex].image(),
+        .image = _jfaTexturesA[runPassInfo.frameIndex]->texture.image(),
         .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
     };
 
@@ -126,9 +95,10 @@ void JFAPass::runPass(RunPassInfo& runPassInfo) {
     vkCmdBindPipeline(
         runPassInfo.commandBuffer.vkCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _initPipeline.value().vkPipeline
     );
-    JFAInitPushConstants initPushConstants{
-        .inputMask = textureHandle.mask, .inputDepth = textureHandle.depth, .output = textureHandle.jfaA
-    };
+    auto inputMask = _inputMaskTextures[runPassInfo.frameIndex]->sampledShaderHandle;
+    auto inputDepth = _inputDepthTextures->sampledShaderHandle;
+    auto output = _jfaTexturesA[runPassInfo.frameIndex]->storageShaderHandle;
+    JFAInitPushConstants initPushConstants{.inputMask = inputMask, .inputDepth = inputDepth, .output = output};
     vkCmdPushConstants(
         runPassInfo.commandBuffer.vkCommandBuffer,
         layout,
@@ -138,8 +108,8 @@ void JFAPass::runPass(RunPassInfo& runPassInfo) {
         &initPushConstants
     );
 
-    uint32_t width = _jfaTexturesA[runPassInfo.frameIndex].width();
-    uint32_t height = _jfaTexturesA[runPassInfo.frameIndex].height();
+    uint32_t width = _jfaTexturesA[runPassInfo.frameIndex]->texture.width();
+    uint32_t height = _jfaTexturesA[runPassInfo.frameIndex]->texture.height();
 
     uint32_t groupCountX = (width + 15) / 16;
     uint32_t groupCountY = (height + 15) / 16;
@@ -154,7 +124,7 @@ void JFAPass::runPass(RunPassInfo& runPassInfo) {
         .dstAccessMask = VK_ACCESS_2_SHADER_READ_BIT,
         .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
         .newLayout = VK_IMAGE_LAYOUT_GENERAL,
-        .image = _jfaTexturesA[runPassInfo.frameIndex].image(),
+        .image = _jfaTexturesA[runPassInfo.frameIndex]->texture.image(),
         .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
         },
         {
@@ -165,7 +135,7 @@ void JFAPass::runPass(RunPassInfo& runPassInfo) {
         .dstAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT,
         .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
         .newLayout = VK_IMAGE_LAYOUT_GENERAL,
-        .image = _jfaTexturesB[runPassInfo.frameIndex].image(),
+        .image = _jfaTexturesB[runPassInfo.frameIndex]->texture.image(),
         .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
         }
     };
@@ -184,7 +154,8 @@ void JFAPass::runPass(RunPassInfo& runPassInfo) {
     bool isTextureAInput = true;
     uint32_t maxDim = std::max(width, height);
 
-    StorageImageShaderHandle in = textureHandle.jfaA, out = textureHandle.jfaB;
+    StorageImageShaderHandle in = _jfaTexturesA[runPassInfo.frameIndex]->storageShaderHandle;
+    StorageImageShaderHandle out = _jfaTexturesB[runPassInfo.frameIndex]->storageShaderHandle;
     for (uint32_t step = maxDim / 2; step > 0; step /= 2) {
         JFAStepPushConstants stepPushConstants{.input = in, .output = out, .step = step};
         vkCmdPushConstants(
@@ -207,8 +178,8 @@ void JFAPass::runPass(RunPassInfo& runPassInfo) {
             .dstAccessMask = VK_ACCESS_2_SHADER_READ_BIT,
             .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
             .newLayout = VK_IMAGE_LAYOUT_GENERAL,
-            .image = isTextureAInput ? _jfaTexturesB[runPassInfo.frameIndex].image()
-                                     : _jfaTexturesA[runPassInfo.frameIndex].image(),
+            .image = isTextureAInput ? _jfaTexturesB[runPassInfo.frameIndex]->texture.image()
+                                     : _jfaTexturesA[runPassInfo.frameIndex]->texture.image(),
             .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
             },
             {
@@ -219,8 +190,8 @@ void JFAPass::runPass(RunPassInfo& runPassInfo) {
             .dstAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT,
             .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
             .newLayout = VK_IMAGE_LAYOUT_GENERAL,
-            .image = isTextureAInput ? _jfaTexturesA[runPassInfo.frameIndex].image()
-                                     : _jfaTexturesB[runPassInfo.frameIndex].image(),
+            .image = isTextureAInput ? _jfaTexturesA[runPassInfo.frameIndex]->texture.image()
+                                     : _jfaTexturesB[runPassInfo.frameIndex]->texture.image(),
             .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
             }
         };
@@ -236,8 +207,8 @@ void JFAPass::runPass(RunPassInfo& runPassInfo) {
         std::swap(in, out);
     }
 
-    VkImage finalImage =
-        isTextureAInput ? _jfaTexturesA[runPassInfo.frameIndex].image() : _jfaTexturesB[runPassInfo.frameIndex].image();
+    VkImage finalImage = isTextureAInput ? _jfaTexturesA[runPassInfo.frameIndex]->texture.image()
+                                         : _jfaTexturesB[runPassInfo.frameIndex]->texture.image();
 
     VkImageMemoryBarrier2 finalBarrier{
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
@@ -259,7 +230,3 @@ void JFAPass::runPass(RunPassInfo& runPassInfo) {
     vkCmdPipelineBarrier2(runPassInfo.commandBuffer.vkCommandBuffer, &finalDependency);
     _isFinalImageA = isTextureAInput;
 }
-
-const std::vector<vax::vk::Texture>& JFAPass::outputATextures() const { return _jfaTexturesA; }
-
-const std::vector<vax::vk::Texture>& JFAPass::outputBTextures() const { return _jfaTexturesB; }

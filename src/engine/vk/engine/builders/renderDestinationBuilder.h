@@ -2,18 +2,18 @@
 
 #include "commandManager.h"
 #include "device.h"
-#include "vulkanCommon.h"
 #include "logger.h"
-#include <optional>
 #include "renderDestination.h"
 #include "renderPassDescriptor.h"
 #include "swapchain.h"
+#include <optional>
 
 namespace vax::vk {
 class RenderDestinationBuilder {
   public:
-    explicit RenderDestinationBuilder(const Device& device)
-        : _device(device) {};
+    explicit RenderDestinationBuilder(const Device& device, TextureManager& textureManager)
+        : _device(device)
+        , _textureManager(textureManager) {};
 
     std::optional<RenderDestination> buildSwapchain(
         CommandManager& commandManager,
@@ -38,6 +38,8 @@ class RenderDestinationBuilder {
 
   private:
     vax::Logger _logger = vax::Logger("RenderDestinationBuilder");
+
     std::reference_wrapper<const Device> _device;
+    std::reference_wrapper<vax::vk::TextureManager> _textureManager;
 };
 } // namespace vax::vk

@@ -7,33 +7,22 @@
 #include "renderPassDescriptor.h"
 #include "renderPassGraphDescriptor.h"
 #include "renderPassGraphManager.h"
+#include "resourceManager.h"
 #include "scene.h"
 #include "shaderResourceHandle.h"
 #include "state_tracker.h"
 #include "uiEngine.h"
 #include "vkEngine.h"
+#include <optional>
 
 namespace vax::engine {
 class Renderer final : public BaseRenderer {
   public:
-    struct FinalBlendTextures final {
-        SampledImageShaderHandle color;
-        SampledImageShaderHandle mask;
-        SampledImageShaderHandle depth;
-    };
-
     state_tracker<RenderPassGraphMode> renderPassGraphMode =
         state_tracker<RenderPassGraphMode>(RenderPassGraphMode::UNKNOWN);
 
     Renderer(vax::vk::Engine& vkEngine, vax::ui::UIEngine& uiEngine)
-        : BaseRenderer(vkEngine, uiEngine) {
-        _renderPassGraphManager = std::make_unique<RenderPassGraphManager>(
-            *_vkEngine.get().device,
-            *_vkEngine.get().pipelineManager,
-            _vkEngine.get().getWindowController(),
-            _uiEngine.get()
-        );
-    };
+        : BaseRenderer(vkEngine, uiEngine) {};
 
     ~Renderer() {};
 
@@ -44,7 +33,7 @@ class Renderer final : public BaseRenderer {
 
     bool render(Scene* scene, const FrameTime& frameTime);
 
-    void setup();
+    void setup(vax::vk::ResourceManager& resourceManager) noexcept;
 
     void load();
 
@@ -59,10 +48,6 @@ class Renderer final : public BaseRenderer {
     }
 
     RenderPassGraphManager* renderPassGraphManager() { return _renderPassGraphManager.get(); }
-
-    const FinalBlendTextures& finalBlendTextures(uint32_t frameIndex) const { return _finalBlendTextures[frameIndex]; }
-
-    SampledImageShaderHandle agentCameraTexture(uint32_t frameIndex) const { return _agentCameraTextures[frameIndex]; }
 
   private:
     struct RenderPassInfo {
@@ -83,9 +68,6 @@ class Renderer final : public BaseRenderer {
 
     bool _isLoaded = false;
 
-    std::vector<FinalBlendTextures> _finalBlendTextures;
-    std::vector<SampledImageShaderHandle> _agentCameraTextures;
-
     bool _updateCommandBuffer(
         vax::vk::CommandBuffer& commandBuffer,
         uint32_t imageIndex,
@@ -102,10 +84,6 @@ class Renderer final : public BaseRenderer {
     void _resize();
 
     void _resizeSecondary();
-
-    void _registerFinalBlendTextures();
-
-    void _registerSecondaryWindowTextures();
 
     void _prepareForRender(Scene* scene);
 };

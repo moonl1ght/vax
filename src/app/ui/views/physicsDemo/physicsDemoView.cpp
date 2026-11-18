@@ -8,7 +8,7 @@ using namespace vax::ui;
 void PhysicsDemoView::updateUI(const vax::engine::FrameTime& frameTime) { SceneView::updateUI(frameTime); }
 
 bool PhysicsDemoView::_load() {
-    auto sceneLoader = vax::engine::SceneLoader(_vkEngine.get());
+    auto sceneLoader = vax::engine::SceneLoader(_vkEngine.get(), _resourceManager.get());
 
     auto sceneWorldPair = sceneLoader.load(RES_PATH("scenes/physics_demo_scene.json"));
 

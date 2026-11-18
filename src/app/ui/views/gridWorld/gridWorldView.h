@@ -20,11 +20,13 @@ class GridWorldView final : public SceneView<rl::GWSceneController> {
         vax::WindowController& windowController,
         vax::engine::Renderer& renderer,
         vax::vk::Engine& vkEngine,
-        vax::InputController& inputController
+        vax::InputController& inputController,
+        vax::vk::ResourceManager& resourceManager
     )
-        : SceneView(renderer, vkEngine, inputController)
+        : SceneView(renderer, vkEngine, inputController, resourceManager)
         , _uiEngine(uiEngine)
-        , _windowController(windowController) {}
+        , _windowController(windowController)
+        {}
     ~GridWorldView();
 
     GridWorldView(const GridWorldView& other) = delete;

@@ -36,13 +36,13 @@ uint32_t loadTexture(aiString& textureName, vax::vk::TextureLoader& textureLoade
                 std::string(scene->mRootNode->mName.C_Str()) + "_baseColorTexture_" + std::string(textureName.C_Str());
             auto texture = textureLoader.loadTexture(name, data);
             if (texture) {
-                return texture->getShaderResourceIndex();
+                return texture->sampledShaderHandle.index;
             }
             return NO_TEXTURE_FLAG;
         } else {
             auto texture = textureLoader.loadTexture(textureName.C_Str());
             if (texture) {
-                return texture->getShaderResourceIndex();
+                return texture->sampledShaderHandle.index;
             }
             return NO_TEXTURE_FLAG;
         }

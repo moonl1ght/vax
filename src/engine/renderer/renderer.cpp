@@ -2,7 +2,6 @@
 #include "imageUtils.h"
 #include "paths.h"
 #include "profiler.h"
-#include "textureFactory.h"
 #include "vkEngine.h"
 #include <array>
 
@@ -10,7 +9,14 @@ using namespace vax::engine;
 using namespace vax;
 using namespace vax::vk;
 
-void Renderer::setup() {
+void Renderer::setup(vax::vk::ResourceManager& resourceManager) noexcept {
+    _renderPassGraphManager = std::make_unique<RenderPassGraphManager>(
+        *_vkEngine.get().device,
+        *_vkEngine.get().pipelineManager,
+        resourceManager,
+        _vkEngine.get().getWindowController(),
+        _uiEngine.get()
+    );
     auto swapchain = _getSwapchain(0);
     _renderPassGraphManager->setupRenderPassDescriptors(swapchain->swapchainImageFormat);
     auto swapchainRenderPassDescriptor = _renderPassGraphManager->getRenderPassDescriptor("swapchain");
@@ -44,69 +50,21 @@ void Renderer::load() {
     }
     _vkEngine.get().pipelineManager->prebuildPipelines(pipelineDescriptors);
 
-    _registerFinalBlendTextures();
     _isLoaded = true;
-}
-
-void Renderer::_registerSecondaryWindowTextures() {
-    auto& registry = _vkEngine.get().pipelineManager->descriptorRegistry();
-    for (auto handle : _agentCameraTextures) {
-        registry.releaseSampledTexture(handle);
-    }
-    _agentCameraTextures.clear();
-
-    auto agentCameraRenderDestination = _renderPassGraphManager->getRenderDestination("agent_camera_main");
-    if (!agentCameraRenderDestination) {
-        _logger.error("Agent camera render destination is missing!");
-        return;
-    }
-    std::vector<const Texture*> textures;
-    for (uint32_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
-        textures.push_back(&agentCameraRenderDestination->textures()[i]);
-    }
-    auto handles = registry.registerSampledTexture(textures);
-    if (!handles) {
-        _logger.error("Failed to register agent camera textures!");
-        return;
-    }
-    _agentCameraTextures = std::move(*handles);
-}
-
-void Renderer::_registerFinalBlendTextures() {
-    auto& registry = _vkEngine.get().pipelineManager->descriptorRegistry();
-    for (const auto& handles : _finalBlendTextures) {
-        registry.releaseSampledTexture(handles.color);
-        registry.releaseSampledTexture(handles.mask);
-        registry.releaseSampledTexture(handles.depth);
-    }
-    _finalBlendTextures.clear();
-
-    auto mainRenderDestination = _renderPassGraphManager->getRenderDestination("main");
-    if (!mainRenderDestination) {
-        _logger.error("Main render destination is missing!");
-        return;
-    }
-    for (uint32_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
-        auto handles = registry.registerSampledTexture({
-            &mainRenderDestination->textures()[i],
-            &mainRenderDestination->maskTextures()[i],
-            &mainRenderDestination->depthTexture(),
-        });
-        if (!handles) {
-            _logger.error("Failed to register final blend textures for frame ", i);
-            return;
-        }
-        _finalBlendTextures.push_back(
-            FinalBlendTextures{.color = (*handles)[0], .mask = (*handles)[1], .depth = (*handles)[2]}
-        );
-    }
 }
 
 void Renderer::_prepareForRender(Scene* scene) {
     ZoneScopedN("Renderer::prepareForRender");
     bool shouldRebuildGraph = renderPassGraphMode.is_dirty() || _wasResized;
     if (scene != nullptr) {
-        scene->prepareForDraw(engine::RenderCallContext{.currentFrame = _currentFrame});
+        auto shadowMapResource = _renderPassGraphManager->getRenderDestination("shadow_sun")->depthTexture();
+        scene->prepareForDraw(
+            engine::RenderCallContext{
+            .currentFrame = _currentFrame,
+            .shadowMapIndex =
+                shadowMapResource ? shadowMapResource->sampledShaderHandle.index : NullShaderResourceIndex,
+            }
+        );
 
         if (_wasResized) {
             // setup(scene);
@@ -130,7 +88,6 @@ void Renderer::_prepareForRender(Scene* scene) {
                     _renderPassGraphManager->setupRenderDestinationsForAgentCamera(
                         *_vkEngine.get().commandManager, *_vkEngine.get().queueManager, *_getSwapchain(1)
                     );
-                    _registerSecondaryWindowTextures();
                 }
                 _renderPassGraphManager->buildGraph(
                     RenderPassGraphMode::SCENE_GRAPH, scene != nullptr ? &scene->renderPassGraphDescriptor() : nullptr
@@ -341,14 +298,20 @@ bool Renderer::_drawScene(CommandBuffer& commandBuffer, Scene* scene) {
         return false;
 
     RenderPassNode::FrameTextureHandles frameTextures{};
-    if (_currentFrame < _finalBlendTextures.size()) {
-        const auto& finalBlendTextures = _finalBlendTextures[_currentFrame];
-        frameTextures.mainColor = finalBlendTextures.color;
-        frameTextures.mainMask = finalBlendTextures.mask;
-        frameTextures.mainDepth = finalBlendTextures.depth;
+    auto mainRenderDestination = _renderPassGraphManager->getRenderDestination("main");
+    auto agentCameraRenderDestination = _renderPassGraphManager->getRenderDestination("agent_camera");
+    if (_currentFrame < mainRenderDestination->colorTextures().size()) {
+        frameTextures.mainColor =
+            SampledImageShaderHandle(mainRenderDestination->colorTextures()[_currentFrame]->sampledShaderHandle.index);
+        frameTextures.mainMask =
+            SampledImageShaderHandle(mainRenderDestination->maskTextures()[_currentFrame]->sampledShaderHandle.index);
+        frameTextures.mainDepth =
+            SampledImageShaderHandle(mainRenderDestination->depthTexture()->sampledShaderHandle.index);
     }
-    if (_currentFrame < _agentCameraTextures.size()) {
-        frameTextures.agentCameraColor = _agentCameraTextures[_currentFrame];
+    if (_currentFrame < agentCameraRenderDestination->colorTextures().size()) {
+        frameTextures.agentCameraColor = SampledImageShaderHandle(
+            agentCameraRenderDestination->colorTextures()[_currentFrame]->sampledShaderHandle.index
+        );
     }
 
     RenderPassNode::RunPassInfo runPassInfo{

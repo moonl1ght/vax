@@ -4,8 +4,11 @@
 #ifdef __cplusplus
 
 #include <cstdint>
+#include <limits>
 
 typedef uint32_t ShaderResourceIndex;
+
+constexpr ShaderResourceIndex NullShaderResourceIndex = std::numeric_limits<ShaderResourceIndex>::max();
 
 struct SampledImageTag {};
 struct StorageImageTag {};
@@ -14,7 +17,7 @@ struct ConstantBufferTag {};
 struct SamplerTag {};
 
 template <typename Tag> struct ShaderResourceShaderHandle {
-    ShaderResourceIndex index = 0;
+    ShaderResourceIndex index = NullShaderResourceIndex;
     ShaderResourceIndex _padding = 0;
 };
 

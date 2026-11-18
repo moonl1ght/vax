@@ -25,7 +25,9 @@ class ResourceManager final {
 
     ~ResourceManager() { _cleanup(); }
 
-    bool setup(uint32_t maxInstances);
+    bool setup() noexcept;
+
+    bool load(uint32_t maxInstances) noexcept;
 
     BufferManager& bufferManager() { return _bufferManager; }
 

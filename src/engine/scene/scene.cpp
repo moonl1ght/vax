@@ -24,7 +24,7 @@ void Scene::load(const vax::engine::SceneDescriptor& descriptor) {
     _lightsUniformBuffer.reserve(vax::vk::MAX_FRAMES_IN_FLIGHT);
 
     for (size_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
-        auto& bufferManager = _resourceManager->bufferManager();
+        auto& bufferManager = _resourceManager.get().bufferManager();
         auto allocation = bufferManager
                               .allocateBuffer(
                                   "frame_uniform_buffer",
@@ -56,12 +56,12 @@ void Scene::load(const vax::engine::SceneDescriptor& descriptor) {
 
     loadCommandBuffer.begin();
 
-    _resourceManager->textureManager().loadAllTextures(loadCommandBuffer);
+    _resourceManager.get().textureManager().loadAllTextures(loadCommandBuffer);
 
     loadCommandBuffer.end();
     loadCommandBuffer.submitAndWait(loadQueue);
 
-    _resourceManager->textureManager().resetAllTexturesStagingBuffers();
+    _resourceManager.get().textureManager().resetAllTexturesStagingBuffers();
 
     registerResources();
 
@@ -109,9 +109,15 @@ void Scene::prepareForDraw(engine::RenderCallContext renderCallContext) {
             _sunLight.camera().projectionMatrix() * _sunLight.camera().viewMatrix();
         lightData->lights[sunLightUbo].position = glm::vec4(_sunLight.camera().position(), 1.0f);
         lightData->lights[sunLightUbo].color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-        lightData->lights[sunLightUbo].shadowMapIndex = 0;
+        lightData->lights[sunLightUbo].shadowMapIndex = renderCallContext.shadowMapIndex;
         lightData->lights[sunLightUbo].radius = 10.0f;
-        lightData->lights[sunLightUbo].shadowMapSamplerIndex = 0;
+        auto pbrSampler =
+            _resourceManager.get().textureManager().getGlobalSampler(TextureManager::GlobalSampler::PBRSampler);
+        if (pbrSampler) {
+            lightData->lights[sunLightUbo].shadowMapSamplerIndex = pbrSampler->shaderHandle.index;
+        } else {
+            _logger.error("PBR sampler is missing!");
+        }
     } else {
         _logger.error("Failed to get mapped memory!");
     }
@@ -152,43 +158,14 @@ void Scene::resize() {
 
 void Scene::registerResources() noexcept {
     auto& registry = _vkEngine.get().pipelineManager->descriptorRegistry();
-    auto& textureManager = _resourceManager->textureManager();
+    auto& textureManager = _resourceManager.get().textureManager();
 
     if (_resourcesRegistered) {
         _releaseResources();
     }
 
-    for (auto globalSampler : {GlobalSampler::PBRSampler, GlobalSampler::CubeMapSampler}) {
-        auto sampler = textureManager.getGlobalSampler(globalSampler);
-        if (!sampler) {
-            _logger.error("Global sampler is missing!");
-            return;
-        }
-        auto handle = registry.registerSampler(sampler->second->vkSampler);
-        if (!handle) {
-            _logger.error("Failed to register sampler!");
-            return;
-        }
-        if (handle->index != static_cast<uint32_t>(globalSampler)) {
-            _logger.warning(
-                "Global sampler ", static_cast<uint32_t>(globalSampler), " registered at index ", handle->index
-            );
-        }
-        _samplerHandles.push_back(*handle);
-    }
-
-    auto textures = textureManager.allTextures();
-    if (!textures.empty()) {
-        auto handles = registry.registerSampledTexture(textures, true);
-        if (!handles) {
-            _logger.error("Failed to register scene textures!");
-            return;
-        }
-        _textureHandles = std::move(*handles);
-    }
-
-    auto vertices = registry.registerStorageBuffer(_resourceManager->meshManager().globalVertexBuffer(0));
-    auto materials = registry.registerStorageBuffer(_resourceManager->materialManager().materialBuffer());
+    auto vertices = registry.registerStorageBuffer(_resourceManager.get().meshManager().globalVertexBuffer(0));
+    auto materials = registry.registerStorageBuffer(_resourceManager.get().materialManager().materialBuffer());
     auto environmentMaps = registry.registerStorageBuffer(_environmentMap->environmentMapBuffer());
     if (!vertices || !materials || !environmentMaps) {
         _logger.error("Failed to register scene storage buffers!");
@@ -199,7 +176,7 @@ void Scene::registerResources() noexcept {
     _environmentMapBufferHandle = *environmentMaps;
 
     for (uint32_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
-        auto instances = registry.registerStorageBuffer(_resourceManager->ssboManager().instanceBuffer(i));
+        auto instances = registry.registerStorageBuffer(_resourceManager.get().ssboManager().instanceBuffer(i));
         if (!instances) {
             _logger.error("Failed to register instance buffer ", i);
             return;
@@ -261,27 +238,19 @@ void Scene::_releaseResources() noexcept {
         return;
     }
     auto& registry = _vkEngine.get().pipelineManager->descriptorRegistry();
-    for (auto handle : _samplerHandles) {
-        registry.releaseSampler(handle);
-    }
-    for (auto handle : _textureHandles) {
-        registry.releaseSampledTexture(handle);
-    }
     registry.releaseStorageBuffer(_vertexBufferHandle);
     registry.releaseStorageBuffer(_materialBufferHandle);
     registry.releaseStorageBuffer(_environmentMapBufferHandle);
     for (auto handle : _instanceBufferHandles) {
         registry.releaseStorageBuffer(handle);
     }
-    _samplerHandles.clear();
-    _textureHandles.clear();
     _resourcesRegistered = false;
 }
 
 void Scene::_bindIndexBuffer(const DrawContext& drawContext) const noexcept {
     vkCmdBindIndexBuffer(
         drawContext.commandBuffer.vkCommandBuffer,
-        _resourceManager->meshManager().globalIndexBuffer(0).vkBuffer(),
+        _resourceManager.get().meshManager().globalIndexBuffer(0).vkBuffer(),
         0,
         VK_INDEX_TYPE_UINT32
     );

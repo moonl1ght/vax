@@ -52,16 +52,16 @@ class Scene final : public vax::InputController::Observer {
         vax::vk::Engine& vkEngine,
         std::unique_ptr<vax::ecs::World> gizmoWorld,
         std::unique_ptr<vax::ecs::World> backgroundWorld,
-        std::unique_ptr<vax::vk::ResourceManager> resourceManager,
         std::unique_ptr<vax::engine::EnvironmentMap> environmentMap,
-        std::unique_ptr<vax::engine::SceneComposer> sceneComposer
+        std::unique_ptr<vax::engine::SceneComposer> sceneComposer,
+        vax::vk::ResourceManager& resourceManager
     )
         : _vkEngine(vkEngine)
         , _gizmoWorld(std::move(gizmoWorld))
         , _backgroundWorld(std::move(backgroundWorld))
-        , _resourceManager(std::move(resourceManager))
         , _environmentMap(std::move(environmentMap))
-        , _sceneComposer(std::move(sceneComposer)) {
+        , _sceneComposer(std::move(sceneComposer))
+        , _resourceManager(resourceManager) {
         _indirectDrawController = std::make_unique<IndirectDrawController>(*_vkEngine.get().device);
     };
 
@@ -125,15 +125,13 @@ class Scene final : public vax::InputController::Observer {
 
     void setWorld(std::shared_ptr<vax::ecs::World> world) { _world = std::move(world); }
 
-    vax::vk::ResourceManager& resourceManager() noexcept { return *_resourceManager; }
-
   private:
     vax::Logger _logger = vax::Logger("DrawableScene");
 
+    std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;
     std::reference_wrapper<vax::vk::Engine> _vkEngine;
 
     std::unique_ptr<IndirectDrawController> _indirectDrawController;
-    std::unique_ptr<vax::vk::ResourceManager> _resourceManager;
     std::unique_ptr<vax::engine::EnvironmentMap> _environmentMap;
     std::unique_ptr<vax::engine::SceneComposer> _sceneComposer;
     std::unique_ptr<vax::ecs::World> _gizmoWorld;

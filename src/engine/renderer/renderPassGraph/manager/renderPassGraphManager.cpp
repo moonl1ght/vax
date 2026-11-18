@@ -37,7 +37,7 @@ void RenderPassGraphManager::setupRenderDestinations(
     auto& swapchainRenderPassDescriptor = _renderPassDescriptors.at("swapchain");
     auto& shadowSunRenderPassDescriptor = _renderPassDescriptors.at("shadow_sun");
 
-    auto renderDestinationBuilder = RenderDestinationBuilder(_device.get());
+    auto renderDestinationBuilder = RenderDestinationBuilder(_device.get(), _resourceManager.get().textureManager());
     auto mainRenderDestination = renderDestinationBuilder.buildMainOffscreen(
         commandManager, queueManager.graphicsQueue, swapchain.swapchainExtent, *mainRenderPassDescriptor
     );
@@ -80,7 +80,7 @@ void RenderPassGraphManager::setupRenderDestinationsForAgentCamera(
     auto& mainRenderPassDescriptor = _renderPassDescriptors.at("main");
     auto& swapchainRenderPassDescriptor = _renderPassDescriptors.at("swapchain");
 
-    auto renderDestinationBuilder = RenderDestinationBuilder(_device.get());
+    auto renderDestinationBuilder = RenderDestinationBuilder(_device.get(), _resourceManager.get().textureManager());
 
     auto agentCameraRenderDestination = renderDestinationBuilder.buildMainOffscreen(
         commandManager, queueManager.graphicsQueue, swapchain.swapchainExtent, *mainRenderPassDescriptor

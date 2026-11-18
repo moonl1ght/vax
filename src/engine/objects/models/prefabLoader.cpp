@@ -105,7 +105,7 @@ PrefabLoader::_loadPrimitivePrefab(const PrefabDescriptor& descriptor) {
         auto texture =
             textureGenerator.generateCheckerboardTexture(materialDescriptor->textureDescriptor.name, 512, 512, 64);
         if (texture) {
-            material.baseColorTextureIndex = texture->getShaderResourceIndex();
+            material.baseColorTextureIndex = texture->sampledShaderHandle.index;
         }
     }
     switch (primitiveDescriptor->primitiveType) {

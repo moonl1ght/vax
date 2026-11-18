@@ -20,19 +20,19 @@ bool EnvironmentMap::load(const Descriptor& descriptor) noexcept {
     };
     for (const auto& texture : descriptor.textures) {
         auto textureResource = _textureLoader->loadTexture(texture.second);
-        if (!textureResource.has_value()) {
+        if (!textureResource) {
             _logger.error("Failed to load texture: {}", texture.second);
             continue;
         }
         switch (texture.first) {
         case TextureType::EnvMap:
-            _environmentMapData.envMapTexture = textureResource->first.id();
+            _environmentMapData.envMapTexture = textureResource->sampledShaderHandle.index;
             break;
         case TextureType::EnvMapIrradiance:
-            _environmentMapData.envMapTextureIrradiance = textureResource->first.id();
+            _environmentMapData.envMapTextureIrradiance = textureResource->sampledShaderHandle.index;
             break;
         case TextureType::BRDFLUT:
-            _environmentMapData.texBRDFLUT = textureResource->first.id();
+            _environmentMapData.texBRDFLUT = textureResource->sampledShaderHandle.index;
             break;
         }
     }

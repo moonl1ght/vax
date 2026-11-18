@@ -1,11 +1,12 @@
 #pragma once
 
 #include "device.h"
+#include "texture.h"
+#include "textureManager.h"
 #include "vulkanCommon.h"
 #include <memory>
 #include <utility>
 #include <vector>
-#include "texture.h"
 
 namespace vax::vk {
 class RenderDestination final {
@@ -14,37 +15,37 @@ class RenderDestination final {
 
     explicit RenderDestination(
         const Device& device,
-        std::unique_ptr<Texture> depthTexture,
-        std::vector<Texture> textures,
-        std::vector<Texture> maskTextures,
+        TextureManager::TextureResource* depthTexture,
+        std::vector<TextureManager::TextureResource*> colorTextures,
+        std::vector<TextureManager::TextureResource*> maskTextures,
         std::vector<VkFramebuffer> framebuffers
-    )
+    ) noexcept
         : _device(device)
-        , _depthTexture(std::move(depthTexture))
-        , _textures(std::move(textures))
+        , _depthTexture(depthTexture)
+        , _colorTextures(std::move(colorTextures))
         , _maskTextures(std::move(maskTextures))
         , framebuffers(std::move(framebuffers)) {}
 
     RenderDestination(const RenderDestination& other) = delete;
     RenderDestination& operator=(const RenderDestination& other) = delete;
-
-    RenderDestination(RenderDestination&& other) = default;
-    RenderDestination& operator=(RenderDestination&& other) = default;
+    RenderDestination(RenderDestination&& other) noexcept = default;
+    RenderDestination& operator=(RenderDestination&& other) noexcept = default;
 
     ~RenderDestination() { _destroy(); }
 
-    const std::vector<Texture>& textures() const { return _textures; }
+    const std::vector<TextureManager::TextureResource*>& colorTextures() const noexcept { return _colorTextures; }
 
-    const Texture& depthTexture() const { return *_depthTexture; }
+    const TextureManager::TextureResource* depthTexture() const noexcept { return _depthTexture; }
 
-    const std::vector<Texture>& maskTextures() const { return _maskTextures; }
+    const std::vector<TextureManager::TextureResource*>& maskTextures() const noexcept { return _maskTextures; }
 
   private:
     std::reference_wrapper<const Device> _device;
-    std::vector<Texture> _textures;
-    std::unique_ptr<Texture> _depthTexture;
-    std::vector<Texture> _maskTextures;
 
-    void _destroy();
+    std::vector<TextureManager::TextureResource*> _colorTextures;
+    TextureManager::TextureResource* _depthTexture;
+    std::vector<TextureManager::TextureResource*> _maskTextures;
+
+    void _destroy() noexcept;
 };
 } // namespace vax::vk

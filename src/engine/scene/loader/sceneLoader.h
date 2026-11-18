@@ -1,6 +1,7 @@
 #pragma once
 
 #include "logger.h"
+#include "resourceManager.h"
 #include "scene.h"
 #include "sceneDescriptor.h"
 #include "world.h"
@@ -11,8 +12,9 @@ class SceneLoader {
   public:
     typedef std::pair<std::unique_ptr<Scene>, std::shared_ptr<ecs::World>> SceneWorldPair;
 
-    SceneLoader(vax::vk::Engine& vkEngine)
-        : _vkEngine(vkEngine) {}
+    SceneLoader(vax::vk::Engine& vkEngine, vax::vk::ResourceManager& resourceManager)
+        : _vkEngine(vkEngine)
+        , _resourceManager(resourceManager) {}
     ~SceneLoader() = default;
 
     SceneLoader(const SceneLoader& other) = delete;
@@ -28,6 +30,7 @@ class SceneLoader {
     vax::Logger _logger = vax::Logger("SceneLoader");
 
     std::reference_wrapper<vax::vk::Engine> _vkEngine;
+    std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;
 
     std::string _name;
 

@@ -19,5 +19,4 @@ template <typename T, T NullId> class ResourceHandle final {
 
 using MeshHandle = ResourceHandle<MeshId, NullMeshId>;
 using BufferHandle = ResourceHandle<BufferId, NullBufferId>;
-using TextureHandle = ResourceHandle<TextureId, NullTextureId>;
 } // namespace vax::vk

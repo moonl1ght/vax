@@ -22,6 +22,7 @@ class TextureManager final {
     enum class TextureRegistrationType : uint32_t {
         SampledImage = 0,
         StorageImage = 1,
+        Both = 2,
     };
 
     struct TextureResource final {
@@ -30,15 +31,6 @@ class TextureManager final {
         Texture texture;
         SampledImageShaderHandle sampledShaderHandle = {};
         StorageImageShaderHandle storageShaderHandle = {};
-
-        ShaderResourceIndex getShaderResourceIndex() const {
-            switch (registrationType) {
-            case TextureRegistrationType::SampledImage:
-                return sampledShaderHandle.index;
-            case TextureRegistrationType::StorageImage:
-                return storageShaderHandle.index;
-            }
-        }
     };
 
     struct SamplerResource final {
@@ -47,6 +39,7 @@ class TextureManager final {
     };
 
     struct TextureCreateInfo final {
+        TextureRegistrationType registrationType = TextureRegistrationType::SampledImage;
         std::string name;
         VkFormat format;
         math::SizeUI size;
@@ -82,7 +75,11 @@ class TextureManager final {
 
     void resetAllTexturesStagingBuffers() noexcept;
 
-    TextureResource* createDepthTexture(VkFormat format, vax::math::SizeUI size) noexcept;
+    TextureResource* createDepthTexture(
+        VkFormat format,
+        vax::math::SizeUI size,
+        TextureRegistrationType registrationType = TextureRegistrationType::SampledImage
+    ) noexcept;
 
     TextureResource* createTexture(const TextureCreateInfo& createInfo) noexcept;
 
@@ -96,5 +93,9 @@ class TextureManager final {
     std::vector<SamplerResource> _globalSamplers;
 
     bool _registerLastTexture() noexcept;
+
+    bool _registerLastStorageTexture() noexcept;
+
+    bool _registerLastSampledTexture() noexcept;
 };
 } // namespace vax::vk

@@ -19,13 +19,16 @@ class RenderPassGraphManager final {
     RenderPassGraphManager(
         vax::vk::Device& device,
         vax::vk::PipelineManager& pipelineManager,
+        vax::vk::ResourceManager& resourceManager,
         vax::WindowController& windowController,
         vax::ui::UIEngine& uiEngine
     )
         : _device(device)
-        , _pipelineManager(pipelineManager) {
-        _renderPassGraphBuilder =
-            std::make_unique<RenderPassGraphBuilder>(_device, windowController, _pipelineManager, uiEngine);
+        , _pipelineManager(pipelineManager)
+        , _resourceManager(resourceManager) {
+        _renderPassGraphBuilder = std::make_unique<RenderPassGraphBuilder>(
+            _device, windowController, _pipelineManager, uiEngine, _resourceManager
+        );
     }
 
     ~RenderPassGraphManager() = default;
@@ -65,6 +68,7 @@ class RenderPassGraphManager final {
 
     std::reference_wrapper<vax::vk::Device> _device;
     std::reference_wrapper<vax::vk::PipelineManager> _pipelineManager;
+    std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;
 
     std::unordered_map<std::string, std::shared_ptr<vax::vk::RenderPassDescriptor>> _renderPassDescriptors;
     std::unordered_map<std::string, std::shared_ptr<vax::vk::RenderDestination>> _renderDestinations;

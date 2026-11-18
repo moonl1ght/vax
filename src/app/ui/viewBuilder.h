@@ -20,13 +20,15 @@ class ViewBuilder {
         WindowController& windowController,
         InputController& inputController,
         engine::Renderer& renderer,
-        vk::Engine& engine
+        vk::Engine& engine,
+        vk::ResourceManager& resourceManager
     )
         : _uiEngine(uiEngine)
         , _windowController(windowController)
         , _inputController(inputController)
         , _renderer(renderer)
-        , _engine(engine) {}
+        , _engine(engine)
+        , _resourceManager(resourceManager) {}
 
     ~ViewBuilder() = default;
 
@@ -44,6 +46,7 @@ class ViewBuilder {
     std::reference_wrapper<InputController> _inputController;
     std::reference_wrapper<engine::Renderer> _renderer;
     std::reference_wrapper<vk::Engine> _engine;
+    std::reference_wrapper<vk::ResourceManager> _resourceManager;
 };
 
 } // namespace vax::ui
