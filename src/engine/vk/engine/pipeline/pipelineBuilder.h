@@ -68,9 +68,6 @@ class GraphicsPipelineBuilder final {
         _renderPassDescriptor = renderPassDescriptor;
     }
     void setDepthStencilState(DepthStencilState depthStencilState) noexcept { _depthStencilState = depthStencilState; }
-    void setColorAttachmentCount(uint32_t colorAttachmentCount) noexcept {
-        _colorAttachmentCount = colorAttachmentCount;
-    }
 
   private:
     vax::Logger _logger = vax::Logger("GraphicsPipelineBuilder");
@@ -79,6 +76,5 @@ class GraphicsPipelineBuilder final {
     VkPrimitiveTopology _topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     RenderPassDescriptor* _renderPassDescriptor = nullptr;
     DepthStencilState _depthStencilState = {};
-    uint32_t _colorAttachmentCount = 1;
 };
 } // namespace vax::vk

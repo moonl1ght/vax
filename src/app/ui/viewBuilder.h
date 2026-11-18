@@ -1,12 +1,11 @@
 #pragma once
 
-#include "inputController.h"
-#include "renderer.h"
 #include "gridWorldView.h"
-#include "uiEngine.h"
-#include "vkEngine.h"
-#include "windowController.h"
+#include "inputController.h"
 #include "physicsDemoView.h"
+#include "renderingEngine.h"
+#include "uiEngine.h"
+#include "windowController.h"
 
 namespace vax::ui {
 
@@ -16,19 +15,13 @@ class PhysicsDemoMenuView;
 class ViewBuilder {
   public:
     ViewBuilder(
-        UIEngine& uiEngine,
         WindowController& windowController,
         InputController& inputController,
-        engine::Renderer& renderer,
-        vk::Engine& engine,
-        vk::ResourceManager& resourceManager
+        rendering::RenderingEngine& renderingEngine
     )
-        : _uiEngine(uiEngine)
-        , _windowController(windowController)
+        : _windowController(windowController)
         , _inputController(inputController)
-        , _renderer(renderer)
-        , _engine(engine)
-        , _resourceManager(resourceManager) {}
+        , _renderingEngine(renderingEngine) {}
 
     ~ViewBuilder() = default;
 
@@ -41,12 +34,9 @@ class ViewBuilder {
     std::unique_ptr<PhysicsDemoView> buildPhysicsDemoView();
 
   private:
-    std::reference_wrapper<UIEngine> _uiEngine;
     std::reference_wrapper<WindowController> _windowController;
     std::reference_wrapper<InputController> _inputController;
-    std::reference_wrapper<engine::Renderer> _renderer;
-    std::reference_wrapper<vk::Engine> _engine;
-    std::reference_wrapper<vk::ResourceManager> _resourceManager;
+    std::reference_wrapper<rendering::RenderingEngine> _renderingEngine;
 };
 
 } // namespace vax::ui

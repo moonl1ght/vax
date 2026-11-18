@@ -4,7 +4,7 @@ import sharedTypes;
 import layout;
 
 public float calculateSunShadow(float3 worldPos, float3 normal, float3 lightDir, LightData light) {
-    if (light.shadowMapIndex == NO_SHADOW_MAP_INDEX) {
+    if (light.shadowMapIndex == NullShaderResourceIndex) {
         return 1.0f;
     }
 

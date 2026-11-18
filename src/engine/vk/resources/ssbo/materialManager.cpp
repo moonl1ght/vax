@@ -6,7 +6,9 @@ using namespace vax::vk;
 
 void MaterialManager::cleanup() {
     _materials.clear();
-    _buffer->cleanup();
+    if (_buffer) {
+        _buffer->cleanup();
+    }
 }
 
 bool MaterialManager::setup() {

@@ -45,7 +45,6 @@ void JFAPass::_createTextures(
             _logger.error("Failed to create JFA texture A!");
             return;
         }
-        textureA->texture.loadImageView(VK_IMAGE_VIEW_TYPE_2D, 1, 1);
         _jfaTexturesA.push_back(textureA);
 
         textureCreateInfo.name = "jfa_texture_b_" + std::to_string(i);
@@ -54,7 +53,6 @@ void JFAPass::_createTextures(
             _logger.error("Failed to create JFA texture B!");
             return;
         }
-        textureB->texture.loadImageView(VK_IMAGE_VIEW_TYPE_2D, 1, 1);
         _jfaTexturesB.push_back(textureB);
     }
 }

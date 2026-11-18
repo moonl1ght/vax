@@ -66,10 +66,6 @@ void Renderer::_prepareForRender(Scene* scene) {
             }
         );
 
-        if (_wasResized) {
-            // setup(scene);
-        }
-
         shouldRebuildGraph |= scene->shouldRebuildRenderPassGraph();
     }
 
@@ -299,7 +295,7 @@ bool Renderer::_drawScene(CommandBuffer& commandBuffer, Scene* scene) {
 
     RenderPassNode::FrameTextureHandles frameTextures{};
     auto mainRenderDestination = _renderPassGraphManager->getRenderDestination("main");
-    auto agentCameraRenderDestination = _renderPassGraphManager->getRenderDestination("agent_camera");
+    bool drawSecondaryWindow = scene->renderPassGraphDescriptor().withSecondaryWindow;
     if (_currentFrame < mainRenderDestination->colorTextures().size()) {
         frameTextures.mainColor =
             SampledImageShaderHandle(mainRenderDestination->colorTextures()[_currentFrame]->sampledShaderHandle.index);
@@ -308,10 +304,13 @@ bool Renderer::_drawScene(CommandBuffer& commandBuffer, Scene* scene) {
         frameTextures.mainDepth =
             SampledImageShaderHandle(mainRenderDestination->depthTexture()->sampledShaderHandle.index);
     }
-    if (_currentFrame < agentCameraRenderDestination->colorTextures().size()) {
-        frameTextures.agentCameraColor = SampledImageShaderHandle(
-            agentCameraRenderDestination->colorTextures()[_currentFrame]->sampledShaderHandle.index
-        );
+    if (drawSecondaryWindow) {
+        auto agentCameraRenderDestination = _renderPassGraphManager->getRenderDestination("agent_camera_main");
+        if (_currentFrame < agentCameraRenderDestination->colorTextures().size()) {
+            frameTextures.agentCameraColor = SampledImageShaderHandle(
+                agentCameraRenderDestination->colorTextures()[_currentFrame]->sampledShaderHandle.index
+            );
+        }
     }
 
     RenderPassNode::RunPassInfo runPassInfo{

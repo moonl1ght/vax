@@ -31,12 +31,9 @@ void App::setup() noexcept {
     }
 
     _viewBuilder = std::make_unique<ui::ViewBuilder>(
-        _renderingEngine->uiEngine(),
         *_windowController,
         _inputController,
-        _renderingEngine->renderer(),
-        _renderingEngine->vkEngine(),
-        _renderingEngine->resourceManager()
+        *_renderingEngine
     );
     _viewManager = std::make_unique<ui::ViewManager>(_renderingEngine->uiEngine(), *_viewBuilder);
     _viewManager->setRootView(_viewBuilder->buildStartingView());

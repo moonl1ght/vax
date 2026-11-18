@@ -109,7 +109,9 @@ std::optional<VkPipeline> GraphicsPipelineBuilder::build(std::string name, VkPip
         .colorWriteMask =
             VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
     };
-    std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments(_colorAttachmentCount, colorBlendAttachment);
+    std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments(
+        _renderPassDescriptor->colorAttachmentCount, colorBlendAttachment
+    );
     VkPipelineColorBlendStateCreateInfo colorBlending{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
         .logicOpEnable = VK_FALSE,

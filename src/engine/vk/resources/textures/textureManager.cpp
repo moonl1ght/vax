@@ -79,7 +79,7 @@ TextureManager::TextureResource* TextureManager::createDepthTexture(
         size.toExtent3D(),
         format,
         VK_IMAGE_TILING_OPTIMAL,
-        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
     );
     if (!imageResult) {
@@ -102,6 +102,7 @@ TextureManager::TextureResource* TextureManager::createDepthTexture(
             Texture(_device.get(), "depth_texture", depthImage, allocation, size, format, VK_IMAGE_ASPECT_DEPTH_BIT),
         })
     );
+    _textures.back()->texture.loadImageView(VK_IMAGE_VIEW_TYPE_2D, 1, 1);
     if (!_registerLastTexture()) {
         _logger.error("Failed to register last texture");
         return nullptr;
@@ -150,6 +151,7 @@ TextureManager::TextureResource* TextureManager::createTexture(const TextureCrea
         )
         })
     );
+    _textures.back()->texture.loadImageView(createInfo.viewType, createInfo.numLayers, createInfo.numMips);
     if (!_registerLastTexture()) {
         _logger.error("Failed to register last texture");
         return nullptr;
@@ -177,6 +179,7 @@ bool TextureManager::_registerLastStorageTexture() noexcept {
         _logger.error("Failed to register storage texture");
         return false;
     }
+    textureResource->storageShaderHandle = textureHandles->front();
     return true;
 }
 
@@ -187,5 +190,6 @@ bool TextureManager::_registerLastSampledTexture() noexcept {
         _logger.error("Failed to register sampled texture");
         return false;
     }
+    textureResource->sampledShaderHandle = textureHandles->front();
     return true;
 }

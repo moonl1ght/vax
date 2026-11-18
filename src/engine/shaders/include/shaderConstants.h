@@ -28,4 +28,8 @@ static const uint32_t NO_ID = 0xFFFFFFFF;
 
 static const uint32_t MAX_UBO_LIGHTS = 16;
 
+typedef uint32_t ShaderResourceIndex;
+
+static const ShaderResourceIndex NullShaderResourceIndex = 0xFFFFFFFF;
+
 #endif

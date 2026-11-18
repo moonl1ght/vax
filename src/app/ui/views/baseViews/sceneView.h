@@ -11,17 +11,11 @@ namespace vax::ui {
 
 template <typename ControllerType> class SceneView : public DebugView {
   public:
-    SceneView(
-        vax::engine::Renderer& renderer,
-        vax::vk::Engine& vkEngine,
-        vax::InputController& inputController,
-        vax::vk::ResourceManager& resourceManager
-    )
-        : DebugView(renderer)
-        , _vkEngine(vkEngine)
+    SceneView(vax::rendering::RenderingEngine& renderingEngine, vax::InputController& inputController)
+        : DebugView(renderingEngine)
         , _inputController(inputController)
-        , _resourceManager(resourceManager) {
-        _loadingView = std::make_unique<LoadingView>(renderer);
+        , _renderingEngine(renderingEngine) {
+        _loadingView = std::make_unique<LoadingView>(renderingEngine.renderer());
     }
 
     void updateUI(const vax::engine::FrameTime& frameTime) override {
@@ -67,9 +61,8 @@ template <typename ControllerType> class SceneView : public DebugView {
   protected:
     vax::Logger _logger = vax::Logger("SceneView");
 
-    std::reference_wrapper<vax::vk::Engine> _vkEngine;
     std::reference_wrapper<vax::InputController> _inputController;
-    std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;
+    std::reference_wrapper<vax::rendering::RenderingEngine> _renderingEngine;
 
     std::unique_ptr<LoadingView> _loadingView;
     std::unique_ptr<ControllerType> _controller;

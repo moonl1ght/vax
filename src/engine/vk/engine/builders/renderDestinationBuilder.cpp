@@ -24,7 +24,6 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildMainOffscreen(
         VK_IMAGE_ASPECT_DEPTH_BIT
     );
 
-    depthTexture->texture.loadImageView(VK_IMAGE_VIEW_TYPE_2D, 1, 1);
 
     VkImageUsageFlags colorImageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
@@ -50,7 +49,6 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildMainOffscreen(
             _logger.error("Failed to create offscreen color texture!");
             return std::nullopt;
         }
-        colorTexture->texture.loadImageView(VK_IMAGE_VIEW_TYPE_2D, 1, 1);
 
         auto maskTexture = _textureManager.get().createTexture(
             TextureManager::TextureCreateInfo{
@@ -64,7 +62,6 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildMainOffscreen(
             _logger.error("Failed to create offscreen color texture!");
             return std::nullopt;
         }
-        maskTexture->texture.loadImageView(VK_IMAGE_VIEW_TYPE_2D, 1, 1);
 
         std::array<VkImageView, 3> attachments = {
             colorTexture->texture.imageView(), maskTexture->texture.imageView(), depthTexture->texture.imageView()
@@ -115,7 +112,6 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildSwapchain(
         VK_IMAGE_ASPECT_DEPTH_BIT
     );
 
-    depthTexture->texture.loadImageView(VK_IMAGE_VIEW_TYPE_2D, 1, 1);
 
     std::vector<VkFramebuffer> swapchainFramebuffers;
     swapchainFramebuffers.resize(swapchain.swapchainImageViews.size());
@@ -169,7 +165,6 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildShadowSunOffscre
         VK_IMAGE_ASPECT_DEPTH_BIT
     );
 
-    depthTexture->texture.loadImageView(VK_IMAGE_VIEW_TYPE_2D, 1, 1);
 
     std::vector<VkFramebuffer> framebuffers;
     framebuffers.resize(MAX_FRAMES_IN_FLIGHT);

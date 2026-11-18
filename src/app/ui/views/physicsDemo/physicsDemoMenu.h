@@ -6,8 +6,8 @@
 namespace vax::ui {
 class PhysicsDemoMenuView final : public DebugView {
   public:
-    PhysicsDemoMenuView(vax::engine::Renderer& renderer)
-        : DebugView(renderer) {}
+    PhysicsDemoMenuView(vax::rendering::RenderingEngine& renderingEngine)
+        : DebugView(renderingEngine) {}
 
     ~PhysicsDemoMenuView() override = default;
 
@@ -19,7 +19,6 @@ class PhysicsDemoMenuView final : public DebugView {
     void updateUI(const vax::engine::FrameTime& frameTime) override;
 
   private:
-
     void _showSimpleDemo();
 };
 } // namespace vax::ui

@@ -14,6 +14,13 @@ class Device;
 
 class DescriptorRegistry {
   public:
+    struct Stats final {
+        uint32_t storageTextures = 0;
+        uint32_t sampledTextures = 0;
+        uint32_t storageBuffers = 0;
+        uint32_t samplers = 0;
+    };
+
     struct RegistrationBatch final {
         std::span<const Texture* const> storageTextures;
         std::span<const Texture* const> sampledTextures;
@@ -85,6 +92,15 @@ class DescriptorRegistry {
     }
 
     bool releaseSampler(SamplerShaderHandle handle) noexcept { return _samplers.release(handle.index); }
+
+    Stats stats() const noexcept {
+        return {
+            .storageTextures = _storageTextures.size(),
+            .sampledTextures = _sampledTextures.size(),
+            .storageBuffers = _storageBuffers.size(),
+            .samplers = _samplers.size()
+        };
+    }
 
   private:
     template <typename Handle>

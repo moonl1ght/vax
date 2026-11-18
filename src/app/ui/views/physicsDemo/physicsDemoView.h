@@ -8,13 +8,8 @@
 namespace vax::ui {
 class PhysicsDemoView final : public SceneView<MainSceneController> {
   public:
-    PhysicsDemoView(
-        vax::engine::Renderer& renderer,
-        vax::vk::Engine& vkEngine,
-        vax::InputController& inputController,
-        vax::vk::ResourceManager& resourceManager
-    )
-        : SceneView(renderer, vkEngine, inputController, resourceManager) {}
+    PhysicsDemoView(vax::rendering::RenderingEngine& renderingEngine, vax::InputController& inputController)
+        : SceneView(renderingEngine, inputController) {}
 
     ~PhysicsDemoView() = default;
 

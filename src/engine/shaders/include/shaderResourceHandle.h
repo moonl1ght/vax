@@ -5,10 +5,7 @@
 
 #include <cstdint>
 #include <limits>
-
-typedef uint32_t ShaderResourceIndex;
-
-constexpr ShaderResourceIndex NullShaderResourceIndex = std::numeric_limits<ShaderResourceIndex>::max();
+#include "shaderConstants.h"
 
 struct SampledImageTag {};
 struct StorageImageTag {};

@@ -5,28 +5,20 @@
 #include "gwTrainingManager.h"
 #include "inputController.h"
 #include "logger.h"
-#include "renderer.h"
 #include "sceneView.h"
 #include "threadRunner.h"
-#include "uiEngine.h"
-#include "vkEngine.h"
 #include "windowController.h"
 
 namespace vax::ui {
 class GridWorldView final : public SceneView<rl::GWSceneController> {
   public:
     GridWorldView(
-        UIEngine& uiEngine,
         vax::WindowController& windowController,
-        vax::engine::Renderer& renderer,
-        vax::vk::Engine& vkEngine,
-        vax::InputController& inputController,
-        vax::vk::ResourceManager& resourceManager
+        vax::rendering::RenderingEngine& renderingEngine,
+        vax::InputController& inputController
     )
-        : SceneView(renderer, vkEngine, inputController, resourceManager)
-        , _uiEngine(uiEngine)
-        , _windowController(windowController)
-        {}
+        : SceneView(renderingEngine, inputController)
+        , _windowController(windowController) {}
     ~GridWorldView();
 
     GridWorldView(const GridWorldView& other) = delete;
@@ -51,7 +43,6 @@ class GridWorldView final : public SceneView<rl::GWSceneController> {
 
   private:
     vax::Logger _logger = vax::Logger("GridWorldView");
-    std::reference_wrapper<UIEngine> _uiEngine;
     std::reference_wrapper<vax::WindowController> _windowController;
     std::unique_ptr<vax::rl::GridWorld> _gridWorld;
     std::unique_ptr<vax::rl::GWTrainingManager> _trainingManager;
