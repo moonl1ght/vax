@@ -1,6 +1,17 @@
 # VAX
 
-Vulkan RL gym.
+<p align="center">
+  <img src="docs/images/logo.png" alt="VAX logo" width="480">
+</p>
+
+<p align="center"><b>Simulator for training RL agents</b></p>
+
+![Linux](https://img.shields.io/badge/Linux-tested-success?logo=linux&logoColor=white)
+![Windows](https://img.shields.io/badge/Windows-untested-lightgrey?logo=windows&logoColor=white)
+![macOS](https://img.shields.io/badge/macOS-untested-lightgrey?logo=apple&logoColor=white)
+
+VAX is an open-source, Vulkan-based simulator for training reinforcement-learning agents.
+It runs the full loop inside one engine: sensors → policy → actions → physics → rendering.
 
 ## Build
 
@@ -15,14 +26,6 @@ To debug Slang source (not SPIR-V) in RenderDoc or a shader debugger:
 
 1. Add `-g -O0` flags to the Slang compilation command
 2. Comment `float3 baryCoords : SV_Barycentrics;` in shaders - this built-in is incompatible with Slang-level debug info
-
-## IBL Env genetation
-
-```bash
-gltf-ibl-sampler -inputPath ./university_workshop_4k.hdr -outCubeMap ./charlie.ktx -distribution Charlie -cubeMapResolution 512
-gltf-ibl-sampler -inputPath ./university_workshop_4k.hdr -outCubeMap ./prefilter.ktx -distribution GGX -cubeMapResolution 512
-gltf-ibl-sampler -inputPath ./university_workshop_4k.hdr -outCubeMap ./irradiance.ktx -distribution Lambertian -cubeMapResolution 256
-```
 
 ## Requirements
 
