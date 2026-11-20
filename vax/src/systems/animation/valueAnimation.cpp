@@ -1,9 +1,9 @@
 #include "valueAnimation.h"
 #include <algorithm>
 
-using namespace vax;
+using namespace vax::animation;
 
-bool ValueAnimation::updateImpl(const engine::FrameTime& frameTime) {
+bool ValueAnimation::updateImpl(const vax::gfx::FrameTime& frameTime) {
     if (_isCompleted)
         return true;
     _isStarted = true;

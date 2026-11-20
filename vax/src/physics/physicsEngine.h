@@ -27,7 +27,7 @@ class PhysicsEngine {
     PhysicsEngine(PhysicsEngine&& other) noexcept = delete;
     PhysicsEngine& operator=(PhysicsEngine&& other) noexcept = delete;
 
-    void step(const engine::FrameTime& frameTime) noexcept;
+    void step(const vax::gfx::FrameTime& frameTime) noexcept;
 
     void loadWorld(std::shared_ptr<vax::ecs::World> world) noexcept;
 

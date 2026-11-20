@@ -14,10 +14,10 @@ class GridWorldView final : public SceneView<rl::GWSceneController> {
   public:
     GridWorldView(
         vax::WindowController& windowController,
-        vax::rendering::RenderingEngine& renderingEngine,
+        vax::gfx::RenderEngine& renderEngine,
         vax::InputController& inputController
     )
-        : SceneView(renderingEngine, inputController)
+        : SceneView(renderEngine, inputController)
         , _windowController(windowController) {}
     ~GridWorldView();
 
@@ -26,7 +26,7 @@ class GridWorldView final : public SceneView<rl::GWSceneController> {
     GridWorldView(GridWorldView&& other) noexcept = delete;
     GridWorldView& operator=(GridWorldView&& other) noexcept = delete;
 
-    void updateUI(const vax::engine::FrameTime& frameTime) override;
+    void updateUI(const vax::gfx::FrameTime& frameTime) override;
 
     vax::AppMode getAppMode() override { return vax::AppMode::Continous; }
 

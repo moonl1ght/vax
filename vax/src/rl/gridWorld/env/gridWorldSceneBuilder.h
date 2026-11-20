@@ -28,7 +28,7 @@ class GridWorldSceneBuilder {
     GridWorldSceneBuilder() {};
     ~GridWorldSceneBuilder() = default;
 
-    vax::engine::SceneDescriptor buildScene(
+    vax::gfx::SceneDescriptor buildScene(
         const vax::math::Tensor& grid,
         std::vector<vax::math::Position2DFloat> drawableWorldPosition,
         vax::rl::GWAgent& agent

@@ -13,25 +13,25 @@ class ViewManager;
 
 class View {
   public:
-    View(vax::engine::Renderer& renderer)
+    View(vax::gfx::Renderer& renderer)
         : _renderer(renderer) {};
 
     virtual ~View() = default;
 
-    virtual void updateUI(const vax::engine::FrameTime& frameTime) = 0;
+    virtual void updateUI(const vax::gfx::FrameTime& frameTime) = 0;
 
-    virtual void update(const vax::engine::FrameTime& frameTime) = 0;
+    virtual void update(const vax::gfx::FrameTime& frameTime) = 0;
 
-    virtual bool draw(const vax::engine::FrameTime& frameTime) { return _renderer.get().render(nullptr, frameTime); }
+    virtual bool draw(const vax::gfx::FrameTime& frameTime) { return _renderer.get().render(nullptr, frameTime); }
 
-    virtual void viewWillShow() { _renderer.get().renderPassGraphMode.set(engine::RenderPassGraphMode::UI_ONLY); }
+    virtual void viewWillShow() { _renderer.get().renderPassGraphMode.set(gfx::RenderPassGraphMode::UI_ONLY); }
 
     virtual vax::AppMode getAppMode() { return vax::AppMode::EventDriven; }
 
     void linkViewManager(ViewManager* viewManager) { _viewManager = viewManager; }
 
   protected:
-    std::reference_wrapper<vax::engine::Renderer> _renderer;
+    std::reference_wrapper<vax::gfx::Renderer> _renderer;
     ViewManager* _viewManager = nullptr;
 
     bool _beginInMainWindow(const char* name, ImGuiWindowFlags flags = 0) {

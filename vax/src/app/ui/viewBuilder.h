@@ -3,7 +3,7 @@
 #include "gridWorldView.h"
 #include "inputController.h"
 #include "physicsDemoView.h"
-#include "renderingEngine.h"
+#include "renderEngine.h"
 #include "uiEngine.h"
 #include "windowController.h"
 
@@ -17,11 +17,11 @@ class ViewBuilder {
     ViewBuilder(
         WindowController& windowController,
         InputController& inputController,
-        rendering::RenderingEngine& renderingEngine
+        gfx::RenderEngine& renderEngine
     )
         : _windowController(windowController)
         , _inputController(inputController)
-        , _renderingEngine(renderingEngine) {}
+        , _renderEngine(renderEngine) {}
 
     ~ViewBuilder() = default;
 
@@ -36,7 +36,7 @@ class ViewBuilder {
   private:
     std::reference_wrapper<WindowController> _windowController;
     std::reference_wrapper<InputController> _inputController;
-    std::reference_wrapper<rendering::RenderingEngine> _renderingEngine;
+    std::reference_wrapper<gfx::RenderEngine> _renderEngine;
 };
 
 } // namespace vax::ui

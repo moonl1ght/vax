@@ -1,14 +1,13 @@
 #pragma once
 
-#include "frameTime.h"
 #include "animation.h"
+#include "frameTime.h"
 #include <functional>
 
-namespace vax {
+namespace vax::animation {
 enum class AnimationFunction {
     LINEAR,
 };
-
 
 class ValueAnimation final : public Animation<ValueAnimation> {
   public:
@@ -19,7 +18,7 @@ class ValueAnimation final : public Animation<ValueAnimation> {
         _isReversed = startValue > endValue;
     }
 
-    bool updateImpl(const engine::FrameTime& frameTime);
+    bool updateImpl(const vax::gfx::FrameTime& frameTime);
 
     bool isStarted() const { return _isStarted; }
 
@@ -46,7 +45,6 @@ class ValueAnimation final : public Animation<ValueAnimation> {
     AnimationFunction _function = AnimationFunction::LINEAR;
     std::vector<std::function<void(float)>> _animationHandlers;
 
-
     float _duration = 1.0f;
     float _currentDuration = 0.0f;
     bool _isStarted = false;
@@ -60,4 +58,5 @@ class ValueAnimation final : public Animation<ValueAnimation> {
 
     void _calculateInterpolatedValue();
 };
-} // namespace vax
+
+} // namespace vax::animation

@@ -11,33 +11,33 @@ namespace vax::ui {
 
 template <typename ControllerType> class SceneView : public DebugView {
   public:
-    SceneView(vax::rendering::RenderingEngine& renderingEngine, vax::InputController& inputController)
-        : DebugView(renderingEngine)
+    SceneView(vax::gfx::RenderEngine& renderEngine, vax::InputController& inputController)
+        : DebugView(renderEngine)
         , _inputController(inputController)
-        , _renderingEngine(renderingEngine) {
-        _loadingView = std::make_unique<LoadingView>(renderingEngine.renderer());
+        , _renderEngine(renderEngine) {
+        _loadingView = std::make_unique<LoadingView>(renderEngine.renderer());
     }
 
-    void updateUI(const vax::engine::FrameTime& frameTime) override {
+    void updateUI(const vax::gfx::FrameTime& frameTime) override {
         DebugView::updateUI(frameTime);
         _loadingView->updateUI(frameTime);
     }
 
-    void update(const vax::engine::FrameTime& frameTime) override {
+    void update(const vax::gfx::FrameTime& frameTime) override {
         _frameProfiler->beginFrameZone("frame");
         _frameProfiler->beginFrameZone("frame_update");
         _updateLoading();
         if (_loadState == LoadState::LOADED) {
-            vax::engine::SceneUpdateContext sceneUpdateContext{.frameTime = frameTime};
+            vax::gfx::SceneUpdateContext sceneUpdateContext{.frameTime = frameTime};
             _controller->update(sceneUpdateContext);
         }
         _frameProfiler->endFrameZone("frame_update");
         DebugView::update(frameTime);
     }
 
-    bool draw(const vax::engine::FrameTime& frameTime) override {
+    bool draw(const vax::gfx::FrameTime& frameTime) override {
         _frameProfiler->beginFrameZone("draw");
-        vax::engine::Scene* scene = _loadState == LoadState::LOADED ? &_controller->getScene() : nullptr;
+        vax::gfx::Scene* scene = _loadState == LoadState::LOADED ? &_controller->getScene() : nullptr;
         bool renderResult = _renderer.get().render(scene, frameTime);
 
         if (!renderResult) {
@@ -51,8 +51,7 @@ template <typename ControllerType> class SceneView : public DebugView {
     void viewWillShow() override {
         _renderer.get().linkFrameProfiler(_frameProfiler.get());
         _renderer.get().renderPassGraphMode.set(
-            _loadState == LoadState::LOADED ? engine::RenderPassGraphMode::SCENE_GRAPH
-                                            : engine::RenderPassGraphMode::UI_ONLY
+            _loadState == LoadState::LOADED ? gfx::RenderPassGraphMode::SCENE_GRAPH : gfx::RenderPassGraphMode::UI_ONLY
         );
     }
 
@@ -62,7 +61,7 @@ template <typename ControllerType> class SceneView : public DebugView {
     vax::Logger _logger = vax::Logger("SceneView");
 
     std::reference_wrapper<vax::InputController> _inputController;
-    std::reference_wrapper<vax::rendering::RenderingEngine> _renderingEngine;
+    std::reference_wrapper<vax::gfx::RenderEngine> _renderEngine;
 
     std::unique_ptr<LoadingView> _loadingView;
     std::unique_ptr<ControllerType> _controller;
@@ -93,7 +92,7 @@ template <typename ControllerType> class SceneView : public DebugView {
             _renderer.get().load();
             if (_load() && _controller) {
                 _loadState = LoadState::LOADED;
-                _renderer.get().renderPassGraphMode.set(engine::RenderPassGraphMode::SCENE_GRAPH);
+                _renderer.get().renderPassGraphMode.set(gfx::RenderPassGraphMode::SCENE_GRAPH);
             } else {
                 _logger.error("Failed to load scene!");
                 _loadState = LoadState::FAILED;

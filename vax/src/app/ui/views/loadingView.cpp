@@ -5,7 +5,7 @@
 
 using namespace vax::ui;
 
-void LoadingView::updateUI(const vax::engine::FrameTime& frameTime) {
+void LoadingView::updateUI(const vax::gfx::FrameTime& frameTime) {
     if (!_isShown) {
         return;
     }

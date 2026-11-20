@@ -8,8 +8,8 @@
 namespace vax::ui {
 class PhysicsDemoView final : public SceneView<MainSceneController> {
   public:
-    PhysicsDemoView(vax::rendering::RenderingEngine& renderingEngine, vax::InputController& inputController)
-        : SceneView(renderingEngine, inputController) {}
+    PhysicsDemoView(vax::gfx::RenderEngine& renderEngine, vax::InputController& inputController)
+        : SceneView(renderEngine, inputController) {}
 
     ~PhysicsDemoView() = default;
 
@@ -18,7 +18,7 @@ class PhysicsDemoView final : public SceneView<MainSceneController> {
     PhysicsDemoView(PhysicsDemoView&& other) noexcept = delete;
     PhysicsDemoView& operator=(PhysicsDemoView&& other) noexcept = delete;
 
-    void updateUI(const vax::engine::FrameTime& frameTime) override;
+    void updateUI(const vax::gfx::FrameTime& frameTime) override;
 
     vax::AppMode getAppMode() override { return vax::AppMode::Continous; }
 

@@ -6,26 +6,26 @@
 #include <algorithm>
 #include <imgui.h>
 #include <imgui_internal.h>
-#include "renderingEngine.h"
+#include "renderEngine.h"
 
 namespace vax::ui {
 class DebugView : public View {
   public:
-    DebugView(vax::rendering::RenderingEngine& renderingEngine)
-        : View(renderingEngine.renderer()) {
-        _statsView = std::make_unique<StatsView>(renderingEngine);
+    DebugView(vax::gfx::RenderEngine& renderEngine)
+        : View(renderEngine.renderer()) {
+        _statsView = std::make_unique<StatsView>(renderEngine);
         _frameProfiler = std::make_unique<vax::FrameProfiler>();
         _statsView->linkFrameProfiler(_frameProfiler.get());
     }
 
     ~DebugView() override { _renderer.get().unlinkFrameProfiler(_frameProfiler.get()); }
 
-    void updateUI(const vax::engine::FrameTime& frameTime) override {
+    void updateUI(const vax::gfx::FrameTime& frameTime) override {
         _showMenuBar();
         _statsView->updateUI(frameTime);
     }
 
-    void update(const vax::engine::FrameTime& frameTime) override { _statsView->update(frameTime); }
+    void update(const vax::gfx::FrameTime& frameTime) override { _statsView->update(frameTime); }
 
     void viewWillShow() override {
         _renderer.get().linkFrameProfiler(_frameProfiler.get());

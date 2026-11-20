@@ -95,66 +95,60 @@ file(GLOB_RECURSE all_SRCS
     "${VAX_SRC_DIR}/*.spv"
 )
 
-set(STAGE_NAME_vert vertex)
-set(STAGE_NAME_frag fragment)
-set(STAGE_NAME_comp compute)
-set(STAGE_NAME_geom geometry)
-set(STAGE_NAME_tesc hull)
-set(STAGE_NAME_tese domain)
-
-set(ENTRY_NAME_vert vertMain)
-set(ENTRY_NAME_frag fragMain)
-set(ENTRY_NAME_comp compMain)
-set(ENTRY_NAME_geom geomMain)
-set(ENTRY_NAME_tesc tescMain)
-set(ENTRY_NAME_tese teseMain)
-
-file(GLOB_RECURSE SLANG_SOURCE_FILES
-    "${VAX_SRC_DIR}/engine/shaders/*.vert.slang"
-    "${VAX_SRC_DIR}/engine/shaders/*.frag.slang"
-    "${VAX_SRC_DIR}/engine/shaders/*.comp.slang"
-    "${VAX_SRC_DIR}/engine/shaders/*.geom.slang"
-    "${VAX_SRC_DIR}/engine/shaders/*.tesc.slang"
-    "${VAX_SRC_DIR}/engine/shaders/*.tese.slang"
+set(VAX_SHADER_DIR     "${VAX_SRC_DIR}/gfx/shaders")
+set(VAX_SHADER_OUT_DIR "${CMAKE_BINARY_DIR}/shaders")
+set(VAX_SHADER_FLAGS
+    -I "${VAX_SHADER_DIR}/src"
+    -I "${VAX_SHADER_DIR}/include"
+    -matrix-layout-column-major
+    -g -O0
 )
 
-file(MAKE_DIRECTORY "${VAX_SRC_DIR}/engine/shaders/out")
+find_program(SPIRV_VAL spirv-val HINTS $ENV{VULKAN_SDK}/bin $ENV{VULKAN_SDK}/Bin)
 
-file(GLOB_RECURSE SHADER_SHARED_FILES "${VAX_SRC_DIR}/engine/shaders/*.h")
-file(GLOB_RECURSE SHADER_SHARED_SLANG_FILES "${VAX_SRC_DIR}/engine/shaders/*.slang")
-list(REMOVE_ITEM SHADER_SHARED_SLANG_FILES ${SLANG_SOURCE_FILES})
-list(APPEND SHADER_SHARED_FILES ${SHADER_SHARED_SLANG_FILES})
+file(GLOB_RECURSE VAX_SHADER_SOURCES CONFIGURE_DEPENDS "${VAX_SHADER_DIR}/src/*.slang")
+file(GLOB_RECURSE VAX_SHADER_DEPS CONFIGURE_DEPENDS
+    "${VAX_SHADER_DIR}/*.slang"
+    "${VAX_SHADER_DIR}/*.h"
+)
 
-foreach(SLANG ${SLANG_SOURCE_FILES})
-    string(REGEX MATCH "([^/\\]+)\\.([^.]+)\\.slang$" _ "${SLANG}")
-    set(BASE_NAME    "${CMAKE_MATCH_1}")
-    set(SUFFIX       "${CMAKE_MATCH_2}")
-    set(STAGE        "${STAGE_NAME_${SUFFIX}}")
-    set(EP           "${ENTRY_NAME_${SUFFIX}}")
-    set(SPIRV        "${VAX_SRC_DIR}/engine/shaders/out/${BASE_NAME}.${SUFFIX}.spv")
-    message(STATUS "BUILDING SLANG SHADER: ${BASE_NAME} [${STAGE}]")
-    add_custom_command(
-        OUTPUT ${SPIRV}
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${VAX_SRC_DIR}/engine/shaders/out"
-        COMMAND ${SLANG_COMPILER} "${SLANG}"
-            -I "${VAX_SRC_DIR}/engine/shaders/src"
-            -I "${VAX_SRC_DIR}/engine/shaders/include"
-            -entry ${EP}
-            -stage ${STAGE}
-            -target spirv
-            -g -O0
-            -o "${SPIRV}"
-        DEPENDS ${SLANG} ${SHADER_SHARED_FILES}
-        COMMENT "Compiling ${BASE_NAME} [${STAGE}]"
-        VERBATIM
-    )
-    list(APPEND SPIRV_BINARY_FILES ${SPIRV})
+foreach(SLANG ${VAX_SHADER_SOURCES})
+    file(RELATIVE_PATH REL "${VAX_SHADER_DIR}/src" "${SLANG}")
+    string(REGEX REPLACE "\\.slang$" "" REL "${REL}")
+    get_filename_component(OUT_SUBDIR "${VAX_SHADER_OUT_DIR}/${REL}" DIRECTORY)
+
+    file(STRINGS "${SLANG}" HAS_ENTRY REGEX "\\[shader\\(")
+    if(HAS_ENTRY)
+        set(OUT "${VAX_SHADER_OUT_DIR}/${REL}.spv")
+        set(VALIDATE_CMD "")
+        if(SPIRV_VAL)
+            set(VALIDATE_CMD COMMAND ${SPIRV_VAL} --target-env vulkan1.3 "${OUT}")
+        endif()
+        add_custom_command(
+            OUTPUT "${OUT}"
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${OUT_SUBDIR}"
+            COMMAND ${SLANG_COMPILER} "${SLANG}" ${VAX_SHADER_FLAGS}
+                -target spirv -profile sm_6_5 -o "${OUT}"
+            ${VALIDATE_CMD}
+            DEPENDS ${VAX_SHADER_DEPS}
+            COMMENT "Checking shader ${REL}.slang"
+            VERBATIM
+        )
+    else()
+        set(OUT "${VAX_SHADER_OUT_DIR}/${REL}.slang-module")
+        add_custom_command(
+            OUTPUT "${OUT}"
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${OUT_SUBDIR}"
+            COMMAND ${SLANG_COMPILER} "${SLANG}" ${VAX_SHADER_FLAGS} -o "${OUT}"
+            DEPENDS ${VAX_SHADER_DEPS}
+            COMMENT "Checking shader module ${REL}.slang"
+            VERBATIM
+        )
+    endif()
+    list(APPEND VAX_SHADER_OUTPUTS "${OUT}")
 endforeach()
 
-add_custom_target(
-    Shaders
-    DEPENDS ${SPIRV_BINARY_FILES}
-)
+add_custom_target(Shaders DEPENDS ${VAX_SHADER_OUTPUTS})
 
 macro(HEADER_DIRECTORIES return_list)
     file(GLOB_RECURSE new_list "${VAX_SRC_DIR}/*.hpp"

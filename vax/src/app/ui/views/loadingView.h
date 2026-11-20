@@ -7,14 +7,14 @@
 namespace vax::ui {
 class LoadingView final : public View {
   public:
-    LoadingView(vax::engine::Renderer& renderer)
+    LoadingView(vax::gfx::Renderer& renderer)
         : View(renderer) {};
 
     ~LoadingView() = default;
 
-    void update(const vax::engine::FrameTime& frameTime) override {};
+    void update(const vax::gfx::FrameTime& frameTime) override {};
 
-    void updateUI(const vax::engine::FrameTime& frameTime) override;
+    void updateUI(const vax::gfx::FrameTime& frameTime) override;
 
     bool isShown() const noexcept { return _isShown; }
 

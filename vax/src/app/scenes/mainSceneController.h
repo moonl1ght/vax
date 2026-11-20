@@ -4,9 +4,9 @@
 
 namespace vax {
 
-class MainSceneController final : public engine::SceneController<MainSceneController> {
+class MainSceneController final : public gfx::SceneController<MainSceneController> {
   public:
-    MainSceneController(std::unique_ptr<engine::Scene> scene, std::shared_ptr<ecs::World> world)
+    MainSceneController(std::unique_ptr<gfx::Scene> scene, std::shared_ptr<ecs::World> world)
         : SceneController(std::move(scene), std::move(world)) {
         _isPhysicsEnabled = true;
     }
@@ -18,6 +18,6 @@ class MainSceneController final : public engine::SceneController<MainSceneContro
 
     ~MainSceneController() = default;
 
-    void onUpdate(const engine::SceneUpdateContext& context);
+    void onUpdate(const gfx::SceneUpdateContext& context);
 };
 } // namespace vax

@@ -1,10 +1,10 @@
 #include "gridWorld.h"
-#include <fstream>
 #include "colorPalette.h"
+#include "gridWorldSceneBuilder.h"
 #include "inputController.h"
 #include "nlohmann/json.hpp"
 #include "randomGenerator.h"
-#include "gridWorldSceneBuilder.h"
+#include <fstream>
 
 using namespace vax;
 using namespace vax::math;
@@ -14,9 +14,9 @@ using namespace vax::core;
 glm::vec4 getBlockColor(GridWorld::BlockType blockType) {
     switch (blockType) {
     case GridWorld::BlockType::FINISH:
-        return engine::ColorPalette::Green;
+        return gfx::ColorPalette::Green;
     case GridWorld::BlockType::START:
-        return engine::ColorPalette::Blue;
+        return gfx::ColorPalette::Blue;
     default:
         return glm::vec4(0.0f);
     }
@@ -258,9 +258,9 @@ void GridWorld::_updateGridInstancesHighlight() {
         auto blockTypeString = GridWorldSceneBuilder::blockTypeToPath(blockType);
         if (blockType == BlockType::FLOOR || blockType == BlockType::START || blockType == BlockType::FINISH) {
             if (blockType == BlockType::START) {
-                _sceneController->highlightInstance(blockTypeString, instanceIndex, engine::ColorPalette::Blue);
+                _sceneController->highlightInstance(blockTypeString, instanceIndex, gfx::ColorPalette::Blue);
             } else if (blockType == BlockType::FINISH) {
-                _sceneController->highlightInstance(blockTypeString, instanceIndex, engine::ColorPalette::Green);
+                _sceneController->highlightInstance(blockTypeString, instanceIndex, gfx::ColorPalette::Green);
             }
             ++instanceIndex;
         }

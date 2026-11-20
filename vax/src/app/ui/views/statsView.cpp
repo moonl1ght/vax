@@ -5,7 +5,7 @@
 
 using namespace vax::ui;
 
-void StatsView::updateUI(const vax::engine::FrameTime& frameTime) {
+void StatsView::updateUI(const vax::gfx::FrameTime& frameTime) {
     if (!_isShown) {
         return;
     }
@@ -72,7 +72,7 @@ void StatsView::_showFrameInfo() const {
 }
 
 void StatsView::_showFrameResourcesInfo() const noexcept {
-    auto& descriptorRegistry = _renderingEngine.get().vkEngine().pipelineManager->descriptorRegistry();
+    auto& descriptorRegistry = _renderEngine.get().vkEngine().pipelineManager->descriptorRegistry();
 
     ImGui::Text("Pipeline state:");
 

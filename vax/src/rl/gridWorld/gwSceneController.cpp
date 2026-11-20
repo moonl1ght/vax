@@ -6,7 +6,7 @@
 using namespace vax;
 using namespace vax::math;
 using namespace vax::rl;
-using namespace vax::engine;
+using namespace vax::gfx;
 
 namespace {
 constexpr std::array<std::string_view, 4> WheelLinkNames = {
@@ -17,7 +17,7 @@ constexpr std::array<std::string_view, 4> WheelLinkNames = {
 };
 } // namespace
 
-bool GWSceneController::load(const vax::engine::SceneDescriptor& descriptor) {
+bool GWSceneController::load(const vax::gfx::SceneDescriptor& descriptor) {
     if (!_loadAgent()) {
         return false;
     }
@@ -36,7 +36,7 @@ bool GWSceneController::load(const vax::engine::SceneDescriptor& descriptor) {
         entities[instance.instanceIndex] = entity;
     });
 
-    auto envEntities = descriptor.forEachEntityOfType(engine::EntityDescriptor::Type::Environment);
+    auto envEntities = descriptor.forEachEntityOfType(gfx::EntityDescriptor::Type::Environment);
     for (const auto& envEntity : envEntities) {
         if (!_envEntities.contains(envEntity.id)) {
             _logger.error("No entities spawned for model: ", envEntity.id);
@@ -99,7 +99,7 @@ ecs::Entity GWSceneController::_findInSubtree(ecs::Entity root, std::string_view
     return found;
 }
 
-void GWSceneController::_spinWheels(const engine::FrameTime& frameTime) {
+void GWSceneController::_spinWheels(const gfx::FrameTime& frameTime) {
     Transform spin;
     auto timestamp = std::chrono::duration<float, std::chrono::seconds::period>(frameTime.timestamp).count();
     spin.setOrientationInDegrees({0.0f, timestamp * -100.0f, 0.0f});
@@ -112,7 +112,7 @@ void GWSceneController::_spinWheels(const engine::FrameTime& frameTime) {
     }
 }
 
-void GWSceneController::onUpdate(const vax::engine::SceneUpdateContext& sceneUpdateContext) {
+void GWSceneController::onUpdate(const vax::gfx::SceneUpdateContext& sceneUpdateContext) {
     if (_animations.has_value()) {
         auto isCompleted = _animations->update(sceneUpdateContext.frameTime);
         _spinWheels(sceneUpdateContext.frameTime);
@@ -157,7 +157,8 @@ void GWSceneController::moveAgentTo(
     }
     if (withAnimation) {
         if (!_animations.has_value()) {
-            _animations = std::make_optional(vax::AnimationGroup(vax::AnimationGroup::Mode::SERIAL));
+            _animations =
+                std::make_optional(vax::animation::AnimationGroup(vax::animation::AnimationGroup::Mode::SERIAL));
         }
         auto previousPosition = _agentState.position.value_or(position);
         auto orientationValue = static_cast<int>(orientation);
@@ -168,7 +169,7 @@ void GWSceneController::moveAgentTo(
             orientationDelta = orientationDelta == 3 ? -1 : orientationDelta == -3 ? 1 : orientationDelta;
             float rotation = startRotation + orientationDelta * 90.0f;
             _agentState.latestRotationEnd = rotation;
-            auto animation = vax::ValueAnimation(rotationSpeed, startRotation, rotation);
+            auto animation = vax::animation::ValueAnimation(rotationSpeed, startRotation, rotation);
             animation.addAnimationHandler([this](float value) {
                 auto xValue = -cos(value * M_PI / 180.0f);
                 auto zValue = sin(value * M_PI / 180.0f);
@@ -190,7 +191,7 @@ void GWSceneController::moveAgentTo(
             startPosition = previousPosition.y;
             endPosition = position.y;
         }
-        auto moveAnimation = vax::ValueAnimation(moveSpeed, startPosition, endPosition);
+        auto moveAnimation = vax::animation::ValueAnimation(moveSpeed, startPosition, endPosition);
         moveAnimation.addAnimationHandler([=, this](float value) {
             if (isX) {
                 _scene->agentCamera().setPosition({value, 0.5f, position.y});
@@ -229,7 +230,7 @@ void GWSceneController::resetInstancesHighlight(std::string instanceId) {
     }
 }
 
-void GWSceneController::highlightInstance(std::string instanceId, uint32_t instanceIndex, vax::engine::Color color) {
+void GWSceneController::highlightInstance(std::string instanceId, uint32_t instanceIndex, vax::gfx::Color color) {
     auto it = _envEntities.find(instanceId);
     if (it == _envEntities.end() || instanceIndex >= it->second.size() || it->second[instanceIndex].isNull()) {
         _logger.warning("No env instance ", instanceId, "[", instanceIndex, "]");

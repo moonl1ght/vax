@@ -45,7 +45,7 @@ void ViewManager::popView() {
     _topViewNode->view->viewWillShow();
 }
 
-bool ViewManager::runCycle(const vax::engine::FrameTime& frameTime) {
+bool ViewManager::runCycle(const vax::gfx::FrameTime& frameTime) {
     if (_topViewNode == nullptr) {
         _logger.error("No top view set!");
         return false;

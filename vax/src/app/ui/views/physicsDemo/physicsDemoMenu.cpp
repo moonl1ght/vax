@@ -6,7 +6,7 @@
 
 using namespace vax::ui;
 
-void PhysicsDemoMenuView::updateUI(const vax::engine::FrameTime& frameTime) {
+void PhysicsDemoMenuView::updateUI(const vax::gfx::FrameTime& frameTime) {
     ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetWorkCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     ImGui::SetNextWindowSize(ImVec2(480, 0), ImGuiCond_Always);
     _beginInMainWindow(

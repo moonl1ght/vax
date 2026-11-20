@@ -7,7 +7,8 @@
 #include <variant>
 #include <vector>
 
-namespace vax {
+namespace vax::animation {
+
 class AnimationGroup final : public Animation<AnimationGroup> {
   public:
     using AnimationType = std::variant<AnimationGroup, ValueAnimation>;
@@ -22,7 +23,7 @@ class AnimationGroup final : public Animation<AnimationGroup> {
 
     ~AnimationGroup() = default;
 
-    bool updateImpl(const engine::FrameTime& frameTime) {
+    bool updateImpl(const vax::gfx::FrameTime& frameTime) {
         if (_animations.empty()) {
             return true;
         }
@@ -53,7 +54,7 @@ class AnimationGroup final : public Animation<AnimationGroup> {
     int _currentAnimationIndex = 0;
     std::optional<std::function<void()>> _callback = std::nullopt;
 
-    bool _playSerial(const engine::FrameTime& frameTime) {
+    bool _playSerial(const vax::gfx::FrameTime& frameTime) {
         if (_currentAnimationIndex >= _animations.size()) {
             return true;
         }
@@ -71,7 +72,7 @@ class AnimationGroup final : public Animation<AnimationGroup> {
         return false;
     }
 
-    bool _playParallel(const engine::FrameTime& frameTime) {
+    bool _playParallel(const vax::gfx::FrameTime& frameTime) {
         bool allCompleted = true;
         for (auto& animation : _animations) {
             bool isCompleted = false;
@@ -81,4 +82,5 @@ class AnimationGroup final : public Animation<AnimationGroup> {
         return allCompleted;
     }
 };
-} // namespace vax
+
+} // namespace vax::animation

@@ -1,13 +1,12 @@
 #pragma once
 
 #include "debugView.h"
-#include "viewBuilder.h"
 
 namespace vax::ui {
 class PhysicsDemoMenuView final : public DebugView {
   public:
-    PhysicsDemoMenuView(vax::rendering::RenderingEngine& renderingEngine)
-        : DebugView(renderingEngine) {}
+    PhysicsDemoMenuView(vax::gfx::RenderEngine& renderEngine)
+        : DebugView(renderEngine) {}
 
     ~PhysicsDemoMenuView() override = default;
 
@@ -16,7 +15,7 @@ class PhysicsDemoMenuView final : public DebugView {
     PhysicsDemoMenuView(PhysicsDemoMenuView&& other) noexcept = delete;
     PhysicsDemoMenuView& operator=(PhysicsDemoMenuView&& other) noexcept = delete;
 
-    void updateUI(const vax::engine::FrameTime& frameTime) override;
+    void updateUI(const vax::gfx::FrameTime& frameTime) override;
 
   private:
     void _showSimpleDemo();

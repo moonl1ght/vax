@@ -2,13 +2,14 @@
 
 #include "frameTime.h"
 
-namespace vax {
+namespace vax::animation {
 
 template <typename Derived> class Animation {
   public:
     Animation() = default;
     ~Animation() = default;
 
-    bool update(const engine::FrameTime& frameTime) { return static_cast<Derived*>(this)->updateImpl(frameTime); }
+    bool update(const vax::gfx::FrameTime& frameTime) { return static_cast<Derived*>(this)->updateImpl(frameTime); }
 };
-} // namespace vax
+
+} // namespace vax::animation

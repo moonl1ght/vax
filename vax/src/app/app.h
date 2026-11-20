@@ -4,7 +4,7 @@
 #include "frameTime.h"
 #include "inputController.h"
 #include "logger.h"
-#include "renderingEngine.h"
+#include "renderEngine.h"
 #include "viewBuilder.h"
 #include "viewManager.h"
 #include "vkEngine.h"
@@ -22,19 +22,19 @@ class App final {
 
     void run() noexcept;
 
-    rendering::RenderingEngine* getRenderingEngine() const { return _renderingEngine.get(); }
+    gfx::RenderEngine* getRenderEngine() const { return _renderEngine.get(); }
 
   private:
     Logger _logger = vax::Logger("App");
 
     InputController _inputController;
     AppMode _appMode = vax::AppMode::EventDriven;
-    engine::FrameTime _frameTime;
+    gfx::FrameTime _frameTime;
 
     std::unique_ptr<WindowController> _windowController;
     std::unique_ptr<ui::ViewBuilder> _viewBuilder;
     std::unique_ptr<ui::ViewManager> _viewManager;
-    std::unique_ptr<rendering::RenderingEngine> _renderingEngine;
+    std::unique_ptr<gfx::RenderEngine> _renderEngine;
 
     void _mainLoop();
     void _loopUpdate();

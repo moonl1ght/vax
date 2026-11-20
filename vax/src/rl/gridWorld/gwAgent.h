@@ -36,7 +36,7 @@ class GWAgent final : public vax::rl::Agent<GWAgent, State, MoveAction> {
     GWAgent(GWAgent&& other) noexcept = delete;
     GWAgent& operator=(GWAgent&& other) noexcept = delete;
 
-    vax::engine::PrefabDescriptor getPrefabDescriptor() const;
+    vax::gfx::PrefabDescriptor getPrefabDescriptor() const;
 
     void moveByOutsideAction(MoveAction action);
 

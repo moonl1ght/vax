@@ -24,8 +24,8 @@ void App::setup() noexcept {
         _logger.failure("Failed to load window!");
         return;
     }
-    _renderingEngine = std::make_unique<rendering::RenderingEngine>();
-    if (!_renderingEngine->setup(*_windowController)) {
+    _renderEngine = std::make_unique<gfx::RenderEngine>();
+    if (!_renderEngine->setup(*_windowController)) {
         _logger.failure("Failed to setup rendering engine!");
         return;
     }
@@ -33,9 +33,9 @@ void App::setup() noexcept {
     _viewBuilder = std::make_unique<ui::ViewBuilder>(
         *_windowController,
         _inputController,
-        *_renderingEngine
+        *_renderEngine
     );
-    _viewManager = std::make_unique<ui::ViewManager>(_renderingEngine->uiEngine(), *_viewBuilder);
+    _viewManager = std::make_unique<ui::ViewManager>(_renderEngine->uiEngine(), *_viewBuilder);
     _viewManager->setRootView(_viewBuilder->buildStartingView());
     _logger.success("App setup complete!");
 }
@@ -48,12 +48,12 @@ void App::run() noexcept {
 void App::_cleanup() {
     _logger.info("Starting app cleanup...");
 
-    _renderingEngine->waitIdle();
+    _renderEngine->waitIdle();
 
     _viewManager = nullptr;
     _viewBuilder = nullptr;
 
-    _renderingEngine->cleanup();
+    _renderEngine->cleanup();
 
     _windowController->destroyAllWindows();
     SDL_Quit();
@@ -75,11 +75,11 @@ void App::_mainLoop() {
         auto processEvent = [&](SDL_Event& event) {
             bool isSecondaryMouseInput = (event.type == SDL_EVENT_MOUSE_MOTION || event.type == SDL_EVENT_MOUSE_WHEEL ||
                                           event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) &&
-                                         _renderingEngine->uiEngine().isSecondaryViewportEvent(event);
+                                         _renderEngine->uiEngine().isSecondaryViewportEvent(event);
             if (!isSecondaryMouseInput) {
                 _inputController.handleEvent(event);
             }
-            _renderingEngine->uiEngine().processEvents(event);
+            _renderEngine->uiEngine().processEvents(event);
             if (event.type == SDL_EVENT_QUIT) {
                 _logger.debug("Quitting app...");
                 running = false;

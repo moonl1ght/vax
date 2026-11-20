@@ -22,7 +22,7 @@ GridWorldView::~GridWorldView() {
     }
 }
 
-void GridWorldView::updateUI(const vax::engine::FrameTime& frameTime) {
+void GridWorldView::updateUI(const vax::gfx::FrameTime& frameTime) {
     _mainThreadRunner.processThreadQueue();
     _showStatus();
 
@@ -83,7 +83,7 @@ bool GridWorldView::_load() {
     _gridWorld->createRandomGrid();
 
     auto sceneLoader =
-        vax::engine::SceneLoader(_renderingEngine.get().vkEngine(), _renderingEngine.get().resourceManager());
+        vax::gfx::SceneLoader(_renderEngine.get().vkEngine(), _renderEngine.get().resourceManager());
     auto gridWorldSceneDescriptor = GridWorldSceneBuilder().buildScene(
         _gridWorld->getGrid(), _gridWorld->getDrawableWorldPosition(), _gridWorld->getAgent()
     );
@@ -167,9 +167,9 @@ void GridWorldView::_showAgentCamera() {
     } else {
         _windowController.get().setupWindow(1, vax::math::SizeUI{640, 480}, "Agent camera");
         _windowController.get().getWindow(1)->load(true, false);
-        _windowController.get().getWindow(1)->createSurface(_renderingEngine.get().vkEngine().instance);
+        _windowController.get().getWindow(1)->createSurface(_renderEngine.get().vkEngine().instance);
         _windowController.get().getWindow(1)->createSwapchain(
-            *_renderingEngine.get().vkEngine().device, VK_PRESENT_MODE_MAILBOX_KHR
+            *_renderEngine.get().vkEngine().device, VK_PRESENT_MODE_MAILBOX_KHR
         );
     }
     _windowController.get().getWindow(1)->setWindowWillHideCallback([this]() {

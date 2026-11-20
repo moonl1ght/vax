@@ -2,25 +2,25 @@
 
 #include "debouncer.h"
 #include "frameProfiler.h"
-#include "renderingEngine.h"
+#include "renderEngine.h"
 #include "systemInfo.h"
 #include "view.h"
 
 namespace vax::ui {
 class StatsView final : public View {
   public:
-    StatsView(vax::rendering::RenderingEngine& renderingEngine)
-        : View(renderingEngine.renderer())
-        , _renderingEngine(renderingEngine)
+    StatsView(vax::gfx::RenderEngine& renderEngine)
+        : View(renderEngine.renderer())
+        , _renderEngine(renderEngine)
         , _debouncer(std::chrono::milliseconds(500)) {
         _systemInfo = SystemInfo();
     };
 
     ~StatsView() = default;
 
-    void update(const vax::engine::FrameTime& frameTime) override {};
+    void update(const vax::gfx::FrameTime& frameTime) override {};
 
-    void updateUI(const vax::engine::FrameTime& frameTime) override;
+    void updateUI(const vax::gfx::FrameTime& frameTime) override;
 
     void linkFrameProfiler(vax::FrameProfiler* frameProfiler) noexcept { _frameProfiler = frameProfiler; }
 
@@ -29,7 +29,7 @@ class StatsView final : public View {
     void setShown(bool isShown) noexcept { _isShown = isShown; }
 
   private:
-    std::reference_wrapper<vax::rendering::RenderingEngine> _renderingEngine;
+    std::reference_wrapper<vax::gfx::RenderEngine> _renderEngine;
 
     bool _isShown = false;
     SystemInfo _systemInfo;

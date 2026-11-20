@@ -13,14 +13,14 @@
 #include <unordered_map>
 
 namespace vax::rl {
-class GWSceneController final : public vax::engine::SceneController<GWSceneController> {
+class GWSceneController final : public vax::gfx::SceneController<GWSceneController> {
   public:
-    GWSceneController(std::unique_ptr<vax::engine::Scene> scene, std::shared_ptr<vax::ecs::World> world)
+    GWSceneController(std::unique_ptr<vax::gfx::Scene> scene, std::shared_ptr<vax::ecs::World> world)
         : SceneController(std::move(scene), std::move(world)) {
-        _scene->agentCamera() = vax::engine::Camera(
-            vax::math::SizeUI(640, 480), vax::engine::Camera::Projection::perspective, glm::vec3(0.0f, 0.0f, 0.0f)
+        _scene->agentCamera() = vax::gfx::Camera(
+            vax::math::SizeUI(640, 480), vax::gfx::Camera::Projection::perspective, glm::vec3(0.0f, 0.0f, 0.0f)
         );
-        _scene->agentCamera().setAim(vax::engine::Camera::Aim::free);
+        _scene->agentCamera().setAim(vax::gfx::Camera::Aim::free);
         _isPhysicsEnabled = false;
     }
 
@@ -31,9 +31,9 @@ class GWSceneController final : public vax::engine::SceneController<GWSceneContr
     GWSceneController(GWSceneController&& other) noexcept = delete;
     GWSceneController& operator=(GWSceneController&& other) noexcept = delete;
 
-    bool load(const vax::engine::SceneDescriptor& descriptor);
+    bool load(const vax::gfx::SceneDescriptor& descriptor);
 
-    void onUpdate(const vax::engine::SceneUpdateContext& sceneUpdateContext);
+    void onUpdate(const vax::gfx::SceneUpdateContext& sceneUpdateContext);
 
     void moveAgentTo(
         vax::math::Position2DFloat position,
@@ -47,7 +47,7 @@ class GWSceneController final : public vax::engine::SceneController<GWSceneContr
 
     void resetInstancesHighlight(std::string instanceId);
 
-    void highlightInstance(std::string instanceId, uint32_t instanceIndex, vax::engine::Color color);
+    void highlightInstance(std::string instanceId, uint32_t instanceIndex, vax::gfx::Color color);
 
     void setOnAllAnimationsCompleted(std::function<void()> onAllAnimationsCompleted);
 
@@ -71,12 +71,12 @@ class GWSceneController final : public vax::engine::SceneController<GWSceneContr
     std::vector<Wheel> _wheels;
     AgentState _agentState;
 
-    std::optional<vax::AnimationGroup> _animations;
+    std::optional<vax::animation::AnimationGroup> _animations;
     std::optional<std::function<void()>> _onAllAnimationsCompleted;
 
     bool _loadAgent();
 
-    void _spinWheels(const vax::engine::FrameTime& frameTime);
+    void _spinWheels(const vax::gfx::FrameTime& frameTime);
 
     vax::ecs::Entity _findInSubtree(vax::ecs::Entity root, std::string_view name);
 

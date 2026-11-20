@@ -8,18 +8,18 @@
 using namespace vax;
 using namespace vax::rl;
 using namespace vax::math;
-using namespace vax::engine;
+using namespace vax::gfx;
 
-vax::engine::PrefabDescriptor GWAgent::getPrefabDescriptor() const {
+vax::gfx::PrefabDescriptor GWAgent::getPrefabDescriptor() const {
     auto transform = Transform();
     transform.scale = {0.5f, 0.5f, 0.5f};
-    auto assetDescriptor = vax::engine::PrefabDescriptor::AssetDescriptor{
+    auto assetDescriptor = vax::gfx::PrefabDescriptor::AssetDescriptor{
         .path = RES_PATH("assets/models/rover/rover.urdf"),
     };
     return {
         .prefabType = PrefabDescriptor::PrefabType::ASSET,
         .id = "rover",
-        .instanceInfos = {vax::engine::PrefabDescriptor::InstanceInfo{false, transform}},
+        .instanceInfos = {vax::gfx::PrefabDescriptor::InstanceInfo{false, transform}},
         .assetDescriptor = assetDescriptor,
     };
 }

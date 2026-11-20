@@ -3,10 +3,10 @@
 
 using namespace vax::rl;
 using namespace vax;
-using namespace vax::engine;
+using namespace vax::gfx;
 using namespace vax::math;
 
-vax::engine::SceneDescriptor GridWorldSceneBuilder::buildScene(
+vax::gfx::SceneDescriptor GridWorldSceneBuilder::buildScene(
     const vax::math::Tensor& grid,
     std::vector<vax::math::Position2DFloat> drawableWorldPositions,
     vax::rl::GWAgent& agent
@@ -16,7 +16,7 @@ vax::engine::SceneDescriptor GridWorldSceneBuilder::buildScene(
     sceneDescriptor.shouldDrawGizmo = true;
     sceneDescriptor.sceneType = SceneDescriptor::SceneType::GridWorld;
 
-    std::unordered_map<std::string, engine::EntityDescriptor> descriptors;
+    std::unordered_map<std::string, gfx::EntityDescriptor> descriptors;
 
     int flatIndex = 0;
     for (const auto& block : grid) {
@@ -29,45 +29,45 @@ vax::engine::SceneDescriptor GridWorldSceneBuilder::buildScene(
         }
 
         if (descriptors.find(blockTypeString) == descriptors.end()) {
-            auto instanceColor = engine::ColorPalette::Clear;
+            auto instanceColor = gfx::ColorPalette::Clear;
             bool isSelected = false;
             if (blockType == GridWorld::BlockType::START) {
-                instanceColor = engine::ColorPalette::Blue;
+                instanceColor = gfx::ColorPalette::Blue;
                 isSelected = true;
             }
             if (blockType == GridWorld::BlockType::FINISH) {
-                instanceColor = engine::ColorPalette::Green;
+                instanceColor = gfx::ColorPalette::Green;
                 isSelected = true;
             }
-            auto assetDescriptor = engine::PrefabDescriptor::AssetDescriptor{
+            auto assetDescriptor = gfx::PrefabDescriptor::AssetDescriptor{
                 .path = blockTypeString,
             };
-            auto instanceInfo = engine::PrefabDescriptor::InstanceInfo{isSelected, transform, instanceColor};
-            auto prefabDescriptor = engine::PrefabDescriptor{
-                .prefabType = engine::PrefabDescriptor::PrefabType::ASSET,
+            auto instanceInfo = gfx::PrefabDescriptor::InstanceInfo{isSelected, transform, instanceColor};
+            auto prefabDescriptor = gfx::PrefabDescriptor{
+                .prefabType = gfx::PrefabDescriptor::PrefabType::ASSET,
                 .id = blockTypeString,
                 .instanceInfos = {instanceInfo},
                 .assetDescriptor = assetDescriptor,
             };
-            descriptors[blockTypeString] = engine::EntityDescriptor{
+            descriptors[blockTypeString] = gfx::EntityDescriptor{
                 .id = blockTypeString,
-                .type = engine::EntityDescriptor::Type::Environment,
+                .type = gfx::EntityDescriptor::Type::Environment,
                 .prefabDescriptor = prefabDescriptor,
             };
         } else {
             auto& descriptor = descriptors[blockTypeString];
-            auto instanceColor = engine::ColorPalette::Clear;
+            auto instanceColor = gfx::ColorPalette::Clear;
             bool isSelected = false;
             if (blockType == GridWorld::BlockType::START) {
-                instanceColor = engine::ColorPalette::Blue;
+                instanceColor = gfx::ColorPalette::Blue;
                 isSelected = true;
             }
             if (blockType == GridWorld::BlockType::FINISH) {
-                instanceColor = engine::ColorPalette::Green;
+                instanceColor = gfx::ColorPalette::Green;
                 isSelected = true;
             }
             descriptor.prefabDescriptor->instanceInfos.push_back(
-                engine::PrefabDescriptor::InstanceInfo{isSelected, transform, instanceColor}
+                gfx::PrefabDescriptor::InstanceInfo{isSelected, transform, instanceColor}
             );
         }
         ++flatIndex;
@@ -78,9 +78,9 @@ vax::engine::SceneDescriptor GridWorldSceneBuilder::buildScene(
     }
 
     auto agentPrefabDescriptor = agent.getPrefabDescriptor();
-    auto agentDescriptor = engine::EntityDescriptor{
+    auto agentDescriptor = gfx::EntityDescriptor{
         .id = agentPrefabDescriptor.id,
-        .type = engine::EntityDescriptor::Type::Agent,
+        .type = gfx::EntityDescriptor::Type::Agent,
         .prefabDescriptor = agentPrefabDescriptor,
     };
     sceneDescriptor.entities.push_back(agentDescriptor);

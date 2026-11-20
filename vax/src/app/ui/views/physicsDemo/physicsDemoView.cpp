@@ -5,11 +5,10 @@
 
 using namespace vax::ui;
 
-void PhysicsDemoView::updateUI(const vax::engine::FrameTime& frameTime) { SceneView::updateUI(frameTime); }
+void PhysicsDemoView::updateUI(const vax::gfx::FrameTime& frameTime) { SceneView::updateUI(frameTime); }
 
 bool PhysicsDemoView::_load() {
-    auto sceneLoader =
-        vax::engine::SceneLoader(_renderingEngine.get().vkEngine(), _renderingEngine.get().resourceManager());
+    auto sceneLoader = vax::gfx::SceneLoader(_renderEngine.get().vkEngine(), _renderEngine.get().resourceManager());
 
     auto sceneWorldPair = sceneLoader.load(RES_PATH("scenes/physics_demo_scene.json"));
 
