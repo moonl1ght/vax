@@ -37,7 +37,7 @@ class RenderDestinationBuilder {
     ) const noexcept;
 
   private:
-    vax::Logger _logger = vax::Logger("RenderDestinationBuilder");
+    dev::Logger _logger = dev::Logger("RenderDestinationBuilder");
 
     std::reference_wrapper<const Device> _device;
     std::reference_wrapper<vax::rhi::TextureManager> _textureManager;

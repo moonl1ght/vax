@@ -36,7 +36,7 @@ class PhysicsEngine {
     static constexpr int substeps = 8;
     static constexpr float sdt = FIXED_DT / substeps;
 
-    vax::Logger _logger = vax::Logger("PhysicsEngine");
+    dev::Logger _logger = dev::Logger("PhysicsEngine");
 
     std::shared_ptr<vax::ecs::World> _world = nullptr;
 

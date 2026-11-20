@@ -69,7 +69,7 @@ class MeshManager final {
         uint32_t usedElements;
     };
 
-    vax::Logger _logger = vax::Logger("MeshManager");
+    dev::Logger _logger = dev::Logger("MeshManager");
 
     std::reference_wrapper<const Device> _device;
 

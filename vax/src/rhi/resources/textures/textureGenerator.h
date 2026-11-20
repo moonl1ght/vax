@@ -22,7 +22,7 @@ class TextureGenerator final {
     generateCheckerboardTexture(const std::string& name, int width, int height, int cellSize) const noexcept;
 
   private:
-    Logger _logger = Logger("TextureGenerator");
+    dev::Logger _logger = dev::Logger("TextureGenerator");
     std::reference_wrapper<TextureLoader> _textureLoader;
 };
 } // namespace vax::rhi

@@ -16,7 +16,7 @@ inline VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     } else if (messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT) {
         type = "performance";
     }
-    const auto& logger = vax::Logger::getInstance();
+    const auto& logger = vax::dev::Logger::getInstance();
     if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
         logger.error("vulkan ", type, ": ", pCallbackData->pMessage);
     } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {

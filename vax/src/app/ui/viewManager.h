@@ -34,7 +34,7 @@ class ViewManager final {
     ViewBuilder& viewBuilder() { return _viewBuilder.get(); }
 
   private:
-    vax::Logger _logger = vax::Logger("ViewManager");
+    dev::Logger _logger = dev::Logger("ViewManager");
 
     std::reference_wrapper<UIEngine> _uiEngine;
     std::reference_wrapper<ViewBuilder> _viewBuilder;

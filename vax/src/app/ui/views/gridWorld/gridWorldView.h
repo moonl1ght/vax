@@ -42,7 +42,7 @@ class GridWorldView final : public SceneView<rl::GWSceneController> {
     void _onClose() override;
 
   private:
-    vax::Logger _logger = vax::Logger("GridWorldView");
+    dev::Logger _logger = dev::Logger("GridWorldView");
     std::reference_wrapper<vax::WindowController> _windowController;
     std::unique_ptr<vax::rl::GridWorld> _gridWorld;
     std::unique_ptr<vax::rl::GWTrainingManager> _trainingManager;

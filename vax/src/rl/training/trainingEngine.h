@@ -40,12 +40,12 @@ class TrainingEngine final {
         environment.setEvalMode(vax::rl::EvalMode::EVALUATION);
     }
 
-    void setFsLogger(std::shared_ptr<vax::FsLogger> fsLogger) {
+    void setFsLogger(std::shared_ptr<dev::FsLogger> fsLogger) {
         _logger.setFsLogger(fsLogger);
-        _logger.setMode(vax::Logger::Mode::FILE);
+        _logger.setMode(dev::Logger::Mode::FILE);
     }
 
   private:
-    vax::Logger _logger = vax::Logger("TrainingEngine");
+    dev::Logger _logger = dev::Logger("TrainingEngine");
 };
 } // namespace vax::rl

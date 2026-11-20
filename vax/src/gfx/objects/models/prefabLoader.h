@@ -26,7 +26,7 @@ class PrefabLoader {
     std::optional<std::pair<Prefab, std::vector<DrawableModel>>> loadPrefab(const PrefabDescriptor& descriptor);
 
   private:
-    vax::Logger _logger = vax::Logger("PrefabLoader");
+    dev::Logger _logger = dev::Logger("PrefabLoader");
 
     std::reference_wrapper<vax::rhi::ResourceManager> _resourceManager;
 

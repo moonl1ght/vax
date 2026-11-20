@@ -22,7 +22,7 @@ class StatsView final : public View {
 
     void updateUI(const vax::gfx::FrameTime& frameTime) override;
 
-    void linkFrameProfiler(vax::FrameProfiler* frameProfiler) noexcept { _frameProfiler = frameProfiler; }
+    void linkFrameProfiler(dev::FrameProfiler* frameProfiler) noexcept { _frameProfiler = frameProfiler; }
 
     bool isShown() const noexcept { return _isShown; }
 
@@ -33,12 +33,12 @@ class StatsView final : public View {
 
     bool _isShown = false;
     SystemInfo _systemInfo;
-    FrameProfiler* _frameProfiler = nullptr;
+    dev::FrameProfiler* _frameProfiler = nullptr;
     vax::core::Debouncer _debouncer;
     SystemInfo::MemoryStats _memoryStats = SystemInfo::MemoryStats();
     SystemInfo::GPUStats _gpuStats = SystemInfo::GPUStats();
-    FrameProfiler::FrameInfo _frameInfo = FrameProfiler::FrameInfo();
-    FrameProfiler::FrameInfo _frameWorkloadInfo = FrameProfiler::FrameInfo();
+    dev::FrameProfiler::FrameInfo _frameInfo = dev::FrameProfiler::FrameInfo();
+    dev::FrameProfiler::FrameInfo _frameWorkloadInfo = dev::FrameProfiler::FrameInfo();
 
     void _showSystemInfo() const;
 

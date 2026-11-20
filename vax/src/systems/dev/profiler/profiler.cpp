@@ -1,10 +1,8 @@
 #include "profiler.h"
 
-using namespace vax;
+using namespace vax::dev;
 
-void Profiler::begin(const std::string& name) {
-    _startTimes[name] = std::chrono::steady_clock::now();
-}
+void Profiler::begin(const std::string& name) { _startTimes[name] = std::chrono::steady_clock::now(); }
 
 std::chrono::high_resolution_clock::duration Profiler::end(const std::string& name) {
     auto stopTime = std::chrono::steady_clock::now();

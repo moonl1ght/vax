@@ -49,7 +49,7 @@ class ShaderModuleBuilder final {
     std::optional<ShaderModule> build(const std::vector<uint32_t>& spirv);
 
   private:
-    vax::Logger _logger = vax::Logger("ShaderModuleBuilder");
+    dev::Logger _logger = dev::Logger("ShaderModuleBuilder");
 
     std::reference_wrapper<const vax::rhi::Device> _device;
 

@@ -167,9 +167,9 @@ void GWAgent::setQTable(vax::math::Tensor&& qTable) { _qTable = std::move(qTable
 
 void GWAgent::setQLearningConfig(const vax::rl::QLearningConfig& qlConfig) { _qlConfig = qlConfig; }
 
-void GWAgent::setFsLogger(std::shared_ptr<vax::FsLogger> fsLogger) {
+void GWAgent::setFsLogger(std::shared_ptr<dev::FsLogger> fsLogger) {
     _logger.setFsLogger(fsLogger);
-    _logger.setMode(vax::Logger::Mode::FILE);
+    _logger.setMode(dev::Logger::Mode::FILE);
 }
 
 void GWAgent::_updateOrientation(MoveAction action) {

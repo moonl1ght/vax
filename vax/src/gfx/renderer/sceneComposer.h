@@ -51,7 +51,7 @@ class SceneComposer final {
         vax::ecs::WorldTransformComponent* world;
     };
 
-    vax::Logger _logger = vax::Logger("SceneComposer");
+    dev::Logger _logger = dev::Logger("SceneComposer");
 
     std::unique_ptr<vax::gfx::AssetsLibrary> _assetsLibrary;
 

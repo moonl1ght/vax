@@ -64,7 +64,7 @@ class RenderPassGraphManager final {
     RenderPassGraph& getRenderPassGraph() { return *_renderPassGraph; }
 
   private:
-    vax::Logger _logger = vax::Logger("rednerPassGraphFactory");
+    dev::Logger _logger = dev::Logger("rednerPassGraphFactory");
 
     std::reference_wrapper<vax::rhi::Device> _device;
     std::reference_wrapper<vax::rhi::PipelineManager> _pipelineManager;

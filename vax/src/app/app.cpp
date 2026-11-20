@@ -15,7 +15,7 @@ void App::setup() noexcept {
         _logger.failure("Failed to load Vulkan library: {}", SDL_GetError());
         return;
     }
-    RenderDoc::init();
+    dev::RenderDoc::init();
 
     vax::NotificationCenter::getInstance().setup();
     _windowController = std::make_unique<WindowController>();

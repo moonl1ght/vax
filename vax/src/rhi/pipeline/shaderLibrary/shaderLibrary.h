@@ -51,7 +51,7 @@ class ShaderLibrary final {
     std::optional<PipelineModule> loadPipelineModule(const ShaderModuleDescriptor& descriptor) noexcept;
 
   private:
-    vax::Logger _logger = vax::Logger("ShaderLibrary");
+    dev::Logger _logger = dev::Logger("ShaderLibrary");
 
     std::unique_ptr<const ReflectionProcessor> _reflectionProcessor = std::make_unique<ReflectionProcessor>();
 

@@ -61,7 +61,7 @@ class Engine final {
     const vax::WindowController& getWindowController() const { return _windowController.get(); }
 
   private:
-    vax::Logger _logger = vax::Logger("Engine");
+    dev::Logger _logger = dev::Logger("Engine");
 
     std::reference_wrapper<vax::WindowController> _windowController;
 

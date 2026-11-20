@@ -26,16 +26,16 @@ class RenderEngine final {
 
     void cleanup() noexcept;
 
-    vax::rhi::Engine& vkEngine() noexcept { return *_vkEngine; }
+    rhi::Engine& vkEngine() noexcept { return *_vkEngine; }
 
-    vax::rhi::ResourceManager& resourceManager() noexcept { return *_resourceManager; }
+    rhi::ResourceManager& resourceManager() noexcept { return *_resourceManager; }
 
-    vax::gfx::Renderer& renderer() noexcept { return *_renderer; }
+    gfx::Renderer& renderer() noexcept { return *_renderer; }
 
-    vax::ui::UIEngine& uiEngine() noexcept { return *_uiEngine; }
+    ui::UIEngine& uiEngine() noexcept { return *_uiEngine; }
 
   private:
-    vax::Logger _logger = vax::Logger("RenderEngine");
+    dev::Logger _logger = dev::Logger("RenderEngine");
 
     std::unique_ptr<vax::rhi::Engine> _vkEngine;
     std::unique_ptr<vax::gfx::Renderer> _renderer;

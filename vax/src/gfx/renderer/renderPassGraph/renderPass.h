@@ -23,7 +23,7 @@ class RenderPass : public RenderPassNode {
         : RenderPassNode(id)
         , _device(device)
         , _pipelineManager(pipelineManager)
-        , _logger(vax::Logger(std::string(debugName)))
+        , _logger(dev::Logger(std::string(debugName)))
         , _debugName(debugName)
         , _renderDestination(std::move(renderDestination))
         , _renderDescriptor(std::move(renderDescriptor)) {
@@ -61,7 +61,7 @@ class RenderPass : public RenderPassNode {
     void setOutputImageIndex(size_t outputImageIndex) { _outputImageIndex = outputImageIndex; }
 
   protected:
-    vax::Logger _logger;
+    dev::Logger _logger;
     std::reference_wrapper<vax::rhi::Device> _device;
     std::reference_wrapper<vax::rhi::PipelineManager> _pipelineManager;
 

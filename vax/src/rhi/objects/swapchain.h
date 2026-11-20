@@ -33,7 +33,7 @@ class Swapchain final {
     bool recreate() { return _recreate(_requestedPresentMode); }
 
   private:
-    vax::Logger _logger = vax::Logger("Swapchain");
+    dev::Logger _logger = dev::Logger("Swapchain");
     vax::math::SizeUI _size;
     VkPresentModeKHR _requestedPresentMode = VK_PRESENT_MODE_FIFO_KHR;
 

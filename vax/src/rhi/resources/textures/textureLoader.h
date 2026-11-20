@@ -26,7 +26,7 @@ class TextureLoader final {
     loadRawRGBATexture(std::string name, std::span<const unsigned char> pixels, int width, int height) const noexcept;
 
   private:
-    vax::Logger _logger = vax::Logger("TextureLoader");
+    dev::Logger _logger = dev::Logger("TextureLoader");
 
     std::reference_wrapper<const vax::rhi::Device> _device;
     std::reference_wrapper<TextureManager> _textureManager;

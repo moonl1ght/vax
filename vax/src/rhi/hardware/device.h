@@ -46,7 +46,7 @@ class Device final {
     void waitIdle() const noexcept { vkDeviceWaitIdle(_vkDevice); }
 
   private:
-    vax::Logger _logger = vax::Logger("Device");
+    dev::Logger _logger = dev::Logger("Device");
 
     QueueFamilyIndices _indices;
     VkPhysicalDeviceProperties _properties;

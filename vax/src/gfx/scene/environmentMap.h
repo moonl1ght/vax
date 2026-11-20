@@ -43,7 +43,7 @@ class EnvironmentMap final {
     const EnvironmentMapBuffer& environmentMapBuffer() const noexcept { return *_buffer; }
 
   private:
-    vax::Logger _logger = vax::Logger("EnvironmentMap");
+    dev::Logger _logger = dev::Logger("EnvironmentMap");
 
     std::reference_wrapper<const vax::rhi::Device> _device;
     std::reference_wrapper<const vax::rhi::ResourceManager> _resourceManager;

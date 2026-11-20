@@ -126,7 +126,7 @@ class Scene final : public vax::InputController::Observer {
     void setWorld(std::shared_ptr<vax::ecs::World> world) { _world = std::move(world); }
 
   private:
-    vax::Logger _logger = vax::Logger("DrawableScene");
+    dev::Logger _logger = dev::Logger("DrawableScene");
 
     std::reference_wrapper<vax::rhi::ResourceManager> _resourceManager;
     std::reference_wrapper<vax::rhi::Engine> _vkEngine;

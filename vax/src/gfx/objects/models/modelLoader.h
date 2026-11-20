@@ -23,7 +23,7 @@ class ModelLoader final {
     std::optional<vax::gfx::DrawableModel> loadModel(const std::string& path, uint32_t instancesCount = 1);
 
   private:
-    vax::Logger _logger = vax::Logger("ModelLoader");
+    dev::Logger _logger = dev::Logger("ModelLoader");
 
     std::reference_wrapper<vax::rhi::ResourceManager> _resourceManager;
 

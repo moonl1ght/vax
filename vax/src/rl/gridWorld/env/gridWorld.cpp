@@ -181,10 +181,10 @@ void GridWorld::setEvalModeImpl(vax::rl::EvalMode evalMode) {
     _agent.setEvalModeImpl(evalMode);
     switch (evalMode) {
     case vax::rl::EvalMode::TRAINING:
-        _logger.setMode(vax::Logger::Mode::FILE);
+        _logger.setMode(dev::Logger::Mode::FILE);
         break;
     case vax::rl::EvalMode::EVALUATION:
-        _logger.setMode(vax::Logger::Mode::CONSOLE);
+        _logger.setMode(dev::Logger::Mode::CONSOLE);
         break;
     }
 }
@@ -235,7 +235,7 @@ bool GridWorld::load(const std::string& folderPath) {
     return true;
 }
 
-void GridWorld::setFsLogger(std::shared_ptr<vax::FsLogger> fsLogger) {
+void GridWorld::setFsLogger(std::shared_ptr<dev::FsLogger> fsLogger) {
     _logger.setFsLogger(fsLogger);
     _agent.setFsLogger(fsLogger);
 }

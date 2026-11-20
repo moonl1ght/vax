@@ -5,12 +5,12 @@
 #include <memory>
 #include <sstream>
 
-#define LOG_INFO(message) vax::Logger::getInstance().info(message)
-#define LOG_ERROR(message) vax::Logger::getInstance().error(message)
-#define LOG_WARNING(message) vax::Logger::getInstance().warning(message)
-#define LOG_DEBUG(message) vax::Logger::getInstance().debug(message)
+#define LOG_INFO(message) vax::dev::Logger::getInstance().info(message)
+#define LOG_ERROR(message) vax::dev::Logger::getInstance().error(message)
+#define LOG_WARNING(message) vax::dev::Logger::getInstance().warning(message)
+#define LOG_DEBUG(message) vax::dev::Logger::getInstance().debug(message)
 
-namespace vax {
+namespace vax::dev {
 class Logger {
   public:
     enum class Mode {
@@ -168,4 +168,4 @@ class Logger {
         }
     }
 };
-} // namespace vax
+} // namespace vax::dev

@@ -7,10 +7,10 @@
 #endif
 
 #include "paths.h"
-#include <string>
 #include "renderdoc_app.h"
+#include <string>
 
-namespace vax {
+namespace vax::dev {
 
 class RenderDoc {
   public:
@@ -63,4 +63,4 @@ class RenderDoc {
     inline static RENDERDOC_API_1_6_0* _api = nullptr;
 };
 
-} // namespace vax
+} // namespace vax::dev

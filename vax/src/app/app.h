@@ -7,7 +7,6 @@
 #include "renderEngine.h"
 #include "viewBuilder.h"
 #include "viewManager.h"
-#include "vkEngine.h"
 #include "windowController.h"
 #include <memory>
 
@@ -25,7 +24,7 @@ class App final {
     gfx::RenderEngine* getRenderEngine() const { return _renderEngine.get(); }
 
   private:
-    Logger _logger = vax::Logger("App");
+    dev::Logger _logger = dev::Logger("App");
 
     InputController _inputController;
     AppMode _appMode = vax::AppMode::EventDriven;

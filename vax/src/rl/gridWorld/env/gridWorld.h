@@ -70,7 +70,7 @@ class GridWorld final : public vax::InputController::Observer,
 
     vax::rl::GWAgent& getAgent() { return _agent; }
 
-    void setFsLogger(std::shared_ptr<vax::FsLogger> fsLogger);
+    void setFsLogger(std::shared_ptr<dev::FsLogger> fsLogger);
 
     void startDemo(std::function<void()> onDone);
 
@@ -81,7 +81,7 @@ class GridWorld final : public vax::InputController::Observer,
     const std::vector<vax::math::Position2DFloat>& getDrawableWorldPosition() const { return _drawableWorldPositions; }
 
   private:
-    vax::Logger _logger = vax::Logger("GridWorld");
+    dev::Logger _logger = dev::Logger("GridWorld");
     vax::rl::QLearningConfig _qlConfig;
     std::string _name = "GridWorld";
     vax::math::Tensor _grid;

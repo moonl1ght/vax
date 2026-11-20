@@ -27,7 +27,7 @@ class SceneLoader {
     SceneWorldPair load(SceneDescriptor& descriptor);
 
   private:
-    vax::Logger _logger = vax::Logger("SceneLoader");
+    dev::Logger _logger = dev::Logger("SceneLoader");
 
     std::reference_wrapper<vax::rhi::Engine> _vkEngine;
     std::reference_wrapper<vax::rhi::ResourceManager> _resourceManager;

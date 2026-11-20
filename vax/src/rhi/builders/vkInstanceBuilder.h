@@ -24,7 +24,7 @@ class VkInstanceBuilder {
         , enableValidationLayers(enableValidationLayers)
         , validationLayers(validationLayers)
         , vulkanApiVersion(vulkanApiVersion) {
-        _logger = vax::Logger("VkInstanceBuilder");
+        _logger = dev::Logger("VkInstanceBuilder");
     };
 
     std::optional<VkInstance> build() {
@@ -76,7 +76,7 @@ class VkInstanceBuilder {
     }
 
   private:
-    vax::Logger _logger = vax::Logger("VkInstanceBuilder");
+    dev::Logger _logger = dev::Logger("VkInstanceBuilder");
     vax::core::DeletionQueue& deletionQueue;
     const bool enableValidationLayers;
     const std::vector<const char*>& validationLayers;

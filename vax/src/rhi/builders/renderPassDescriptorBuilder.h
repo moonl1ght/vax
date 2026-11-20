@@ -18,7 +18,7 @@ class RenderPassDescriptorBuilder {
     buildShadowSun(VkFormat imageFormat, bool allowComputeUsage) const noexcept;
 
   private:
-    vax::Logger _logger = vax::Logger("RenderPassDescriptorBuilder");
+    dev::Logger _logger = dev::Logger("RenderPassDescriptorBuilder");
     std::reference_wrapper<const vax::rhi::Device> _device;
 };
 } // namespace vax::rhi

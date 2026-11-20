@@ -136,7 +136,7 @@ template <typename T> class Buffer final {
     const std::string& name() const { return _name; }
 
   private:
-    vax::Logger _logger = vax::Logger("Buffer");
+    dev::Logger _logger = dev::Logger("Buffer");
     std::reference_wrapper<const vax::rhi::Device> _device;
 
     std::string _name;

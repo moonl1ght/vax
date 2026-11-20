@@ -106,7 +106,7 @@ template <typename VertexType> class MeshObject final {
     const GlobalMemoryCursor& globalMemoryIndexCursor() const { return _globalMemoryIndexCursor.value(); }
 
   private:
-    vax::Logger _logger = vax::Logger("Mesh");
+    dev::Logger _logger = dev::Logger("Mesh");
 
     std::reference_wrapper<const Device> _device;
     std::reference_wrapper<MeshManager> _meshManager;

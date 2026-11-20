@@ -58,7 +58,7 @@ template <typename ControllerType> class SceneView : public DebugView {
     bool isLoaded() const noexcept { return _loadState == LoadState::LOADED; }
 
   protected:
-    vax::Logger _logger = vax::Logger("SceneView");
+    dev::Logger _logger = dev::Logger("SceneView");
 
     std::reference_wrapper<vax::InputController> _inputController;
     std::reference_wrapper<vax::gfx::RenderEngine> _renderEngine;

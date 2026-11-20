@@ -63,7 +63,7 @@ class GWSceneController final : public vax::gfx::SceneController<GWSceneControll
         vax::math::Transform jointOrigin;
     };
 
-    vax::Logger _logger = vax::Logger("GWDrawableWorld");
+    dev::Logger _logger = dev::Logger("GWDrawableWorld");
 
     std::unordered_map<std::string, std::vector<vax::ecs::Entity>> _envEntities;
 

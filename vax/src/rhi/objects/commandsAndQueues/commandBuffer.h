@@ -64,7 +64,7 @@ class CommandBuffer {
     void submitAndWait(VkQueue queue);
 
   private:
-    vax::Logger _logger = vax::Logger("CommandBuffer");
+    dev::Logger _logger = dev::Logger("CommandBuffer");
     VkCommandPool _commandPool;
     std::reference_wrapper<const vax::rhi::Device> _device;
     bool _isBegun = false;

@@ -44,7 +44,7 @@ class ReflectionProcessor final {
         slang::IGlobalSession* globalSession;
         const std::vector<VkShaderStageFlags>& entryPointStages;
         VkShaderStageFlags currentStage = 0;
-        vax::Logger& logger;
+        dev::Logger& logger;
     };
 
     ReflectionProcessor() = default;

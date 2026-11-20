@@ -114,7 +114,7 @@ class World final {
     }
 
   private:
-    vax::Logger _logger = vax::Logger("ECS_World");
+    dev::Logger _logger = dev::Logger("ECS_World");
 
     std::vector<uint32_t> _generations;
     std::vector<uint32_t> _freeIndices;

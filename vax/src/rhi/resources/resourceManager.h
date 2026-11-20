@@ -42,7 +42,7 @@ class ResourceManager final {
     SSBOManager& ssboManager() { return _ssboManager; }
 
   private:
-    vax::Logger _logger = vax::Logger("ResourceManager");
+    dev::Logger _logger = dev::Logger("ResourceManager");
 
     BufferManager _bufferManager;
     MeshManager _meshManager;

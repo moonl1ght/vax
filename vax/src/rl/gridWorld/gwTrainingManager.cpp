@@ -14,9 +14,9 @@ using namespace vax::core;
 GWTrainingManager::GWTrainingManager() {
     _trainDirectory = RELATIVE_PATH("output/qlearning/train_" + vax::TimeManager::getCurrentDatetimeString());
     std::filesystem::create_directories(_trainDirectory);
-    _fsLogger = std::make_shared<vax::FsLogger>(_trainDirectory + "/training.log");
+    _fsLogger = std::make_shared<dev::FsLogger>(_trainDirectory + "/training.log");
     _logger.setFsLogger(_fsLogger);
-    _logger.setMode(vax::Logger::Mode::FILE);
+    _logger.setMode(dev::Logger::Mode::FILE);
 }
 
 void GWTrainingManager::setInititialGrid(const vax::math::Tensor& grid) {

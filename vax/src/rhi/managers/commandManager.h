@@ -25,7 +25,7 @@ class CommandManager final {
     CommandBuffer& getCommandBuffer(uint32_t index);
 
   private:
-    vax::Logger _logger = vax::Logger("CommandManager");
+    dev::Logger _logger = dev::Logger("CommandManager");
     std::reference_wrapper<const vax::rhi::Device> _device;
     VkCommandPool _commandPool = VK_NULL_HANDLE;
     std::vector<CommandBuffer> _commandBuffers;

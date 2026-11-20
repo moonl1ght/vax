@@ -70,14 +70,14 @@ class GWAgent final : public vax::rl::Agent<GWAgent, State, MoveAction> {
 
     void setQLearningConfig(const vax::rl::QLearningConfig& qlConfig);
 
-    void setFsLogger(std::shared_ptr<vax::FsLogger> fsLogger);
+    void setFsLogger(std::shared_ptr<dev::FsLogger> fsLogger);
 
     AgentOrientation getOrientation() const { return _orientation; }
 
     void toggleAllowRandomActionsDuringEval() { _allowRandomActionsDuringEval = !_allowRandomActionsDuringEval; }
 
   private:
-    vax::Logger _logger = vax::Logger("GWAgent");
+    dev::Logger _logger = dev::Logger("GWAgent");
     vax::rl::QLearningConfig _qlConfig;
     vax::math::Position2DInt _startPosition = {0, 0};
     vax::math::Position2DInt _position = {0, 0};

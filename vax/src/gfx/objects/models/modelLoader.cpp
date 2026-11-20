@@ -148,7 +148,7 @@ void processNode(
     uint32_t depth,
     std::vector<MaterialId>& materialIds,
     bool& hasTangents,
-    const vax::Logger& logger
+    const dev::Logger& logger
 ) {
     glm::mat4 transform = parentTransform * toGlm(node->mTransformation);
     glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(transform)));

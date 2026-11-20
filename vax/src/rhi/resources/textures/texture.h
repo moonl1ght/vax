@@ -83,7 +83,7 @@ class Texture final {
     }
 
   private:
-    vax::Logger _logger = vax::Logger("Texture");
+    dev::Logger _logger = dev::Logger("Texture");
 
     std::reference_wrapper<const vax::rhi::Device> _device;
 

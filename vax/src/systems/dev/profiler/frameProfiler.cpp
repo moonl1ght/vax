@@ -1,6 +1,6 @@
 #include "frameProfiler.h"
 
-using namespace vax;
+using namespace vax::dev;
 
 void FrameProfiler::beginFrameZone(const std::string& name) { Profiler::begin(name); }
 

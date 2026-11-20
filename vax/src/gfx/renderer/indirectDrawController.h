@@ -62,7 +62,7 @@ class IndirectDrawController final {
     }
 
   private:
-    vax::Logger _logger = vax::Logger("IndirectDrawController");
+    dev::Logger _logger = dev::Logger("IndirectDrawController");
 
     std::reference_wrapper<const rhi::Device> _device;
 

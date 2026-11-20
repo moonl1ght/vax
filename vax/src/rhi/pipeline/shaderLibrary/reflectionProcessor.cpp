@@ -43,7 +43,7 @@ struct DescriptorBindingInfo final {
     VkDescriptorType type = VK_DESCRIPTOR_TYPE_MAX_ENUM;
 };
 
-DescriptorBindingInfo resolveBindingInfo(slang::TypeReflection* type, vax::Logger& logger) {
+DescriptorBindingInfo resolveBindingInfo(slang::TypeReflection* type, vax::dev::Logger& logger) {
     DescriptorBindingInfo info{};
 
     if (type->getKind() == slang::TypeReflection::Kind::Array) {

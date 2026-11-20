@@ -32,7 +32,7 @@ class SyncObjectsManager {
     std::unordered_map<std::string, std::vector<VkSemaphore>> _renderFinishedSemaphores;
     std::vector<VkFence> _inFlightFences;
 
-    vax::Logger _logger = vax::Logger("SyncObjectsManager");
+    dev::Logger _logger = dev::Logger("SyncObjectsManager");
     std::reference_wrapper<const vax::rhi::Device> _device;
 };
 } // namespace vax::rhi

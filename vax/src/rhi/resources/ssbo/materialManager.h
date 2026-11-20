@@ -39,7 +39,7 @@ class MaterialManager final {
     const MaterialBuffer& materialBuffer() const { return *_buffer; }
 
   private:
-    vax::Logger _logger = vax::Logger("MaterialManager");
+    dev::Logger _logger = dev::Logger("MaterialManager");
     std::reference_wrapper<const Device> _device;
     // TODO: change to vector of buffers to handle material overflow
     std::unique_ptr<MaterialBuffer> _buffer = nullptr;

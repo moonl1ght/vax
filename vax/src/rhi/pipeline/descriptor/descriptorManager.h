@@ -41,7 +41,7 @@ class DescriptorManager final {
     DescriptorRegistry& descriptorRegistry() const noexcept { return *_descriptorRegistry; }
 
   private:
-    vax::Logger _logger = vax::Logger("DescriptorManager");
+    dev::Logger _logger = dev::Logger("DescriptorManager");
 
     std::reference_wrapper<const vax::rhi::Device> _device;
 

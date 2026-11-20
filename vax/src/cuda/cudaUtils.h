@@ -5,8 +5,8 @@
 
 namespace vax::cuda {
 
-bool check_launch(const char* op, const vax::Logger& logger = vax::Logger("cuda"));
+bool check_launch(const char* op, const dev::Logger& logger = dev::Logger("cuda"));
 
-bool sync_device(const vax::Logger& logger = vax::Logger("cuda"));
+bool sync_device(const dev::Logger& logger = dev::Logger("cuda"));
 
 }

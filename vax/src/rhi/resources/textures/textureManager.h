@@ -84,7 +84,7 @@ class TextureManager final {
     TextureResource* createTexture(const TextureCreateInfo& createInfo) noexcept;
 
   private:
-    vax::Logger _logger = vax::Logger("TextureManager");
+    dev::Logger _logger = dev::Logger("TextureManager");
 
     std::reference_wrapper<const rhi::Device> _device;
     std::reference_wrapper<DescriptorRegistry> _descriptorRegistry;

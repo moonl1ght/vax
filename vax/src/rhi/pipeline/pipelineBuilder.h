@@ -27,7 +27,7 @@ class PipelineLayoutBuilder final {
     }
 
   private:
-    vax::Logger _logger = vax::Logger("PipelineLayoutBuilder");
+    dev::Logger _logger = dev::Logger("PipelineLayoutBuilder");
     const uint32_t _pushConstantSize;
     std::reference_wrapper<const vax::rhi::Device> _device;
     std::vector<VkDescriptorSetLayout> _descriptorSetLayouts;
@@ -47,7 +47,7 @@ class ComputePipelineBuilder final {
     void setShaderModule(const ShaderModule& module, const char* name) noexcept;
 
   private:
-    vax::Logger _logger = vax::Logger("ComputePipelineBuilder");
+    dev::Logger _logger = dev::Logger("ComputePipelineBuilder");
     std::reference_wrapper<const vax::rhi::Device> _device;
     VkPipelineLayout _pipelineLayout = VK_NULL_HANDLE;
     VkPipelineShaderStageCreateInfo _shaderStageInfo = {};
@@ -70,7 +70,7 @@ class GraphicsPipelineBuilder final {
     void setDepthStencilState(DepthStencilState depthStencilState) noexcept { _depthStencilState = depthStencilState; }
 
   private:
-    vax::Logger _logger = vax::Logger("GraphicsPipelineBuilder");
+    dev::Logger _logger = dev::Logger("GraphicsPipelineBuilder");
     std::reference_wrapper<const vax::rhi::Device> _device;
     std::vector<VkPipelineShaderStageCreateInfo> _shaderStages;
     VkPrimitiveTopology _topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;

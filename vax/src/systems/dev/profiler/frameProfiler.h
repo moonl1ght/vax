@@ -2,7 +2,7 @@
 
 #include "profiler.h"
 
-namespace vax {
+namespace vax::dev {
 class FrameProfiler final : public Profiler {
   public:
     struct FrameInfo {
@@ -24,4 +24,4 @@ class FrameProfiler final : public Profiler {
   private:
     std::unordered_map<std::string, FrameInfo> _frameZoneInfos;
 };
-} // namespace vax
+} // namespace vax::dev

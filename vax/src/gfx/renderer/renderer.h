@@ -39,9 +39,9 @@ class Renderer final : public BaseRenderer {
 
     bool isLoaded() const noexcept { return _isLoaded; }
 
-    void linkFrameProfiler(vax::FrameProfiler* frameProfiler) noexcept { _frameProfiler = frameProfiler; }
+    void linkFrameProfiler(dev::FrameProfiler* frameProfiler) noexcept { _frameProfiler = frameProfiler; }
 
-    void unlinkFrameProfiler(vax::FrameProfiler* frameProfiler) noexcept {
+    void unlinkFrameProfiler(dev::FrameProfiler* frameProfiler) noexcept {
         if (_frameProfiler == frameProfiler) {
             _frameProfiler = nullptr;
         }
@@ -58,9 +58,9 @@ class Renderer final : public BaseRenderer {
         uint32_t imageIndex;
     };
 
-    vax::Logger _logger = vax::Logger("Renderer");
+    dev::Logger _logger = dev::Logger("Renderer");
 
-    FrameProfiler* _frameProfiler = nullptr;
+    dev::FrameProfiler* _frameProfiler = nullptr;
 
     std::unique_ptr<vax::gfx::RenderPassGraphManager> _renderPassGraphManager;
 

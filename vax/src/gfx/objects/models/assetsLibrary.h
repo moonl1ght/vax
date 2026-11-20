@@ -42,7 +42,7 @@ class AssetsLibrary {
     size_t drawableModelCount() const { return _drawableModels.size(); }
 
   private:
-    vax::Logger _logger = vax::Logger("AssetsLibrary");
+    dev::Logger _logger = dev::Logger("AssetsLibrary");
     const uint32_t _maxDrawableInstances;
 
     std::reference_wrapper<vax::rhi::ResourceManager> _resourceManager;

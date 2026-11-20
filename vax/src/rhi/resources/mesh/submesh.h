@@ -10,6 +10,6 @@ struct Submesh final {
     uint32_t vertexOffset = 0;
     uint32_t materialIndex = NO_MATERIAL_INDEX;
 
-    void debugPrint(const vax::Logger& logger) const;
+    void debugPrint(const dev::Logger& logger) const;
 };
 } // namespace vax::rhi

@@ -14,7 +14,7 @@ class DebugView : public View {
     DebugView(vax::gfx::RenderEngine& renderEngine)
         : View(renderEngine.renderer()) {
         _statsView = std::make_unique<StatsView>(renderEngine);
-        _frameProfiler = std::make_unique<vax::FrameProfiler>();
+        _frameProfiler = std::make_unique<dev::FrameProfiler>();
         _statsView->linkFrameProfiler(_frameProfiler.get());
     }
 
@@ -34,7 +34,7 @@ class DebugView : public View {
 
   protected:
     std::unique_ptr<StatsView> _statsView;
-    std::unique_ptr<vax::FrameProfiler> _frameProfiler;
+    std::unique_ptr<dev::FrameProfiler> _frameProfiler;
 
     virtual void _showMenuBarItems() {}
 

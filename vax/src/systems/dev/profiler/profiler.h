@@ -4,7 +4,7 @@
 #include <tracy/Tracy.hpp>
 #include <unordered_map>
 
-namespace vax {
+namespace vax::dev {
 class Profiler {
   public:
     Profiler() = default;
@@ -23,4 +23,4 @@ class Profiler {
     std::unordered_map<std::string, std::chrono::steady_clock::time_point> _startTimes;
     std::unordered_map<std::string, std::chrono::steady_clock::duration> _durations;
 };
-} // namespace vax
+} // namespace vax::dev

@@ -5,7 +5,7 @@ using namespace vax;
 std::string version(int packed) { return std::to_string(packed / 1000) + "." + std::to_string((packed % 1000) / 10); }
 
 void CudaEnv::printInfo() const {
-    vax::Logger logger = vax::Logger("CudaEnv");
+    dev::Logger logger = dev::Logger("CudaEnv");
     logger.info("===== CUDA =====");
     logger.info("Driver version:               ", version(_driverVersion));
     logger.info("Runtime version:              ", version(_runtimeVersion));
@@ -19,7 +19,7 @@ void CudaEnv::printInfo() const {
 }
 
 void CudaEnv::_load() {
-    vax::Logger logger = vax::Logger("CudaEnv");
+    dev::Logger logger = dev::Logger("CudaEnv");
     int deviceCount = 0;
     auto countResult = cudaGetDeviceCount(&deviceCount);
     if (countResult != cudaSuccess) {

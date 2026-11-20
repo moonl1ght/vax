@@ -55,7 +55,7 @@ int cudaCoresPerSM(int major, int minor) {
 }
 
 void CudaDevice::printGpuInfo() const {
-    auto logger = vax::Logger("CudaDevice");
+    auto logger = dev::Logger("CudaDevice");
     logger.info("----- Device ", _deviceId, ": ", _prop.name, " -----");
     logger.info("Compute capability:           ", _prop.major, ".", _prop.minor);
     logger.info("PCI (domain:bus:device):      ", _prop.pciDomainID, ":", _prop.pciBusID, ":", _prop.pciDeviceID);

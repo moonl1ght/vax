@@ -21,6 +21,6 @@ class DeletionQueue {
     }
 
   private:
-    Logger _logger = Logger("DeletionQueue");
+    dev::Logger _logger = dev::Logger("DeletionQueue");
 };
 } // namespace vax::core

@@ -71,7 +71,7 @@ std::optional<std::pair<VkImage, VmaAllocation>> createImage(
         .requiredFlags = properties,
     };
     if (!VK_CHECK(vmaCreateImage(allocator, &imageInfo, &allocInfo, &image, &allocation, nullptr))) {
-        vax::Logger::getInstance().error("Failed to create image!");
+        dev::Logger::getInstance().error("Failed to create image!");
         return std::nullopt;
     }
     return std::make_optional(std::make_pair(image, allocation));

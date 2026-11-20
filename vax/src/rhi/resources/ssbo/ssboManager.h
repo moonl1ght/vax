@@ -35,7 +35,7 @@ class SSBOManager final {
     const InstanceBuffer& instanceBuffer(uint32_t frameIndex) const { return *_buffers[frameIndex]; }
 
   private:
-    vax::Logger _logger = vax::Logger("SSBOManager");
+    dev::Logger _logger = dev::Logger("SSBOManager");
     std::reference_wrapper<const Device> _device;
     std::array<std::unique_ptr<InstanceBuffer>, MAX_FRAMES_IN_FLIGHT> _buffers;
     uint32_t _maxInstances = 0;

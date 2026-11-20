@@ -26,7 +26,7 @@ class BaseRenderer {
         bool shouldRecreateSwapchain;
         bool hasError;
     };
-    vax::Logger _logger = vax::Logger("BaseRenderer");
+    dev::Logger _logger = dev::Logger("BaseRenderer");
 
     std::reference_wrapper<vax::rhi::Engine> _vkEngine;
     std::reference_wrapper<vax::ui::UIEngine> _uiEngine;

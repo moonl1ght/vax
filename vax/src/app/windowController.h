@@ -28,7 +28,7 @@ class WindowController final {
     void destroyAllWindows();
 
   private:
-    Logger _logger = Logger("WindowController");
+    dev::Logger _logger = dev::Logger("WindowController");
 
     std::array<std::unique_ptr<vax::rhi::Window>, maxWindows> _windows;
 };

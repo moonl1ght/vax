@@ -29,8 +29,8 @@ class GWTrainingManager final {
     void setInititialGrid(const vax::math::Tensor& grid);
 
   private:
-    std::shared_ptr<vax::FsLogger> _fsLogger;
-    vax::Logger _logger = vax::Logger("GWTrainingManager");
+    std::shared_ptr<dev::FsLogger> _fsLogger;
+    dev::Logger _logger = dev::Logger("GWTrainingManager");
     std::unique_ptr<vax::rl::TrainingEngine> _trainingEngine;
     std::unique_ptr<vax::rl::GridWorld> _gridWorld;
     vax::rl::QLearningConfig _qlConfig;

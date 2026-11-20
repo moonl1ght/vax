@@ -10,7 +10,7 @@ using namespace vax::math;
 
 namespace {
 
-const vax::Logger logger("TensorOpGpu");
+const vax::dev::Logger logger("TensorOpGpu");
 
 bool check_broadcast_compatibility(const std::vector<int>& shapeA, const std::vector<int>& shapeB) {
     auto itA = shapeA.rbegin();

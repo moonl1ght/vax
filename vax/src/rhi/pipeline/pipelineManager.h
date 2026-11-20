@@ -47,7 +47,7 @@ class PipelineManager final {
     }
 
   private:
-    vax::Logger _logger = vax::Logger("PipelineManager");
+    dev::Logger _logger = dev::Logger("PipelineManager");
 
     std::reference_wrapper<const Device> _device;
 

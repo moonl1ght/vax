@@ -41,7 +41,7 @@ class JFAPass final : public RenderPassNode {
     void runPass(RunPassInfo& runPassInfo) override;
 
   private:
-    vax::Logger _logger = vax::Logger("JFAPass");
+    dev::Logger _logger = dev::Logger("JFAPass");
     std::reference_wrapper<const vax::rhi::Device> _device;
     std::reference_wrapper<const vax::rhi::PipelineManager> _pipelineManager;
     std::reference_wrapper<vax::rhi::TextureManager> _textureManager;
