@@ -80,16 +80,19 @@ get_filename_component(_SLANG_ROOT "${SLANG_COMPILER}" DIRECTORY)
 get_filename_component(_SLANG_ROOT "${_SLANG_ROOT}" DIRECTORY)
 find_package(slang REQUIRED CONFIG HINTS "${_SLANG_ROOT}")
 
-include_directories(${PROJECT_SOURCE_DIR}/src)
+set(VAX_DIR "${PROJECT_SOURCE_DIR}/vax")
+set(VAX_SRC_DIR "${VAX_DIR}/src")
+
+include_directories(${VAX_SRC_DIR})
 
 file(GLOB_RECURSE all_SRCS
-    "${PROJECT_SOURCE_DIR}/src/*.hpp"
-    "${PROJECT_SOURCE_DIR}/src/*.cpp"
-    "${PROJECT_SOURCE_DIR}/src/*.h"
-    "${PROJECT_SOURCE_DIR}/src/*.c"
-    "${PROJECT_SOURCE_DIR}/src/*.cu"
-    "${PROJECT_SOURCE_DIR}/src/*.cuh"
-    "${PROJECT_SOURCE_DIR}/src/*.spv"
+    "${VAX_SRC_DIR}/*.hpp"
+    "${VAX_SRC_DIR}/*.cpp"
+    "${VAX_SRC_DIR}/*.h"
+    "${VAX_SRC_DIR}/*.c"
+    "${VAX_SRC_DIR}/*.cu"
+    "${VAX_SRC_DIR}/*.cuh"
+    "${VAX_SRC_DIR}/*.spv"
 )
 
 set(STAGE_NAME_vert vertex)
@@ -107,18 +110,18 @@ set(ENTRY_NAME_tesc tescMain)
 set(ENTRY_NAME_tese teseMain)
 
 file(GLOB_RECURSE SLANG_SOURCE_FILES
-    "${PROJECT_SOURCE_DIR}/src/engine/shaders/*.vert.slang"
-    "${PROJECT_SOURCE_DIR}/src/engine/shaders/*.frag.slang"
-    "${PROJECT_SOURCE_DIR}/src/engine/shaders/*.comp.slang"
-    "${PROJECT_SOURCE_DIR}/src/engine/shaders/*.geom.slang"
-    "${PROJECT_SOURCE_DIR}/src/engine/shaders/*.tesc.slang"
-    "${PROJECT_SOURCE_DIR}/src/engine/shaders/*.tese.slang"
+    "${VAX_SRC_DIR}/engine/shaders/*.vert.slang"
+    "${VAX_SRC_DIR}/engine/shaders/*.frag.slang"
+    "${VAX_SRC_DIR}/engine/shaders/*.comp.slang"
+    "${VAX_SRC_DIR}/engine/shaders/*.geom.slang"
+    "${VAX_SRC_DIR}/engine/shaders/*.tesc.slang"
+    "${VAX_SRC_DIR}/engine/shaders/*.tese.slang"
 )
 
-file(MAKE_DIRECTORY "${PROJECT_SOURCE_DIR}/src/engine/shaders/out")
+file(MAKE_DIRECTORY "${VAX_SRC_DIR}/engine/shaders/out")
 
-file(GLOB_RECURSE SHADER_SHARED_FILES "${PROJECT_SOURCE_DIR}/src/engine/shaders/*.h")
-file(GLOB_RECURSE SHADER_SHARED_SLANG_FILES "${PROJECT_SOURCE_DIR}/src/engine/shaders/*.slang")
+file(GLOB_RECURSE SHADER_SHARED_FILES "${VAX_SRC_DIR}/engine/shaders/*.h")
+file(GLOB_RECURSE SHADER_SHARED_SLANG_FILES "${VAX_SRC_DIR}/engine/shaders/*.slang")
 list(REMOVE_ITEM SHADER_SHARED_SLANG_FILES ${SLANG_SOURCE_FILES})
 list(APPEND SHADER_SHARED_FILES ${SHADER_SHARED_SLANG_FILES})
 
@@ -128,14 +131,14 @@ foreach(SLANG ${SLANG_SOURCE_FILES})
     set(SUFFIX       "${CMAKE_MATCH_2}")
     set(STAGE        "${STAGE_NAME_${SUFFIX}}")
     set(EP           "${ENTRY_NAME_${SUFFIX}}")
-    set(SPIRV        "${PROJECT_SOURCE_DIR}/src/engine/shaders/out/${BASE_NAME}.${SUFFIX}.spv")
+    set(SPIRV        "${VAX_SRC_DIR}/engine/shaders/out/${BASE_NAME}.${SUFFIX}.spv")
     message(STATUS "BUILDING SLANG SHADER: ${BASE_NAME} [${STAGE}]")
     add_custom_command(
         OUTPUT ${SPIRV}
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_SOURCE_DIR}/src/engine/shaders/out"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${VAX_SRC_DIR}/engine/shaders/out"
         COMMAND ${SLANG_COMPILER} "${SLANG}"
-            -I "${PROJECT_SOURCE_DIR}/src/engine/shaders/src"
-            -I "${PROJECT_SOURCE_DIR}/src/engine/shaders/include"
+            -I "${VAX_SRC_DIR}/engine/shaders/src"
+            -I "${VAX_SRC_DIR}/engine/shaders/include"
             -entry ${EP}
             -stage ${STAGE}
             -target spirv
@@ -154,9 +157,9 @@ add_custom_target(
 )
 
 macro(HEADER_DIRECTORIES return_list)
-    file(GLOB_RECURSE new_list "${PROJECT_SOURCE_DIR}/src/*.hpp"
-        "${PROJECT_SOURCE_DIR}/src/*.h"
-        "${PROJECT_SOURCE_DIR}/src/*.cuh")
+    file(GLOB_RECURSE new_list "${VAX_SRC_DIR}/*.hpp"
+        "${VAX_SRC_DIR}/*.h"
+        "${VAX_SRC_DIR}/*.cuh")
     set(dir_list "")
 
     foreach(file_path ${new_list})
@@ -175,7 +178,7 @@ set(IMGUI_BACKEND_SRCS
     "${IMGUI_PACKAGE_DIR}/res/bindings/imgui_impl_sdl3.cpp"
 )
 
-add_executable(Luna main.cpp ${all_SRCS} ${IMGUI_BACKEND_SRCS})
+add_executable(Luna ${VAX_DIR}/main.cpp ${all_SRCS} ${IMGUI_BACKEND_SRCS})
 
 set(VAX_LOG_LEVEL "" CACHE STRING "Compile-time global log level")
 if(VAX_LOG_LEVEL)
@@ -209,10 +212,10 @@ target_compile_definitions(Luna PRIVATE
 )
 
 target_precompile_headers(Luna PRIVATE
-    "$<$<COMPILE_LANGUAGE:CXX>:${PROJECT_SOURCE_DIR}/src/pch.h>"
+    "$<$<COMPILE_LANGUAGE:CXX>:${VAX_SRC_DIR}/pch.h>"
 )
 set_source_files_properties(
-    "${PROJECT_SOURCE_DIR}/src/deps/vma.cpp"
+    "${VAX_SRC_DIR}/deps/vma.cpp"
     PROPERTIES SKIP_PRECOMPILE_HEADERS ON
 )
 

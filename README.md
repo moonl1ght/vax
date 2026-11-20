@@ -6,7 +6,7 @@ Vulkan RL gym.
 
 ### linux
 ```bash
-conan install . --output-folder=build --build=missing --profile=linuxprofile -s "ktx/*:compiler.cppstd=gnu17"
+conan install . --output-folder=build --build=missing --profile=profiles/linuxprofile -s "ktx/*:compiler.cppstd=gnu17"
 ```
 
 ## Debugging Slang Shaders
