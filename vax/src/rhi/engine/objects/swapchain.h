@@ -7,7 +7,7 @@
 #include "size.h"
 #include "vkUtils.h"
 
-namespace vax::vk {
+namespace vax::rhi {
 class Swapchain final {
   public:
     VkSwapchainKHR swapchain = VK_NULL_HANDLE;
@@ -18,7 +18,7 @@ class Swapchain final {
 
     VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
 
-    explicit Swapchain(const vax::vk::Device& device, VkSurfaceKHR surface, vax::math::SizeUI size)
+    explicit Swapchain(const vax::rhi::Device& device, VkSurfaceKHR surface, vax::math::SizeUI size)
         : _surface(surface)
         , _size(size)
         , _device(device) {};
@@ -37,7 +37,7 @@ class Swapchain final {
     vax::math::SizeUI _size;
     VkPresentModeKHR _requestedPresentMode = VK_PRESENT_MODE_FIFO_KHR;
 
-    std::reference_wrapper<const vax::vk::Device> _device;
+    std::reference_wrapper<const vax::rhi::Device> _device;
     VkSurfaceKHR _surface = VK_NULL_HANDLE;
 
     bool _createSwapchain(VkPresentModeKHR requestedPresentMode);
@@ -51,4 +51,4 @@ class Swapchain final {
         VkPresentModeKHR requestedPresentMode, const std::vector<VkPresentModeKHR>& availablePresentModes
     );
 };
-} // namespace vax::vk
+} // namespace vax::rhi

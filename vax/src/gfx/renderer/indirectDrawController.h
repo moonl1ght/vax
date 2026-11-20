@@ -17,21 +17,21 @@ namespace vax::gfx {
 
 class IndirectDrawController final {
   public:
-    using IndirectDrawCommandBuffer = vk::Buffer<VkDrawIndexedIndirectCommand>;
-    using PerDrawDataBuffer = vk::Buffer<PerDrawData>;
-    using PerDrawDataBufferHandle = vk::ShaderBufferHandle<PerDrawData>;
+    using IndirectDrawCommandBuffer = rhi::Buffer<VkDrawIndexedIndirectCommand>;
+    using PerDrawDataBuffer = rhi::Buffer<PerDrawData>;
+    using PerDrawDataBufferHandle = rhi::ShaderBufferHandle<PerDrawData>;
 
     struct DrawRange final {
         uint32_t start;
         uint32_t count;
     };
 
-    explicit IndirectDrawController(const vk::Device& device) noexcept
+    explicit IndirectDrawController(const rhi::Device& device) noexcept
         : _device(device) {};
 
     ~IndirectDrawController() = default;
 
-    void setup(uint32_t maxCommands, vk::DescriptorRegistry& descriptorRegistry) noexcept;
+    void setup(uint32_t maxCommands, rhi::DescriptorRegistry& descriptorRegistry) noexcept;
 
     void prepareForDraw(uint32_t frameIndex) noexcept;
 
@@ -46,9 +46,9 @@ class IndirectDrawController final {
 
     void submitCommands(uint32_t frameIndex) noexcept;
 
-    void draw(vk::CommandBuffer& commandBuffer, uint32_t frameIndex) noexcept;
+    void draw(rhi::CommandBuffer& commandBuffer, uint32_t frameIndex) noexcept;
 
-    void drawRange(vk::CommandBuffer& commandBuffer, uint32_t frameIndex, const std::string& name) noexcept;
+    void drawRange(rhi::CommandBuffer& commandBuffer, uint32_t frameIndex, const std::string& name) noexcept;
 
     std::optional<DrawRange> drawRange(const std::string& name) const noexcept {
         if (auto it = _drawRanges.find(name); it != _drawRanges.end()) {
@@ -64,7 +64,7 @@ class IndirectDrawController final {
   private:
     vax::Logger _logger = vax::Logger("IndirectDrawController");
 
-    std::reference_wrapper<const vk::Device> _device;
+    std::reference_wrapper<const rhi::Device> _device;
 
     std::vector<VkDrawIndexedIndirectCommand> _commands;
 

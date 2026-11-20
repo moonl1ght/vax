@@ -13,12 +13,12 @@
 #include <memory>
 #include <vector>
 
-namespace vax::vk {
+namespace vax::rhi {
 class Device;
 class QueueManager;
-} // namespace vax::vk
+} // namespace vax::rhi
 
-namespace vax::vk {
+namespace vax::rhi {
 class Engine final {
   public:
     const uint32_t vulkanApiVersion = VK_API_VERSION_1_4;
@@ -35,12 +35,12 @@ class Engine final {
 
     VkInstance instance = VK_NULL_HANDLE;
 
-    std::unique_ptr<vax::vk::Device> device;
+    std::unique_ptr<vax::rhi::Device> device;
 
-    std::unique_ptr<vax::vk::QueueManager> queueManager;
-    std::unique_ptr<vax::vk::PipelineManager> pipelineManager;
-    std::unique_ptr<vax::vk::CommandManager> commandManager;
-    std::unique_ptr<vax::vk::SyncObjectsManager> syncObjectsManager;
+    std::unique_ptr<vax::rhi::QueueManager> queueManager;
+    std::unique_ptr<vax::rhi::PipelineManager> pipelineManager;
+    std::unique_ptr<vax::rhi::CommandManager> commandManager;
+    std::unique_ptr<vax::rhi::SyncObjectsManager> syncObjectsManager;
 
     explicit Engine(vax::WindowController& windowController)
         : _windowController(windowController) {};
@@ -67,4 +67,4 @@ class Engine final {
 
     bool setupDebugMessenger();
 };
-} // namespace vax::vk
+} // namespace vax::rhi

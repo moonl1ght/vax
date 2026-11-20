@@ -7,7 +7,7 @@
 namespace vax::gfx {
 class PrimitivesBuilder {
   public:
-    explicit PrimitivesBuilder(vax::vk::ResourceManager& resourceManager) noexcept
+    explicit PrimitivesBuilder(vax::rhi::ResourceManager& resourceManager) noexcept
         : _resourceManager(resourceManager) {};
 
     ~PrimitivesBuilder() = default;
@@ -30,10 +30,10 @@ class PrimitivesBuilder {
 
   private:
     std::optional<vax::gfx::DrawableModel> _createModel(
-        const std::vector<vax::vk::Vertex>& vertices, const std::vector<uint32_t>& indices, PBRMaterial material
+        const std::vector<vax::rhi::Vertex>& vertices, const std::vector<uint32_t>& indices, PBRMaterial material
     ) noexcept;
 
   private:
-    std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;
+    std::reference_wrapper<vax::rhi::ResourceManager> _resourceManager;
 };
 } // namespace vax::gfx

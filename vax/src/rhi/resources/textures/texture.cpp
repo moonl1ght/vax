@@ -2,7 +2,7 @@
 #include "imageUtils.h"
 #include "textureTaskScheduler.h"
 
-using namespace vax::vk;
+using namespace vax::rhi;
 using namespace vax;
 
 void Texture::cleanup() { _destroy(); }
@@ -29,7 +29,7 @@ void Texture::loadImageView(VkImageViewType viewType, uint32_t layerCount, uint3
             .value();
 }
 
-bool vax::vk::Texture::isValid() const { return _image != VK_NULL_HANDLE && _allocation != VK_NULL_HANDLE; }
+bool vax::rhi::Texture::isValid() const { return _image != VK_NULL_HANDLE && _allocation != VK_NULL_HANDLE; }
 
 namespace {
 VkImageLayout sampledImageLayoutFor(VkImageAspectFlags aspectMask) {
@@ -51,7 +51,7 @@ std::optional<VkDescriptorImageInfo> Texture::descriptorImageInfo() const {
     );
 }
 
-void Texture::loadStagingBuffer(vax::vk::CommandBuffer& commandBuffer) {
+void Texture::loadStagingBuffer(vax::rhi::CommandBuffer& commandBuffer) {
     if (!_stagingBuffer.has_value()) {
         return;
     }

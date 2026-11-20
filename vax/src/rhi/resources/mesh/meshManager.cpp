@@ -6,7 +6,7 @@
 #include <utility>
 #include <vector>
 
-using namespace vax::vk;
+using namespace vax::rhi;
 
 void MeshManager::loadGlobalBuffers(size_t size) {
     VkDeviceSize targetSizeInBytes = size * 1024ULL * 1024;

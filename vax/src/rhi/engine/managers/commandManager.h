@@ -4,11 +4,11 @@
 #include "device.h"
 #include <vector>
 
-namespace vax::vk {
+namespace vax::rhi {
 class CommandManager final {
   public:
 
-    explicit CommandManager(const vax::vk::Device& device)
+    explicit CommandManager(const vax::rhi::Device& device)
         : _device(device) {};
 
     CommandManager(const CommandManager& other) = delete;
@@ -20,17 +20,17 @@ class CommandManager final {
 
     void cleanup();
 
-    vax::vk::CommandBuffer createSingleTimeCommandBuffer();
+    vax::rhi::CommandBuffer createSingleTimeCommandBuffer();
 
     CommandBuffer& getCommandBuffer(uint32_t index);
 
   private:
     vax::Logger _logger = vax::Logger("CommandManager");
-    std::reference_wrapper<const vax::vk::Device> _device;
+    std::reference_wrapper<const vax::rhi::Device> _device;
     VkCommandPool _commandPool = VK_NULL_HANDLE;
     std::vector<CommandBuffer> _commandBuffers;
 
     bool _createCommandPool();
     bool _createCommandBuffer();
 };
-} // namespace vax::vk
+} // namespace vax::rhi

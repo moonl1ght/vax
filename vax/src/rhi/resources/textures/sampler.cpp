@@ -1,9 +1,9 @@
 #include "sampler.h"
 
-using namespace vax::vk;
+using namespace vax::rhi;
 
 std::optional<Sampler>
-Sampler::createSampler(const vk::Device& device, std::string name, VkSamplerCreateInfo samplerInfo) noexcept {
+Sampler::createSampler(const rhi::Device& device, std::string name, VkSamplerCreateInfo samplerInfo) noexcept {
     VkSampler vkSampler;
     if (vkCreateSampler(device.vkDevice(), &samplerInfo, nullptr, &vkSampler) != VK_SUCCESS) {
         return std::nullopt;
@@ -15,12 +15,12 @@ Sampler::createSampler(const vk::Device& device, std::string name, VkSamplerCrea
             .objectHandle = reinterpret_cast<size_t>(vkSampler),
             .pObjectName = name.c_str(),
         };
-        vax::vk::pfnSetDebugUtilsObjectNameEXT(device.vkDevice(), &nameInfo);
+        vax::rhi::pfnSetDebugUtilsObjectNameEXT(device.vkDevice(), &nameInfo);
     }
     return Sampler(vkSampler, device);
 }
 
-std::optional<Sampler> Sampler::linear(const vk::Device& device) noexcept {
+std::optional<Sampler> Sampler::linear(const rhi::Device& device) noexcept {
     VkPhysicalDeviceProperties properties{};
     vkGetPhysicalDeviceProperties(device.vkPhysicalDevice(), &properties);
     VkSamplerCreateInfo globalSamplerInfo{
@@ -43,7 +43,7 @@ std::optional<Sampler> Sampler::linear(const vk::Device& device) noexcept {
     return createSampler(device, "linear_sampler", globalSamplerInfo);
 }
 
-std::optional<Sampler> Sampler::cube(const vk::Device& device) noexcept {
+std::optional<Sampler> Sampler::cube(const rhi::Device& device) noexcept {
     VkPhysicalDeviceProperties properties{};
     vkGetPhysicalDeviceProperties(device.vkPhysicalDevice(), &properties);
     VkSamplerCreateInfo globalCubeMapSamplerInfo{

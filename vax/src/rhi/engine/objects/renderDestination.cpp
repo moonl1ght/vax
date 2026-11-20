@@ -1,8 +1,8 @@
 #include "renderDestination.h"
 
-using namespace vax::vk;
+using namespace vax::rhi;
 
-void vax::vk::RenderDestination::_destroy() noexcept {
+void vax::rhi::RenderDestination::_destroy() noexcept {
     for (auto& framebuffer : framebuffers) {
         vkDestroyFramebuffer(_device.get().vkDevice(), framebuffer, nullptr);
     }

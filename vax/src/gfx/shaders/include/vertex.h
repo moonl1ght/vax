@@ -5,7 +5,7 @@
 
 #include <glm/glm.hpp>
 
-namespace vax::vk {
+namespace vax::rhi {
 struct alignas(16) Vertex {
     static constexpr Vertex empty() {
         return Vertex{
@@ -27,7 +27,7 @@ struct alignas(16) Vertex {
     glm::vec2 uv;
     glm::vec2 uv2;
 };
-} // namespace vax::vk
+} // namespace vax::rhi
 
 #else // Slang
 

@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <slang-com-ptr.h>
 
-using namespace vax::vk;
+using namespace vax::rhi;
 
 constexpr VkDescriptorType mapSlangTypeToVulkan(slang::TypeReflection* type) {
     switch (type->getKind()) {

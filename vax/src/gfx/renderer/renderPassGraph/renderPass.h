@@ -14,11 +14,11 @@ class RenderPass : public RenderPassNode {
   public:
     RenderPass(
         std::string_view id,
-        vax::vk::Device& device,
-        vax::vk::PipelineManager& pipelineManager,
+        vax::rhi::Device& device,
+        vax::rhi::PipelineManager& pipelineManager,
         std::string_view debugName,
-        std::weak_ptr<vax::vk::RenderDestination> renderDestination,
-        std::weak_ptr<vax::vk::RenderPassDescriptor> renderDescriptor
+        std::weak_ptr<vax::rhi::RenderDestination> renderDestination,
+        std::weak_ptr<vax::rhi::RenderPassDescriptor> renderDescriptor
     )
         : RenderPassNode(id)
         , _device(device)
@@ -62,11 +62,11 @@ class RenderPass : public RenderPassNode {
 
   protected:
     vax::Logger _logger;
-    std::reference_wrapper<vax::vk::Device> _device;
-    std::reference_wrapper<vax::vk::PipelineManager> _pipelineManager;
+    std::reference_wrapper<vax::rhi::Device> _device;
+    std::reference_wrapper<vax::rhi::PipelineManager> _pipelineManager;
 
-    std::weak_ptr<vax::vk::RenderDestination> _renderDestination;
-    std::weak_ptr<vax::vk::RenderPassDescriptor> _renderDescriptor;
+    std::weak_ptr<vax::rhi::RenderDestination> _renderDestination;
+    std::weak_ptr<vax::rhi::RenderPassDescriptor> _renderDescriptor;
 
     std::vector<std::unique_ptr<RenderSubpass>> _subpasses;
 
@@ -109,22 +109,22 @@ class RenderPass : public RenderPassNode {
                 .objectHandle = reinterpret_cast<size_t>(renderDescriptorShared->getVkRenderPass()),
                 .pObjectName = _debugName.data(),
             };
-            vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &nameInfo);
+            vax::rhi::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &nameInfo);
 
             VkDebugUtilsLabelEXT label{
                 .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
                 .pLabelName = _debugName.data(),
             };
-            vax::vk::pfnCmdBeginDebugUtilsLabelEXT(runPassInfo.commandBuffer.vkCommandBuffer, &label);
+            vax::rhi::pfnCmdBeginDebugUtilsLabelEXT(runPassInfo.commandBuffer.vkCommandBuffer, &label);
         }
         vkCmdBeginRenderPass(runPassInfo.commandBuffer.vkCommandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
         work();
         vkCmdEndRenderPass(runPassInfo.commandBuffer.vkCommandBuffer);
         if (!_debugName.empty()) {
-            vax::vk::pfnCmdEndDebugUtilsLabelEXT(runPassInfo.commandBuffer.vkCommandBuffer);
+            vax::rhi::pfnCmdEndDebugUtilsLabelEXT(runPassInfo.commandBuffer.vkCommandBuffer);
         }
     }
 
-    void _setViewportAndScissor(vax::vk::CommandBuffer& commandBuffer, VkExtent2D extent);
+    void _setViewportAndScissor(vax::rhi::CommandBuffer& commandBuffer, VkExtent2D extent);
 };
 } // namespace vax::gfx

@@ -5,7 +5,7 @@ using namespace vax;
 
 bool EnvironmentMap::load(const Descriptor& descriptor) noexcept {
     auto cubeMapSampler =
-        _resourceManager.get().textureManager().getGlobalSampler(vk::TextureManager::GlobalSampler::CubeMapSampler);
+        _resourceManager.get().textureManager().getGlobalSampler(rhi::TextureManager::GlobalSampler::CubeMapSampler);
     if (!cubeMapSampler) {
         _logger.error("Cube map sampler is missing!");
         return false;

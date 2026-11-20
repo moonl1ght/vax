@@ -2,7 +2,7 @@
 
 using namespace vax::gfx;
 
-void BaseRenderer::_setViewportAndScissor(vax::vk::CommandBuffer& commandBuffer, VkExtent2D extent) {
+void BaseRenderer::_setViewportAndScissor(vax::rhi::CommandBuffer& commandBuffer, VkExtent2D extent) {
     VkViewport viewport{
         .x = 0.0f,
         .y = static_cast<float>(extent.height),
@@ -27,7 +27,7 @@ void BaseRenderer::_waitForFence() {
     );
 }
 
-vax::vk::Swapchain* BaseRenderer::_getSwapchain(size_t index) {
+vax::rhi::Swapchain* BaseRenderer::_getSwapchain(size_t index) {
     if (index >= vax::WindowController::maxWindows) {
         _logger.error("Invalid window index");
         return nullptr;

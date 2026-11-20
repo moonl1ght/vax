@@ -9,7 +9,7 @@
 #include <optional>
 #include <vector>
 
-namespace vax::vk {
+namespace vax::rhi {
 using MaterialBuffer = Buffer<PBRMaterial>;
 
 class MaterialManager final {
@@ -48,4 +48,4 @@ class MaterialManager final {
 
     bool _updateBuffer(MaterialId id, PBRMaterial material);
 };
-} // namespace vax::vk
+} // namespace vax::rhi

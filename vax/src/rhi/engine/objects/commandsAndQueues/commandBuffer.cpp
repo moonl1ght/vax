@@ -1,9 +1,9 @@
 #include "commandBuffer.h"
 #include "vkUtils.h"
 
-using namespace vax::vk;
+using namespace vax::rhi;
 
-bool vax::vk::CommandBuffer::begin() {
+bool vax::rhi::CommandBuffer::begin() {
     VkCommandBufferBeginInfo beginInfo {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
@@ -18,7 +18,7 @@ bool vax::vk::CommandBuffer::begin() {
     }
 }
 
-bool vax::vk::CommandBuffer::end() {
+bool vax::rhi::CommandBuffer::end() {
     auto result = VK_CHECK(vkEndCommandBuffer(vkCommandBuffer));
     if (result) {
         _isBegun = false;
@@ -29,7 +29,7 @@ bool vax::vk::CommandBuffer::end() {
     }
 }
 
-void vax::vk::CommandBuffer::submitAndWait(VkQueue queue) {
+void vax::rhi::CommandBuffer::submitAndWait(VkQueue queue) {
     VkSubmitInfo submitInfo{
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
         .commandBufferCount = 1,
@@ -39,9 +39,9 @@ void vax::vk::CommandBuffer::submitAndWait(VkQueue queue) {
     vkQueueWaitIdle(queue);
 }
 
-void vax::vk::CommandBuffer::reset() { vkResetCommandBuffer(vkCommandBuffer, 0); }
+void vax::rhi::CommandBuffer::reset() { vkResetCommandBuffer(vkCommandBuffer, 0); }
 
-bool vax::vk::CommandBuffer::bindPipeline(const Pipeline* pipeline, VkPipelineBindPoint bindPoint) {
+bool vax::rhi::CommandBuffer::bindPipeline(const Pipeline* pipeline, VkPipelineBindPoint bindPoint) {
     if (pipeline == nullptr) {
         _logger.error("Failed to bind pipeline!");
         return false;

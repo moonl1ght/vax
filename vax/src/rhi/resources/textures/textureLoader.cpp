@@ -7,7 +7,7 @@
 #include "textureTaskScheduler.h"
 #include <ktx.h>
 
-using namespace vax::vk;
+using namespace vax::rhi;
 using namespace vax;
 
 VkFormat getVkFormatFromGlInternalFormat(uint32_t glInternalFormat) noexcept {
@@ -165,7 +165,7 @@ TextureManager::TextureResource* TextureLoader::_loadKTXTexture(std::string path
 
     const ktx_size_t dataSize = ktxTexture_GetDataSize(ktxTex);
 
-    auto stagingBuffer = vk::AnyBuffer::allocateAndFillData(
+    auto stagingBuffer = rhi::AnyBuffer::allocateAndFillData(
         _device.get(),
         path + "_texture_staging_buffer",
         ktxTexture_GetData(ktxTex),
@@ -229,7 +229,7 @@ TextureManager::TextureResource* TextureLoader::_loadKTXTexture(std::string path
 TextureManager::TextureResource*
 TextureLoader::_loadTexture(std::string name, const unsigned char* pixels, int texWidth, int texHeight) const noexcept {
     VkDeviceSize imageSize = texWidth * texHeight * 4;
-    auto stagingBuffer = vk::AnyBuffer::allocateAndFillData(
+    auto stagingBuffer = rhi::AnyBuffer::allocateAndFillData(
         _device.get(),
         name + "_texture_staging_buffer",
         pixels,

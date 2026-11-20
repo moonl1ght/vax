@@ -3,7 +3,7 @@
 #include <unordered_map>
 
 using namespace vax::gfx;
-using namespace vax::vk;
+using namespace vax::rhi;
 using namespace vax;
 
 std::optional<DrawableModel>

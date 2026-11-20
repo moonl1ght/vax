@@ -8,7 +8,7 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 
-namespace vax::vk {
+namespace vax::rhi {
 
 struct ShaderReflectionData final {
     struct SetReflectionData final {
@@ -58,10 +58,10 @@ class ReflectionProcessor final {
     ShaderReflectionData process(ReflectionContext& context) const noexcept;
 };
 
-} // namespace vax::vk
+} // namespace vax::rhi
 
-template <> struct std::hash<vax::vk::ShaderReflectionData::SetReflectionData> {
-    size_t operator()(const vax::vk::ShaderReflectionData::SetReflectionData& set) const noexcept {
+template <> struct std::hash<vax::rhi::ShaderReflectionData::SetReflectionData> {
+    size_t operator()(const vax::rhi::ShaderReflectionData::SetReflectionData& set) const noexcept {
         size_t seed = 0;
         vax::hash_combine(seed, set.isUpdateAfterBind);
         for (const VkDescriptorSetLayoutBinding& binding : set.bindings) {

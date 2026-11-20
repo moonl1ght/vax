@@ -1,6 +1,6 @@
 #include "pipelineBuilder.h"
 
-using namespace vax::vk;
+using namespace vax::rhi;
 
 VkPipelineLayout PipelineLayoutBuilder::build(std::string name) const noexcept {
     VkPushConstantRange pushConstantRange{
@@ -28,7 +28,7 @@ VkPipelineLayout PipelineLayoutBuilder::build(std::string name) const noexcept {
         .objectHandle = reinterpret_cast<size_t>(pipelineLayout),
         .pObjectName = (name + "_pipeline_layout").c_str(),
     };
-    vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &nameInfo);
+    vax::rhi::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &nameInfo);
     return pipelineLayout;
 }
 
@@ -165,7 +165,7 @@ std::optional<VkPipeline> GraphicsPipelineBuilder::build(std::string name, VkPip
         .objectHandle = reinterpret_cast<size_t>(pipeline),
         .pObjectName = (name + "_pipeline").c_str(),
     };
-    vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &baseGraphicsPipelineNameInfo);
+    vax::rhi::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &baseGraphicsPipelineNameInfo);
     return pipeline;
 }
 

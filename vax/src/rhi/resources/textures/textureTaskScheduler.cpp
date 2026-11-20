@@ -1,6 +1,6 @@
 #include "textureTaskScheduler.h"
 
-using namespace vax::vk;
+using namespace vax::rhi;
 
 void TextureTaskSchedulerInline::transitionTextureLayout(
     Texture& texture, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageAspectFlags aspectMask
@@ -51,7 +51,7 @@ void TextureTaskScheduler::transitionTextureLayoutAndSubmit(
     commandBuffer.submitAndWait(submitQueue);
 }
 
-void TextureTaskSchedulerInline::copyBufferToTexture(vax::vk::AnyBuffer& buffer, Texture& texture) {
+void TextureTaskSchedulerInline::copyBufferToTexture(vax::rhi::AnyBuffer& buffer, Texture& texture) {
     VkBufferImageCopy region{
         .bufferOffset = 0,
         .bufferRowLength = 0,
@@ -66,7 +66,7 @@ void TextureTaskSchedulerInline::copyBufferToTexture(vax::vk::AnyBuffer& buffer,
 }
 
 void TextureTaskSchedulerInline::copyBufferToTexture(
-    vax::vk::AnyBuffer& buffer, Texture& texture, const std::vector<VkBufferImageCopy>& copyRegions
+    vax::rhi::AnyBuffer& buffer, Texture& texture, const std::vector<VkBufferImageCopy>& copyRegions
 ) {
     vkCmdCopyBufferToImage(
         _commandBuffer.get().vkCommandBuffer,
@@ -79,7 +79,7 @@ void TextureTaskSchedulerInline::copyBufferToTexture(
 }
 
 void TextureTaskScheduler::copyBufferToTextureAndSubmit(
-    VkQueue submitQueue, vax::vk::AnyBuffer& buffer, Texture& texture
+    VkQueue submitQueue, vax::rhi::AnyBuffer& buffer, Texture& texture
 ) {
     auto commandBuffer = _commandManager.get().createSingleTimeCommandBuffer();
     auto taskSchedulerInline = TextureTaskSchedulerInline(_device.get(), commandBuffer);

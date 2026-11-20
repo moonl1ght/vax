@@ -1,7 +1,7 @@
 #include "device.h"
 #include <set>
 
-using namespace vax::vk;
+using namespace vax::rhi;
 
 std::vector<const char*> deviceExtensions = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME

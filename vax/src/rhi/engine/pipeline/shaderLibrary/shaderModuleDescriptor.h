@@ -4,7 +4,7 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 
-namespace vax::vk {
+namespace vax::rhi {
 struct EntryPointDescriptor final {
 
     static EntryPointDescriptor Vertex(const std::string& name) {
@@ -51,4 +51,4 @@ struct ShaderModuleDescriptor final {
     const std::string name;
     std::vector<EntryPointDescriptor> entryPoints;
 };
-} // namespace vax::vk
+} // namespace vax::rhi

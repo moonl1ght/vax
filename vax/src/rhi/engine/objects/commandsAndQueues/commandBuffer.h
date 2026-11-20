@@ -4,13 +4,13 @@
 #include "logger.h"
 #include "pipeline.h"
 
-namespace vax::vk {
+namespace vax::rhi {
 class CommandBuffer {
   public:
     VkCommandBuffer vkCommandBuffer = VK_NULL_HANDLE;
 
     explicit CommandBuffer(
-        const vax::vk::Device& device, const VkCommandPool commandPool, VkCommandBuffer vkCommandBuffer
+        const vax::rhi::Device& device, const VkCommandPool commandPool, VkCommandBuffer vkCommandBuffer
     )
         : _commandPool(commandPool)
         , _device(device)
@@ -66,7 +66,7 @@ class CommandBuffer {
   private:
     vax::Logger _logger = vax::Logger("CommandBuffer");
     VkCommandPool _commandPool;
-    std::reference_wrapper<const vax::vk::Device> _device;
+    std::reference_wrapper<const vax::rhi::Device> _device;
     bool _isBegun = false;
 };
-} // namespace vax::vk
+} // namespace vax::rhi

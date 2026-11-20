@@ -1,6 +1,6 @@
 #include "ssboManager.h"
 
-using namespace vax::vk;
+using namespace vax::rhi;
 
 void SSBOManager::cleanup() {
     for (auto& buf : _buffers) {
@@ -11,7 +11,7 @@ void SSBOManager::cleanup() {
 
 bool SSBOManager::setup(uint32_t maxInstances) {
     _maxInstances = maxInstances;
-    for (uint32_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
+    for (uint32_t i = 0; i < vax::rhi::MAX_FRAMES_IN_FLIGHT; ++i) {
         auto allocation = InstanceBuffer::allocate(
             _device.get(),
             "ssbo_instance_buffer",

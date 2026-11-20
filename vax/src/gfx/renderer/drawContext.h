@@ -6,7 +6,7 @@
 
 namespace vax::gfx {
 struct DrawContext {
-    vax::vk::CommandBuffer& commandBuffer;
+    vax::rhi::CommandBuffer& commandBuffer;
     uint32_t currentFrame = 0;
 };
 } // namespace vax::gfx

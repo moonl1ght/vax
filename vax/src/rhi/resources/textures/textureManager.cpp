@@ -2,7 +2,7 @@
 #include "imageUtils.h"
 
 using namespace vax;
-using namespace vax::vk;
+using namespace vax::rhi;
 
 bool TextureManager::setup() noexcept {
     auto globalSampler = Sampler::linear(_device.get());
@@ -59,7 +59,7 @@ const TextureManager::SamplerResource* TextureManager::getGlobalSampler(GlobalSa
     return &_globalSamplers[index];
 }
 
-void TextureManager::loadAllTextures(vax::vk::CommandBuffer& commandBuffer) noexcept {
+void TextureManager::loadAllTextures(vax::rhi::CommandBuffer& commandBuffer) noexcept {
     for (auto& textureResource : _textures) {
         textureResource->texture.loadStagingBuffer(commandBuffer);
     }
@@ -74,7 +74,7 @@ void TextureManager::resetAllTexturesStagingBuffers() noexcept {
 TextureManager::TextureResource* TextureManager::createDepthTexture(
     VkFormat format, vax::math::SizeUI size, TextureRegistrationType registrationType
 ) noexcept {
-    auto imageResult = vax::vk::createImage(
+    auto imageResult = vax::rhi::createImage(
         _device.get().allocator(),
         size.toExtent3D(),
         format,
@@ -92,7 +92,7 @@ TextureManager::TextureResource* TextureManager::createDepthTexture(
         .objectHandle = reinterpret_cast<size_t>(imageResult->first),
         .pObjectName = "depth_texture",
     };
-    vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &nameInfo);
+    vax::rhi::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &nameInfo);
     auto [depthImage, allocation] = imageResult.value();
     _textures.push_back(
         std::unique_ptr<TextureResource>(new TextureResource{
@@ -134,7 +134,7 @@ TextureManager::TextureResource* TextureManager::createTexture(const TextureCrea
             .objectHandle = reinterpret_cast<size_t>(image),
             .pObjectName = createInfo.name.c_str(),
         };
-        vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &nameInfo);
+        vax::rhi::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &nameInfo);
     }
     _textures.push_back(
         std::unique_ptr<TextureResource>(new TextureResource{

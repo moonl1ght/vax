@@ -1,6 +1,6 @@
 #include "submesh.h"
 
-using namespace vax::vk;
+using namespace vax::rhi;
 using namespace vax;
 
 void Submesh::debugPrint(const Logger& logger) const {

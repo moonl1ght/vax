@@ -4,7 +4,7 @@
 #include "vkUtils.h"
 #include <cstdint>
 
-namespace vax::vk {
+namespace vax::rhi {
 class Device final {
   public:
     explicit Device() noexcept = default;
@@ -72,4 +72,4 @@ class Device final {
 
     void _loadDeviceProps();
 };
-} // namespace vax::vk
+} // namespace vax::rhi

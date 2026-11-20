@@ -1,7 +1,7 @@
 #include "swapchain.h"
 #include "imageUtils.h"
 
-using namespace vax::vk;
+using namespace vax::rhi;
 
 bool Swapchain::setup(VkPresentModeKHR presentMode) {
     if (!_createSwapchain(presentMode))

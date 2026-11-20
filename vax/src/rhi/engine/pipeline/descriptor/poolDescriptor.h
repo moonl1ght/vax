@@ -7,7 +7,7 @@
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
 
-namespace vax::vk {
+namespace vax::rhi {
 
 #define MAX_SAMPLERS 30
 #define MAX_SAMPLED_IMAGES 1024
@@ -140,4 +140,4 @@ struct PoolDescriptor final {
     uint32_t maxSets;
 };
 
-} // namespace vax::vk
+} // namespace vax::rhi

@@ -21,7 +21,7 @@ class Renderer final : public BaseRenderer {
     state_tracker<RenderPassGraphMode> renderPassGraphMode =
         state_tracker<RenderPassGraphMode>(RenderPassGraphMode::UNKNOWN);
 
-    Renderer(vax::vk::Engine& vkEngine, vax::ui::UIEngine& uiEngine)
+    Renderer(vax::rhi::Engine& vkEngine, vax::ui::UIEngine& uiEngine)
         : BaseRenderer(vkEngine, uiEngine) {};
 
     ~Renderer() {};
@@ -33,7 +33,7 @@ class Renderer final : public BaseRenderer {
 
     bool render(Scene* scene, const FrameTime& frameTime);
 
-    void setup(vax::vk::ResourceManager& resourceManager) noexcept;
+    void setup(vax::rhi::ResourceManager& resourceManager) noexcept;
 
     void load();
 
@@ -51,8 +51,8 @@ class Renderer final : public BaseRenderer {
 
   private:
     struct RenderPassInfo {
-        vax::vk::CommandBuffer* commandBuffer;
-        vax::vk::RenderPassDescriptor* renderPassDescriptor;
+        vax::rhi::CommandBuffer* commandBuffer;
+        vax::rhi::RenderPassDescriptor* renderPassDescriptor;
         VkPipelineLayout pipelineLayout;
         vax::gfx::Scene* scene;
         uint32_t imageIndex;
@@ -69,17 +69,17 @@ class Renderer final : public BaseRenderer {
     bool _isLoaded = false;
 
     bool _updateCommandBuffer(
-        vax::vk::CommandBuffer& commandBuffer,
+        vax::rhi::CommandBuffer& commandBuffer,
         uint32_t imageIndex,
         uint32_t agentCameraImageIndex,
         vax::gfx::Scene* scene
     );
 
-    bool _drawScene(vax::vk::CommandBuffer& commandBuffer, vax::gfx::Scene* scene);
+    bool _drawScene(vax::rhi::CommandBuffer& commandBuffer, vax::gfx::Scene* scene);
 
-    void _drawUi(vax::vk::CommandBuffer& commandBuffer);
+    void _drawUi(vax::rhi::CommandBuffer& commandBuffer);
 
-    bool _bindDescriptorSets(vax::vk::CommandBuffer& commandBuffer);
+    bool _bindDescriptorSets(vax::rhi::CommandBuffer& commandBuffer);
 
     void _resize();
 

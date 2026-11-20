@@ -8,13 +8,13 @@
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
-namespace vax::vk {
+namespace vax::rhi {
 
 // MARK: - ComputePipelineBuilder
 
 class PipelineLayoutBuilder final {
   public:
-    explicit PipelineLayoutBuilder(const vax::vk::Device& device, uint32_t pushConstantSize = 128) noexcept
+    explicit PipelineLayoutBuilder(const vax::rhi::Device& device, uint32_t pushConstantSize = 128) noexcept
         : _device(device)
         , _pushConstantSize(pushConstantSize) {};
 
@@ -29,13 +29,13 @@ class PipelineLayoutBuilder final {
   private:
     vax::Logger _logger = vax::Logger("PipelineLayoutBuilder");
     const uint32_t _pushConstantSize;
-    std::reference_wrapper<const vax::vk::Device> _device;
+    std::reference_wrapper<const vax::rhi::Device> _device;
     std::vector<VkDescriptorSetLayout> _descriptorSetLayouts;
 };
 
 class ComputePipelineBuilder final {
   public:
-    explicit ComputePipelineBuilder(const vax::vk::Device& device) noexcept
+    explicit ComputePipelineBuilder(const vax::rhi::Device& device) noexcept
         : _device(device) {};
 
     ~ComputePipelineBuilder() = default;
@@ -48,7 +48,7 @@ class ComputePipelineBuilder final {
 
   private:
     vax::Logger _logger = vax::Logger("ComputePipelineBuilder");
-    std::reference_wrapper<const vax::vk::Device> _device;
+    std::reference_wrapper<const vax::rhi::Device> _device;
     VkPipelineLayout _pipelineLayout = VK_NULL_HANDLE;
     VkPipelineShaderStageCreateInfo _shaderStageInfo = {};
 };
@@ -57,7 +57,7 @@ class ComputePipelineBuilder final {
 
 class GraphicsPipelineBuilder final {
   public:
-    explicit GraphicsPipelineBuilder(const vax::vk::Device& device)
+    explicit GraphicsPipelineBuilder(const vax::rhi::Device& device)
         : _device(device) {};
 
     std::optional<VkPipeline> build(std::string name, VkPipelineLayout pipelineLayout) noexcept;
@@ -71,10 +71,10 @@ class GraphicsPipelineBuilder final {
 
   private:
     vax::Logger _logger = vax::Logger("GraphicsPipelineBuilder");
-    std::reference_wrapper<const vax::vk::Device> _device;
+    std::reference_wrapper<const vax::rhi::Device> _device;
     std::vector<VkPipelineShaderStageCreateInfo> _shaderStages;
     VkPrimitiveTopology _topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     RenderPassDescriptor* _renderPassDescriptor = nullptr;
     DepthStencilState _depthStencilState = {};
 };
-} // namespace vax::vk
+} // namespace vax::rhi

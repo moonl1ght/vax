@@ -2,7 +2,7 @@
 #include <cstring>
 #include <numeric>
 
-using namespace vax::vk;
+using namespace vax::rhi;
 
 void MaterialManager::cleanup() {
     _materials.clear();
@@ -12,7 +12,7 @@ void MaterialManager::cleanup() {
 }
 
 bool MaterialManager::setup() {
-    VkDeviceSize bufferSize = sizeof(PBRMaterial) * vax::vk::MAX_MATERIALS;
+    VkDeviceSize bufferSize = sizeof(PBRMaterial) * vax::rhi::MAX_MATERIALS;
     auto allocation = MaterialBuffer::allocate(
         _device.get(),
         "global_material_buffer",
@@ -25,8 +25,8 @@ bool MaterialManager::setup() {
         return false;
     _buffer = std::make_unique<MaterialBuffer>(std::move(*allocation));
     _buffer->map();
-    _materials.reserve(vax::vk::MAX_MATERIALS);
-    _materialsToDelete.reserve(vax::vk::MAX_MATERIALS);
+    _materials.reserve(vax::rhi::MAX_MATERIALS);
+    _materialsToDelete.reserve(vax::rhi::MAX_MATERIALS);
     return true;
 }
 
@@ -42,7 +42,7 @@ bool MaterialManager::_updateBuffer(MaterialId id, PBRMaterial material) {
 }
 
 std::vector<MaterialId> MaterialManager::insertMaterials(std::vector<PBRMaterial> materials) {
-    if (_materials.size() + materials.size() >= vax::vk::MAX_MATERIALS)
+    if (_materials.size() + materials.size() >= vax::rhi::MAX_MATERIALS)
         return {};
     if (materials.empty())
         return {};
@@ -68,7 +68,7 @@ MaterialId MaterialManager::insert(PBRMaterial material) {
         _materialsToDelete.pop_back();
         return id;
     }
-    if (_materials.size() >= vax::vk::MAX_MATERIALS)
+    if (_materials.size() >= vax::rhi::MAX_MATERIALS)
         return NullMaterialId;
     if (!_updateBuffer(_materials.size(), material))
         return NullMaterialId;

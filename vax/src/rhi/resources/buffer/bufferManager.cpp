@@ -1,6 +1,6 @@
 #include "bufferManager.h"
 
-using namespace vax::vk;
+using namespace vax::rhi;
 
 void BufferManager::fullCleanup() {
     for (auto& [id, buffer] : _pool) {

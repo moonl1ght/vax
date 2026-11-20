@@ -26,9 +26,9 @@ class RenderEngine final {
 
     void cleanup() noexcept;
 
-    vax::vk::Engine& vkEngine() noexcept { return *_vkEngine; }
+    vax::rhi::Engine& vkEngine() noexcept { return *_vkEngine; }
 
-    vax::vk::ResourceManager& resourceManager() noexcept { return *_resourceManager; }
+    vax::rhi::ResourceManager& resourceManager() noexcept { return *_resourceManager; }
 
     vax::gfx::Renderer& renderer() noexcept { return *_renderer; }
 
@@ -37,10 +37,10 @@ class RenderEngine final {
   private:
     vax::Logger _logger = vax::Logger("RenderEngine");
 
-    std::unique_ptr<vax::vk::Engine> _vkEngine;
+    std::unique_ptr<vax::rhi::Engine> _vkEngine;
     std::unique_ptr<vax::gfx::Renderer> _renderer;
     std::unique_ptr<vax::ui::UIEngine> _uiEngine;
-    std::unique_ptr<vax::vk::ResourceManager> _resourceManager;
+    std::unique_ptr<vax::rhi::ResourceManager> _resourceManager;
 };
 
 } // namespace vax::gfx

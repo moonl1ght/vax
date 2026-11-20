@@ -10,7 +10,7 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 
-namespace vax::vk {
+namespace vax::rhi {
 
 class ShaderLibrary final {
   public:
@@ -62,4 +62,4 @@ class ShaderLibrary final {
     slang::IModule* _loadModule(const std::string& name) noexcept;
 };
 
-} // namespace vax::vk
+} // namespace vax::rhi

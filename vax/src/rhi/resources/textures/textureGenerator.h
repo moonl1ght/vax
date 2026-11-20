@@ -4,11 +4,11 @@
 #include "textureLoader.h"
 #include <string>
 
-namespace vax::vk {
+namespace vax::rhi {
 
 class TextureGenerator final {
   public:
-    explicit TextureGenerator(vk::TextureLoader& textureLoader)
+    explicit TextureGenerator(rhi::TextureLoader& textureLoader)
         : _textureLoader(textureLoader) {};
 
     ~TextureGenerator() = default;
@@ -25,4 +25,4 @@ class TextureGenerator final {
     Logger _logger = Logger("TextureGenerator");
     std::reference_wrapper<TextureLoader> _textureLoader;
 };
-} // namespace vax::vk
+} // namespace vax::rhi

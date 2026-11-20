@@ -1,6 +1,6 @@
 #include "resourceManager.h"
 
-using namespace vax::vk;
+using namespace vax::rhi;
 
 void ResourceManager::_cleanup() {
     _bufferManager.fullCleanup();

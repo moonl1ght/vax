@@ -1,7 +1,7 @@
 #include "imageUtils.h"
 #include "vkEngine.h"
 
-namespace vax::vk {
+namespace vax::rhi {
 
 void copyImageToImage(
     VkCommandBuffer commandBuffer, VkImage source, VkImage destination, VkExtent2D srcSize, VkExtent2D dstSize
@@ -107,4 +107,4 @@ std::optional<VkImageView> createImageView(
     return std::make_optional(imageView);
 }
 
-}; // namespace vax::vk
+}; // namespace vax::rhi

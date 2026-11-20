@@ -4,11 +4,11 @@
 #include "vertex.h"
 #include "device.h"
 
-namespace vax::vk {
+namespace vax::rhi {
 class MeshManager;
 }
 
-namespace vax::vk {
+namespace vax::rhi {
 template <typename VertexType> class MeshObject final {
   public:
     struct GlobalMemoryCursor {
@@ -17,7 +17,7 @@ template <typename VertexType> class MeshObject final {
         uint32_t count;
     };
 
-    friend class vax::vk::MeshManager;
+    friend class vax::rhi::MeshManager;
 
     explicit MeshObject(const Device& device, MeshManager& meshManager)
         : _device(device)
@@ -128,4 +128,4 @@ template <typename VertexType> class MeshObject final {
 };
 
 using Mesh = MeshObject<Vertex>;
-} // namespace vax::vk
+} // namespace vax::rhi

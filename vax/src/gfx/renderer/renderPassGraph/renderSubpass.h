@@ -9,7 +9,7 @@
 namespace vax::gfx {
 class RenderSubpass final {
   public:
-    RenderSubpass(const std::string& name, vax::vk::Device& device, vax::vk::PipelineManager& pipelineManager)
+    RenderSubpass(const std::string& name, vax::rhi::Device& device, vax::rhi::PipelineManager& pipelineManager)
         : _device(device)
         , _pipelineManager(pipelineManager) {}
 
@@ -51,8 +51,8 @@ class RenderSubpass final {
 
   private:
     std::string _name;
-    std::reference_wrapper<vax::vk::Device> _device;
-    std::reference_wrapper<vax::vk::PipelineManager> _pipelineManager;
+    std::reference_wrapper<vax::rhi::Device> _device;
+    std::reference_wrapper<vax::rhi::PipelineManager> _pipelineManager;
     VkExtent2D _swapchainExtent{};
     VkRect2D _renderArea{};
     std::string _pipelineName;

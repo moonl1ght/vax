@@ -9,7 +9,7 @@
 
 using namespace vax::ui;
 using namespace vax::rl;
-using namespace vax::vk;
+using namespace vax::rhi;
 using namespace vax;
 
 GridWorldView::~GridWorldView() {

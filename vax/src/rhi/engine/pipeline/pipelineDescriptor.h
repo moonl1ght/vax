@@ -3,7 +3,7 @@
 #include "shaderModuleDescriptor.h"
 #include <string>
 
-namespace vax::vk {
+namespace vax::rhi {
 
 struct RenderPassDescriptor;
 
@@ -86,4 +86,4 @@ constexpr std::unordered_map<std::string, PipelineDescriptor> defaultPipelines()
         },
     };
 }
-} // namespace vax::vk
+} // namespace vax::rhi

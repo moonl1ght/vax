@@ -7,9 +7,9 @@
 
 using namespace vax::gfx;
 using namespace vax;
-using namespace vax::vk;
+using namespace vax::rhi;
 
-void Renderer::setup(vax::vk::ResourceManager& resourceManager) noexcept {
+void Renderer::setup(vax::rhi::ResourceManager& resourceManager) noexcept {
     _renderPassGraphManager = std::make_unique<RenderPassGraphManager>(
         *_vkEngine.get().device,
         *_vkEngine.get().pipelineManager,
@@ -38,13 +38,13 @@ void Renderer::load() {
     auto mainRenderPassDescriptor = _renderPassGraphManager->getRenderPassDescriptor("main");
     auto shadowSunRenderPassDescriptor = _renderPassGraphManager->getRenderPassDescriptor("shadow_sun");
 
-    auto defaultPipelines = vax::vk::defaultPipelines();
+    auto defaultPipelines = vax::rhi::defaultPipelines();
     defaultPipelines["finalblend"].renderPassDescriptor = swapchainRenderPassDescriptor;
     defaultPipelines["finalblend_cam"].renderPassDescriptor = swapchainRenderPassDescriptor;
     defaultPipelines["pbr"].renderPassDescriptor = mainRenderPassDescriptor;
     defaultPipelines["simple"].renderPassDescriptor = mainRenderPassDescriptor;
     defaultPipelines["shadow"].renderPassDescriptor = shadowSunRenderPassDescriptor;
-    std::vector<vax::vk::PipelineDescriptor> pipelineDescriptors;
+    std::vector<vax::rhi::PipelineDescriptor> pipelineDescriptors;
     for (const auto& [name, pipelineDescriptor] : defaultPipelines) {
         pipelineDescriptors.push_back(pipelineDescriptor);
     }
@@ -251,7 +251,7 @@ bool Renderer::render(Scene* scene, const FrameTime& frameTime) {
         return false;
     }
 
-    _currentFrame = (_currentFrame + 1) % vax::vk::MAX_FRAMES_IN_FLIGHT;
+    _currentFrame = (_currentFrame + 1) % vax::rhi::MAX_FRAMES_IN_FLIGHT;
 
     if (_frameProfiler) {
         _frameProfiler->endFrameZone("frame_workload");

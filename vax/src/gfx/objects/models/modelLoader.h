@@ -8,9 +8,9 @@
 namespace vax::gfx {
 class ModelLoader final {
   public:
-    explicit ModelLoader(const vax::vk::Device& device, vax::vk::ResourceManager& resourceManager)
+    explicit ModelLoader(const vax::rhi::Device& device, vax::rhi::ResourceManager& resourceManager)
         : _resourceManager(resourceManager) {
-        _textureLoader = std::make_unique<vax::vk::TextureLoader>(device, resourceManager.textureManager());
+        _textureLoader = std::make_unique<vax::rhi::TextureLoader>(device, resourceManager.textureManager());
     };
 
     ~ModelLoader() {};
@@ -25,8 +25,8 @@ class ModelLoader final {
   private:
     vax::Logger _logger = vax::Logger("ModelLoader");
 
-    std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;
+    std::reference_wrapper<vax::rhi::ResourceManager> _resourceManager;
 
-    std::unique_ptr<vax::vk::TextureLoader> _textureLoader;
+    std::unique_ptr<vax::rhi::TextureLoader> _textureLoader;
 };
 } // namespace vax::gfx

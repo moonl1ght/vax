@@ -2,7 +2,7 @@
 
 #include "resourceUtils.h"
 
-namespace vax::vk {
+namespace vax::rhi {
 template <typename T, T NullId> class ResourceHandle final {
   public:
     ResourceHandle(T id)
@@ -19,4 +19,4 @@ template <typename T, T NullId> class ResourceHandle final {
 
 using MeshHandle = ResourceHandle<MeshId, NullMeshId>;
 using BufferHandle = ResourceHandle<BufferId, NullBufferId>;
-} // namespace vax::vk
+} // namespace vax::rhi

@@ -1,7 +1,7 @@
 #include "assetsLibrary.h"
 
 using namespace vax::gfx;
-using namespace vax::vk;
+using namespace vax::rhi;
 using namespace vax;
 
 void AssetsLibrary::preload(const std::vector<PrefabDescriptor>& modelDescriptors) {

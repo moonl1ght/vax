@@ -4,11 +4,11 @@
 #include <optional>
 #include <vector>
 
-namespace vax::vk {
+namespace vax::rhi {
 constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 constexpr int MAX_MATERIALS = 500;
 constexpr int MAX_DRAWABLE_INSTANCES = 2000;
-} // namespace vax::vk
+} // namespace vax::rhi
 
 #define VK_CHECK(x)                                                                                                    \
     ({                                                                                                                 \
@@ -19,7 +19,7 @@ constexpr int MAX_DRAWABLE_INSTANCES = 2000;
         (err == VK_SUCCESS);                                                                                           \
     })
 
-namespace vax::vk {
+namespace vax::rhi {
 
 inline PFN_vkSetDebugUtilsObjectNameEXT pfnSetDebugUtilsObjectNameEXT = nullptr;
 inline PFN_vkCmdBeginDebugUtilsLabelEXT pfnCmdBeginDebugUtilsLabelEXT = nullptr;
@@ -65,4 +65,4 @@ VkFormat findSupportedFormat(
     VkImageTiling tiling,
     VkFormatFeatureFlags features
 );
-} // namespace vax::vk
+} // namespace vax::rhi

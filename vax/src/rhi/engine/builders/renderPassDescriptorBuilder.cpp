@@ -9,7 +9,7 @@
 #include <utility>
 #include <vector>
 
-using namespace vax::vk;
+using namespace vax::rhi;
 
 VkFormat findDepthFormat(VkPhysicalDevice physicalDevice) {
     return findSupportedFormat(
@@ -17,7 +17,7 @@ VkFormat findDepthFormat(VkPhysicalDevice physicalDevice) {
     );
 }
 
-std::optional<vax::vk::RenderPassDescriptor>
+std::optional<vax::rhi::RenderPassDescriptor>
 RenderPassDescriptorBuilder::buildSwapchain(VkFormat imageFormat) const noexcept {
     VkAttachmentDescription colorAttachment{
         .format = imageFormat,
@@ -85,10 +85,10 @@ RenderPassDescriptorBuilder::buildSwapchain(VkFormat imageFormat) const noexcept
         return std::nullopt;
     }
 
-    return std::make_optional<vax::vk::RenderPassDescriptor>(_device.get(), renderPass, imageFormat, depthFormat);
+    return std::make_optional<vax::rhi::RenderPassDescriptor>(_device.get(), renderPass, imageFormat, depthFormat);
 }
 
-std::optional<vax::vk::RenderPassDescriptor>
+std::optional<vax::rhi::RenderPassDescriptor>
 RenderPassDescriptorBuilder::buildOffscreen(VkFormat imageFormat, bool allowComputeUsage) const noexcept {
     VkAttachmentDescription colorAttachment{
         .format = imageFormat,
@@ -193,7 +193,7 @@ RenderPassDescriptorBuilder::buildOffscreen(VkFormat imageFormat, bool allowComp
     for (size_t i = 0; i < colorAttachmentRefs.size(); ++i) {
         colorClearValues.push_back(VkClearValue{.color = {.float32 = {0.0f, 0.0f, 0.0f, 0.0f}}});
     }
-    return std::make_optional<vax::vk::RenderPassDescriptor>(
+    return std::make_optional<vax::rhi::RenderPassDescriptor>(
         _device.get(),
         renderPass,
         imageFormat,
@@ -203,7 +203,7 @@ RenderPassDescriptorBuilder::buildOffscreen(VkFormat imageFormat, bool allowComp
     );
 }
 
-std::optional<vax::vk::RenderPassDescriptor>
+std::optional<vax::rhi::RenderPassDescriptor>
 RenderPassDescriptorBuilder::buildShadowSun(VkFormat imageFormat, bool allowComputeUsage) const noexcept {
     VkFormat depthFormat = findDepthFormat(_device.get().vkPhysicalDevice());
     VkAttachmentDescription depthAttachment{
@@ -276,5 +276,5 @@ RenderPassDescriptorBuilder::buildShadowSun(VkFormat imageFormat, bool allowComp
         return std::nullopt;
     }
 
-    return std::make_optional<vax::vk::RenderPassDescriptor>(_device.get(), renderPass, imageFormat, depthFormat, 0);
+    return std::make_optional<vax::rhi::RenderPassDescriptor>(_device.get(), renderPass, imageFormat, depthFormat, 0);
 }

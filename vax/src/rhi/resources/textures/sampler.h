@@ -4,17 +4,17 @@
 #include <optional>
 #include <string>
 
-namespace vax::vk {
+namespace vax::rhi {
 class Sampler final {
   public:
-    static std::optional<vax::vk::Sampler>
-    createSampler(const vax::vk::Device& device, std::string name, VkSamplerCreateInfo samplerInfo) noexcept;
+    static std::optional<vax::rhi::Sampler>
+    createSampler(const vax::rhi::Device& device, std::string name, VkSamplerCreateInfo samplerInfo) noexcept;
 
-    static std::optional<vax::vk::Sampler> linear(const vax::vk::Device& device) noexcept;
+    static std::optional<vax::rhi::Sampler> linear(const vax::rhi::Device& device) noexcept;
 
-    static std::optional<vax::vk::Sampler> cube(const vax::vk::Device& device) noexcept;
+    static std::optional<vax::rhi::Sampler> cube(const vax::rhi::Device& device) noexcept;
 
-    explicit Sampler(VkSampler vkSampler, const vax::vk::Device& device)
+    explicit Sampler(VkSampler vkSampler, const vax::rhi::Device& device)
         : _vkSampler(vkSampler)
         , _device(device) {}
 
@@ -45,8 +45,8 @@ class Sampler final {
     VkSampler vkSampler() const { return _vkSampler; }
 
   private:
-    std::reference_wrapper<const vax::vk::Device> _device;
+    std::reference_wrapper<const vax::rhi::Device> _device;
 
     VkSampler _vkSampler = VK_NULL_HANDLE;
 };
-} // namespace vax::vk
+} // namespace vax::rhi

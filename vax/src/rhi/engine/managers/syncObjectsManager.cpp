@@ -2,14 +2,14 @@
 #include "vkEngine.h"
 #include "vkUtils.h"
 
-using namespace vax::vk;
+using namespace vax::rhi;
 
-bool vax::vk::SyncObjectsManager::setup() {
-    _imageAvailableSemaphores["main"] = std::vector<VkSemaphore>(vax::vk::MAX_FRAMES_IN_FLIGHT);
-    _renderFinishedSemaphores["main"] = std::vector<VkSemaphore>(vax::vk::MAX_FRAMES_IN_FLIGHT);
-    _imageAvailableSemaphores["secondary"] = std::vector<VkSemaphore>(vax::vk::MAX_FRAMES_IN_FLIGHT);
-    _renderFinishedSemaphores["secondary"] = std::vector<VkSemaphore>(vax::vk::MAX_FRAMES_IN_FLIGHT);
-    _inFlightFences = std::vector<VkFence>(vax::vk::MAX_FRAMES_IN_FLIGHT);
+bool vax::rhi::SyncObjectsManager::setup() {
+    _imageAvailableSemaphores["main"] = std::vector<VkSemaphore>(vax::rhi::MAX_FRAMES_IN_FLIGHT);
+    _renderFinishedSemaphores["main"] = std::vector<VkSemaphore>(vax::rhi::MAX_FRAMES_IN_FLIGHT);
+    _imageAvailableSemaphores["secondary"] = std::vector<VkSemaphore>(vax::rhi::MAX_FRAMES_IN_FLIGHT);
+    _renderFinishedSemaphores["secondary"] = std::vector<VkSemaphore>(vax::rhi::MAX_FRAMES_IN_FLIGHT);
+    _inFlightFences = std::vector<VkFence>(vax::rhi::MAX_FRAMES_IN_FLIGHT);
     VkSemaphoreCreateInfo semaphoreInfo{};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
@@ -17,7 +17,7 @@ bool vax::vk::SyncObjectsManager::setup() {
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    for (size_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
+    for (size_t i = 0; i < vax::rhi::MAX_FRAMES_IN_FLIGHT; ++i) {
         if (!VK_CHECK(vkCreateSemaphore(
                 _device.get().vkDevice(), &semaphoreInfo, nullptr, &_imageAvailableSemaphores["main"][i]
             ))) {
@@ -46,7 +46,7 @@ bool vax::vk::SyncObjectsManager::setup() {
     return true;
 }
 
-bool vax::vk::SyncObjectsManager::cleanup() {
+bool vax::rhi::SyncObjectsManager::cleanup() {
     for (size_t i = 0; i < _imageAvailableSemaphores.size(); ++i) {
         vkDestroySemaphore(_device.get().vkDevice(), _imageAvailableSemaphores["main"][i], nullptr);
         vkDestroySemaphore(_device.get().vkDevice(), _renderFinishedSemaphores["main"][i], nullptr);

@@ -49,12 +49,12 @@ class Scene final : public vax::InputController::Observer {
     friend class SceneLoader;
 
     explicit Scene(
-        vax::vk::Engine& vkEngine,
+        vax::rhi::Engine& vkEngine,
         std::unique_ptr<vax::ecs::World> gizmoWorld,
         std::unique_ptr<vax::ecs::World> backgroundWorld,
         std::unique_ptr<vax::gfx::EnvironmentMap> environmentMap,
         std::unique_ptr<vax::gfx::SceneComposer> sceneComposer,
-        vax::vk::ResourceManager& resourceManager
+        vax::rhi::ResourceManager& resourceManager
     )
         : _vkEngine(vkEngine)
         , _gizmoWorld(std::move(gizmoWorld))
@@ -87,9 +87,9 @@ class Scene final : public vax::InputController::Observer {
 
     void registerResources() noexcept;
 
-    void beginDrawing(vax::vk::CommandBuffer& commandBuffer, uint32_t frameIndex);
+    void beginDrawing(vax::rhi::CommandBuffer& commandBuffer, uint32_t frameIndex);
 
-    void endDrawing(vax::vk::CommandBuffer& commandBuffer, uint32_t frameIndex);
+    void endDrawing(vax::rhi::CommandBuffer& commandBuffer, uint32_t frameIndex);
 
     void draw(const vax::gfx::DrawContext& drawContext, FrameUniformSlot cameraSlot = FrameUniformSlot::MAIN_CAMERA);
 
@@ -128,8 +128,8 @@ class Scene final : public vax::InputController::Observer {
   private:
     vax::Logger _logger = vax::Logger("DrawableScene");
 
-    std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;
-    std::reference_wrapper<vax::vk::Engine> _vkEngine;
+    std::reference_wrapper<vax::rhi::ResourceManager> _resourceManager;
+    std::reference_wrapper<vax::rhi::Engine> _vkEngine;
 
     std::unique_ptr<IndirectDrawController> _indirectDrawController;
     std::unique_ptr<vax::gfx::EnvironmentMap> _environmentMap;
@@ -139,13 +139,13 @@ class Scene final : public vax::InputController::Observer {
 
     std::shared_ptr<vax::ecs::World> _world = nullptr;
 
-    std::vector<vax::vk::AnyBuffer*> _sceneUniformBuffers;
-    std::vector<vax::vk::AnyBuffer*> _lightsUniformBuffer;
+    std::vector<vax::rhi::AnyBuffer*> _sceneUniformBuffers;
+    std::vector<vax::rhi::AnyBuffer*> _lightsUniformBuffer;
 
     StructuredBufferShaderHandle _vertexBufferHandle;
     StructuredBufferShaderHandle _materialBufferHandle;
     StructuredBufferShaderHandle _environmentMapBufferHandle;
-    std::array<StructuredBufferShaderHandle, vax::vk::MAX_FRAMES_IN_FLIGHT> _instanceBufferHandles;
+    std::array<StructuredBufferShaderHandle, vax::rhi::MAX_FRAMES_IN_FLIGHT> _instanceBufferHandles;
     std::vector<SampledImageShaderHandle> _textureHandles;
     bool _resourcesRegistered = false;
 

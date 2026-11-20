@@ -2,9 +2,9 @@
 #include "vkEngine.h"
 #include "vkUtils.h"
 
-using namespace vax::vk;
+using namespace vax::rhi;
 
-bool vax::vk::CommandManager::setup() {
+bool vax::rhi::CommandManager::setup() {
     if (!_createCommandPool())
         return false;
     if (!_createCommandBuffer())
@@ -12,7 +12,7 @@ bool vax::vk::CommandManager::setup() {
     return true;
 }
 
-void vax::vk::CommandManager::cleanup() {
+void vax::rhi::CommandManager::cleanup() {
 
     _commandBuffers.clear();
 
@@ -21,7 +21,7 @@ void vax::vk::CommandManager::cleanup() {
     _commandPool = VK_NULL_HANDLE;
 }
 
-bool vax::vk::CommandManager::_createCommandPool() {
+bool vax::rhi::CommandManager::_createCommandPool() {
     QueueFamilyIndices queueFamilyIndices = _device.get().queueFamilyIndices();
 
     VkCommandPoolCreateInfo poolInfo{
@@ -38,9 +38,9 @@ bool vax::vk::CommandManager::_createCommandPool() {
     return true;
 }
 
-bool vax::vk::CommandManager::_createCommandBuffer() {
+bool vax::rhi::CommandManager::_createCommandBuffer() {
     std::vector<VkCommandBuffer> commandBuffers;
-    commandBuffers.resize(vax::vk::MAX_FRAMES_IN_FLIGHT);
+    commandBuffers.resize(vax::rhi::MAX_FRAMES_IN_FLIGHT);
     _commandBuffers.reserve(commandBuffers.size());
     VkCommandBufferAllocateInfo allocInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -61,7 +61,7 @@ bool vax::vk::CommandManager::_createCommandBuffer() {
     return true;
 }
 
-CommandBuffer vax::vk::CommandManager::createSingleTimeCommandBuffer() {
+CommandBuffer vax::rhi::CommandManager::createSingleTimeCommandBuffer() {
     VkCommandBufferAllocateInfo allocInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
         .commandPool = _commandPool,
@@ -75,4 +75,4 @@ CommandBuffer vax::vk::CommandManager::createSingleTimeCommandBuffer() {
     return CommandBuffer(_device.get(), _commandPool, commandBuffer);
 }
 
-CommandBuffer& vax::vk::CommandManager::getCommandBuffer(uint32_t index) { return _commandBuffers[index]; }
+CommandBuffer& vax::rhi::CommandManager::getCommandBuffer(uint32_t index) { return _commandBuffers[index]; }

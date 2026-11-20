@@ -6,11 +6,11 @@
 #include <poolDescriptor.h>
 #include <array>
 
-namespace vax::vk {
+namespace vax::rhi {
 
 class DescriptorManager final {
   public:
-    explicit DescriptorManager(const vax::vk::Device& device) noexcept
+    explicit DescriptorManager(const vax::rhi::Device& device) noexcept
         : _device(device)
         , _poolLimits(_device.get().physicalDeviceProperties(), _device.get().vulkan12Properties()) {
         _descriptorRegistry = std::make_unique<DescriptorRegistry>(_device, _poolLimits);
@@ -43,7 +43,7 @@ class DescriptorManager final {
   private:
     vax::Logger _logger = vax::Logger("DescriptorManager");
 
-    std::reference_wrapper<const vax::vk::Device> _device;
+    std::reference_wrapper<const vax::rhi::Device> _device;
 
     std::unique_ptr<DescriptorRegistry> _descriptorRegistry;
 
@@ -60,4 +60,4 @@ class DescriptorManager final {
     bool _setupUBOPoolAndDescriptorSet() noexcept;
 };
 
-} // namespace vax::vk
+} // namespace vax::rhi

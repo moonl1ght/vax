@@ -4,7 +4,7 @@
 #include "renderPassDescriptorBuilder.h"
 
 using namespace vax::gfx;
-using namespace vax::vk;
+using namespace vax::rhi;
 using namespace vax;
 
 void RenderPassGraphManager::setupRenderPassDescriptors(VkFormat imageFormat) {
@@ -19,11 +19,11 @@ void RenderPassGraphManager::setupRenderPassDescriptors(VkFormat imageFormat) {
     }
 
     auto mainRenderPassDescriptorShared =
-        std::make_shared<vax::vk::RenderPassDescriptor>(std::move(mainRenderPassDescriptor.value()));
+        std::make_shared<vax::rhi::RenderPassDescriptor>(std::move(mainRenderPassDescriptor.value()));
     auto shadowSunRenderPassDescriptorShared =
-        std::make_shared<vax::vk::RenderPassDescriptor>(std::move(shadowSunRenderPassDescriptor.value()));
+        std::make_shared<vax::rhi::RenderPassDescriptor>(std::move(shadowSunRenderPassDescriptor.value()));
     auto swapchainRenderPassDescriptorShared =
-        std::make_shared<vax::vk::RenderPassDescriptor>(std::move(swapchainRenderPassDescriptor.value()));
+        std::make_shared<vax::rhi::RenderPassDescriptor>(std::move(swapchainRenderPassDescriptor.value()));
 
     _renderPassDescriptors["main"] = mainRenderPassDescriptorShared;
     _renderPassDescriptors["shadow_sun"] = shadowSunRenderPassDescriptorShared;
@@ -31,7 +31,7 @@ void RenderPassGraphManager::setupRenderPassDescriptors(VkFormat imageFormat) {
 }
 
 void RenderPassGraphManager::setupRenderDestinations(
-    vax::vk::CommandManager& commandManager, vax::vk::QueueManager& queueManager, vax::vk::Swapchain& swapchain
+    vax::rhi::CommandManager& commandManager, vax::rhi::QueueManager& queueManager, vax::rhi::Swapchain& swapchain
 ) {
     auto& mainRenderPassDescriptor = _renderPassDescriptors.at("main");
     auto& swapchainRenderPassDescriptor = _renderPassDescriptors.at("swapchain");
@@ -63,11 +63,11 @@ void RenderPassGraphManager::setupRenderDestinations(
     }
 
     auto mainRenderDestinationShared =
-        std::make_shared<vax::vk::RenderDestination>(std::move(mainRenderDestination.value()));
+        std::make_shared<vax::rhi::RenderDestination>(std::move(mainRenderDestination.value()));
     auto swapchainRenderDestinationShared =
-        std::make_shared<vax::vk::RenderDestination>(std::move(swapchainRenderDestination.value()));
+        std::make_shared<vax::rhi::RenderDestination>(std::move(swapchainRenderDestination.value()));
     auto shadowSunRenderDestinationShared =
-        std::make_shared<vax::vk::RenderDestination>(std::move(shadowSunRenderDestination.value()));
+        std::make_shared<vax::rhi::RenderDestination>(std::move(shadowSunRenderDestination.value()));
 
     _renderDestinations["main"] = mainRenderDestinationShared;
     _renderDestinations["swapchain"] = swapchainRenderDestinationShared;
@@ -75,7 +75,7 @@ void RenderPassGraphManager::setupRenderDestinations(
 }
 
 void RenderPassGraphManager::setupRenderDestinationsForAgentCamera(
-    vax::vk::CommandManager& commandManager, vax::vk::QueueManager& queueManager, vax::vk::Swapchain& swapchain
+    vax::rhi::CommandManager& commandManager, vax::rhi::QueueManager& queueManager, vax::rhi::Swapchain& swapchain
 ) {
     auto& mainRenderPassDescriptor = _renderPassDescriptors.at("main");
     auto& swapchainRenderPassDescriptor = _renderPassDescriptors.at("swapchain");
@@ -99,9 +99,9 @@ void RenderPassGraphManager::setupRenderDestinationsForAgentCamera(
     }
 
     auto agentCameraRenderDestinationShared =
-        std::make_shared<vax::vk::RenderDestination>(std::move(agentCameraRenderDestination.value()));
+        std::make_shared<vax::rhi::RenderDestination>(std::move(agentCameraRenderDestination.value()));
     auto agentCameraFBRenderDestinationShared =
-        std::make_shared<vax::vk::RenderDestination>(std::move(agentCameraFBRenderDestination.value()));
+        std::make_shared<vax::rhi::RenderDestination>(std::move(agentCameraFBRenderDestination.value()));
 
     _renderDestinations["agent_camera_main"] = agentCameraRenderDestinationShared;
     _renderDestinations["agent_camera_swapchain"] = agentCameraFBRenderDestinationShared;

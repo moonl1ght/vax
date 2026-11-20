@@ -8,10 +8,10 @@
 #include "textureManager.h"
 #include <cstdint>
 
-namespace vax::vk {
+namespace vax::rhi {
 class ResourceManager final {
   public:
-    explicit ResourceManager(const vax::vk::Device& device, DescriptorRegistry& descriptorRegistry)
+    explicit ResourceManager(const vax::rhi::Device& device, DescriptorRegistry& descriptorRegistry)
         : _bufferManager(device)
         , _meshManager(device)
         , _textureManager(device, descriptorRegistry)
@@ -52,4 +52,4 @@ class ResourceManager final {
 
     void _cleanup();
 };
-} // namespace vax::vk
+} // namespace vax::rhi

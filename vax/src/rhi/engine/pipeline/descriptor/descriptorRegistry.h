@@ -7,7 +7,7 @@
 #include <span>
 #include <vulkan/vulkan.h>
 
-namespace vax::vk {
+namespace vax::rhi {
 
 class Texture;
 class Device;
@@ -32,7 +32,7 @@ class DescriptorRegistry {
         std::optional<std::vector<SampledImageShaderHandle>> sampledTextures;
     };
 
-    explicit DescriptorRegistry(const vax::vk::Device& device, const PoolLimits& poolLimits) noexcept
+    explicit DescriptorRegistry(const vax::rhi::Device& device, const PoolLimits& poolLimits) noexcept
         : _device(device)
         , _storageTextures(poolLimits.maxStorageImages)
         , _sampledTextures(poolLimits.maxSampledImages)
@@ -117,7 +117,7 @@ class DescriptorRegistry {
         return handles;
     }
 
-    std::reference_wrapper<const vax::vk::Device> _device;
+    std::reference_wrapper<const vax::rhi::Device> _device;
 
     IndexAllocator _storageTextures;
     IndexAllocator _sampledTextures;
@@ -139,4 +139,4 @@ class DescriptorRegistry {
     ) noexcept;
 };
 
-} // namespace vax::vk
+} // namespace vax::rhi

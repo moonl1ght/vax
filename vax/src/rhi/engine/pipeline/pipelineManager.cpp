@@ -2,7 +2,7 @@
 #include "pipelineBuilder.h"
 #include <optional>
 
-using namespace vax::vk;
+using namespace vax::rhi;
 using namespace vax;
 
 bool PipelineManager::setup() noexcept {

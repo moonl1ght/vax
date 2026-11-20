@@ -1,7 +1,7 @@
 #include "shaderModule.h"
 #include <fstream>
 
-using namespace vax::vk;
+using namespace vax::rhi;
 
 std::optional<ShaderModule> ShaderModuleBuilder::build(const std::vector<uint32_t>& spirv) {
     VkShaderModuleCreateInfo createInfo{

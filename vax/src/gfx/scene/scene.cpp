@@ -8,7 +8,7 @@
 #include "swapchain.h"
 
 using namespace vax;
-using namespace vax::vk;
+using namespace vax::rhi;
 using namespace vax::gfx;
 using namespace vax::rl;
 
@@ -20,10 +20,10 @@ void Scene::load(const vax::gfx::SceneDescriptor& descriptor) {
         renderPassGraphDescriptor.withSecondaryWindow = false;
     });
 
-    _sceneUniformBuffers.reserve(vax::vk::MAX_FRAMES_IN_FLIGHT);
-    _lightsUniformBuffer.reserve(vax::vk::MAX_FRAMES_IN_FLIGHT);
+    _sceneUniformBuffers.reserve(vax::rhi::MAX_FRAMES_IN_FLIGHT);
+    _lightsUniformBuffer.reserve(vax::rhi::MAX_FRAMES_IN_FLIGHT);
 
-    for (size_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
+    for (size_t i = 0; i < vax::rhi::MAX_FRAMES_IN_FLIGHT; ++i) {
         auto& bufferManager = _resourceManager.get().bufferManager();
         auto allocation = bufferManager
                               .allocateBuffer(
@@ -175,7 +175,7 @@ void Scene::registerResources() noexcept {
     _materialBufferHandle = *materials;
     _environmentMapBufferHandle = *environmentMaps;
 
-    for (uint32_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
+    for (uint32_t i = 0; i < vax::rhi::MAX_FRAMES_IN_FLIGHT; ++i) {
         auto instances = registry.registerStorageBuffer(_resourceManager.get().ssboManager().instanceBuffer(i));
         if (!instances) {
             _logger.error("Failed to register instance buffer ", i);
@@ -191,7 +191,7 @@ void Scene::registerResources() noexcept {
 
 void Scene::_writeUniformDescriptorSets() noexcept {
     auto& pipelineManager = *_vkEngine.get().pipelineManager;
-    for (uint32_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
+    for (uint32_t i = 0; i < vax::rhi::MAX_FRAMES_IN_FLIGHT; ++i) {
         VkDescriptorBufferInfo frameBufferInfo{
             .buffer = _sceneUniformBuffers[i]->vkBuffer(),
             .offset = 0,

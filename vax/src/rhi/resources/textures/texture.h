@@ -10,22 +10,22 @@
 #include <utility>
 #include <vector>
 
-namespace vax::vk {
+namespace vax::rhi {
 class TextureManager;
 class TextureFactory;
-} // namespace vax::vk
+} // namespace vax::rhi
 
-namespace vax::vk {
+namespace vax::rhi {
 class Texture final {
   public:
-    friend class vax::vk::TextureManager;
-    friend class vax::vk::TextureFactory;
+    friend class vax::rhi::TextureManager;
+    friend class vax::rhi::TextureFactory;
 
-    Texture(const vax::vk::Device& device)
+    Texture(const vax::rhi::Device& device)
         : _device(device) {};
 
     Texture(
-        const vax::vk::Device& device,
+        const vax::rhi::Device& device,
         std::string name,
         VkImage image,
         VmaAllocation allocation,
@@ -75,7 +75,7 @@ class Texture final {
 
     bool hasStagingBuffer() const { return _stagingBuffer.has_value(); }
 
-    void loadStagingBuffer(vax::vk::CommandBuffer& commandBuffer);
+    void loadStagingBuffer(vax::rhi::CommandBuffer& commandBuffer);
 
     void resetStagingBuffer() {
         _stagingBuffer = std::nullopt;
@@ -85,7 +85,7 @@ class Texture final {
   private:
     vax::Logger _logger = vax::Logger("Texture");
 
-    std::reference_wrapper<const vax::vk::Device> _device;
+    std::reference_wrapper<const vax::rhi::Device> _device;
 
     std::string _name;
 
@@ -101,4 +101,4 @@ class Texture final {
 
     void _destroy();
 };
-} // namespace vax::vk
+} // namespace vax::rhi

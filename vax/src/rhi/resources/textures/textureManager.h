@@ -10,11 +10,11 @@
 #include <memory>
 #include <vector>
 
-namespace vax::vk {
+namespace vax::rhi {
 class TextureFactory;
-} // namespace vax::vk
+} // namespace vax::rhi
 
-namespace vax::vk {
+namespace vax::rhi {
 class TextureManager final {
   public:
     enum class GlobalSampler : uint32_t { PBRSampler = 0, CubeMapSampler = 1 };
@@ -50,7 +50,7 @@ class TextureManager final {
         uint32_t numMips = 1;
     };
 
-    explicit TextureManager(const vk::Device& device, DescriptorRegistry& descriptorRegistry) noexcept
+    explicit TextureManager(const rhi::Device& device, DescriptorRegistry& descriptorRegistry) noexcept
         : _device(device)
         , _descriptorRegistry(descriptorRegistry) {
         _globalSamplers.reserve(MAX_SAMPLERS);
@@ -71,7 +71,7 @@ class TextureManager final {
 
     const SamplerResource* getGlobalSampler(GlobalSampler sampler) const noexcept;
 
-    void loadAllTextures(vax::vk::CommandBuffer& commandBuffer) noexcept;
+    void loadAllTextures(vax::rhi::CommandBuffer& commandBuffer) noexcept;
 
     void resetAllTexturesStagingBuffers() noexcept;
 
@@ -86,7 +86,7 @@ class TextureManager final {
   private:
     vax::Logger _logger = vax::Logger("TextureManager");
 
-    std::reference_wrapper<const vk::Device> _device;
+    std::reference_wrapper<const rhi::Device> _device;
     std::reference_wrapper<DescriptorRegistry> _descriptorRegistry;
 
     std::vector<std::unique_ptr<TextureResource>> _textures;
@@ -98,4 +98,4 @@ class TextureManager final {
 
     bool _registerLastSampledTexture() noexcept;
 };
-} // namespace vax::vk
+} // namespace vax::rhi

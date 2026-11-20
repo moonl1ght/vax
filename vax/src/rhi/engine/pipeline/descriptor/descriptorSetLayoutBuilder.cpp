@@ -1,7 +1,7 @@
 #include "descriptorSetLayoutBuilder.h"
 #include "vkUtils.h"
 
-using namespace vax::vk;
+using namespace vax::rhi;
 using namespace vax;
 
 void DescriptorSetLayoutBuilder::addBinding(
@@ -40,7 +40,7 @@ DescriptorSetLayoutBuilder::build(VkDescriptorSetLayoutCreateFlags flags) noexce
             .objectHandle = reinterpret_cast<size_t>(descriptorSetLayout),
             .pObjectName = _name.data(),
         };
-        vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &nameInfo);
+        vax::rhi::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &nameInfo);
     }
     return std::make_optional<VkDescriptorSetLayout>(descriptorSetLayout);
 }

@@ -1,6 +1,6 @@
 #include "shaderLibrary.h"
 
-using namespace vax::vk;
+using namespace vax::rhi;
 
 constexpr const char* profileToString(ShaderLibrary::Profile profile) {
     switch (profile) {

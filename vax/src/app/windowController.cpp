@@ -1,7 +1,7 @@
 #include "windowController.h"
 
 using namespace vax;
-using namespace vax::vk;
+using namespace vax::rhi;
 
 void WindowController::setupWindow(uint32_t index, vax::math::SizeUI size, const std::string& name) {
     if (index >= maxWindows) {
@@ -12,7 +12,7 @@ void WindowController::setupWindow(uint32_t index, vax::math::SizeUI size, const
         _logger.error("Window already setup");
         return;
     }
-    _windows[index] = std::make_unique<vax::vk::Window>(size.width, size.height);
+    _windows[index] = std::make_unique<vax::rhi::Window>(size.width, size.height);
     _windows[index]->setWindowName(name);
 }
 

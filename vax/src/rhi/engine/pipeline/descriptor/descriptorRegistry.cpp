@@ -2,7 +2,7 @@
 #include "device.h"
 #include "texture.h"
 
-using namespace vax::vk;
+using namespace vax::rhi;
 
 DescriptorRegistry::RegistrationResult DescriptorRegistry::registerBatch(const RegistrationBatch& batch) noexcept {
     RegistrationResult result;

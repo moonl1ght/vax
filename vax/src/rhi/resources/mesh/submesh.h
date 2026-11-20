@@ -3,7 +3,7 @@
 #include "logger.h"
 #include "shaderConstants.h"
 
-namespace vax::vk {
+namespace vax::rhi {
 struct Submesh final {
     uint32_t indexCount = 0;
     uint32_t firstIndex = 0;
@@ -12,4 +12,4 @@ struct Submesh final {
 
     void debugPrint(const vax::Logger& logger) const;
 };
-} // namespace vax::vk
+} // namespace vax::rhi

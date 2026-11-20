@@ -8,11 +8,11 @@ namespace vax::gfx {
 class RenderPassGraphBuilder final {
   public:
     RenderPassGraphBuilder(
-        vax::vk::Device& device,
+        vax::rhi::Device& device,
         vax::WindowController& windowController,
-        vax::vk::PipelineManager& pipelineManager,
+        vax::rhi::PipelineManager& pipelineManager,
         vax::ui::UIEngine& uiEngine,
-        vax::vk::ResourceManager& resourceManager
+        vax::rhi::ResourceManager& resourceManager
     )
         : _device(device)
         , _windowController(windowController)
@@ -28,21 +28,21 @@ class RenderPassGraphBuilder final {
     RenderPassGraphBuilder& operator=(RenderPassGraphBuilder&&) = delete;
 
     std::unique_ptr<RenderPassGraph> buildUIOnlyGraph(
-        const std::unordered_map<std::string, std::shared_ptr<vax::vk::RenderPassDescriptor>>& renderPassDescriptors,
-        const std::unordered_map<std::string, std::shared_ptr<vax::vk::RenderDestination>>& renderDestinations
+        const std::unordered_map<std::string, std::shared_ptr<vax::rhi::RenderPassDescriptor>>& renderPassDescriptors,
+        const std::unordered_map<std::string, std::shared_ptr<vax::rhi::RenderDestination>>& renderDestinations
     );
 
     std::unique_ptr<RenderPassGraph> buildSceneGraph(
         const RenderPassGraphDescriptor& graphDescriptor,
-        const std::unordered_map<std::string, std::shared_ptr<vax::vk::RenderPassDescriptor>>& renderPassDescriptors,
-        const std::unordered_map<std::string, std::shared_ptr<vax::vk::RenderDestination>>& renderDestinations
+        const std::unordered_map<std::string, std::shared_ptr<vax::rhi::RenderPassDescriptor>>& renderPassDescriptors,
+        const std::unordered_map<std::string, std::shared_ptr<vax::rhi::RenderDestination>>& renderDestinations
     );
 
   private:
-    std::reference_wrapper<vax::vk::Device> _device;
+    std::reference_wrapper<vax::rhi::Device> _device;
     std::reference_wrapper<vax::WindowController> _windowController;
-    std::reference_wrapper<vax::vk::PipelineManager> _pipelineManager;
+    std::reference_wrapper<vax::rhi::PipelineManager> _pipelineManager;
     std::reference_wrapper<vax::ui::UIEngine> _uiEngine;
-    std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;
+    std::reference_wrapper<vax::rhi::ResourceManager> _resourceManager;
 };
 } // namespace vax::gfx

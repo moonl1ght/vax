@@ -13,7 +13,7 @@
 namespace vax::gfx {
 class EnvironmentMap final {
   public:
-    using EnvironmentMapBuffer = vax::vk::Buffer<EnvironmentMapData>;
+    using EnvironmentMapBuffer = vax::rhi::Buffer<EnvironmentMapData>;
 
     enum class TextureType {
         EnvMap,
@@ -25,10 +25,10 @@ class EnvironmentMap final {
         std::vector<std::pair<TextureType, std::string>> textures;
     };
 
-    EnvironmentMap(const vax::vk::Device& device, vax::vk::ResourceManager& resourceManager) noexcept
+    EnvironmentMap(const vax::rhi::Device& device, vax::rhi::ResourceManager& resourceManager) noexcept
         : _device(device)
         , _resourceManager(resourceManager) {
-        _textureLoader = std::make_unique<vax::vk::TextureLoader>(device, resourceManager.textureManager());
+        _textureLoader = std::make_unique<vax::rhi::TextureLoader>(device, resourceManager.textureManager());
     };
 
     ~EnvironmentMap() = default;
@@ -45,11 +45,11 @@ class EnvironmentMap final {
   private:
     vax::Logger _logger = vax::Logger("EnvironmentMap");
 
-    std::reference_wrapper<const vax::vk::Device> _device;
-    std::reference_wrapper<const vax::vk::ResourceManager> _resourceManager;
+    std::reference_wrapper<const vax::rhi::Device> _device;
+    std::reference_wrapper<const vax::rhi::ResourceManager> _resourceManager;
 
     std::unique_ptr<EnvironmentMapBuffer> _buffer = nullptr;
-    std::unique_ptr<vax::vk::TextureLoader> _textureLoader = nullptr;
+    std::unique_ptr<vax::rhi::TextureLoader> _textureLoader = nullptr;
 
     EnvironmentMapData _environmentMapData;
 };

@@ -14,7 +14,7 @@ class SceneComposer final {
   public:
     SceneComposer(
         std::unique_ptr<vax::gfx::AssetsLibrary> assetsLibrary,
-        vax::vk::SSBOManager& ssboManager,
+        vax::rhi::SSBOManager& ssboManager,
         uint32_t maxInstances
     )
         : _assetsLibrary(std::move(assetsLibrary))
@@ -55,7 +55,7 @@ class SceneComposer final {
 
     std::unique_ptr<vax::gfx::AssetsLibrary> _assetsLibrary;
 
-    std::reference_wrapper<vax::vk::SSBOManager> _ssboManager;
+    std::reference_wrapper<vax::rhi::SSBOManager> _ssboManager;
     uint32_t _maxInstances;
 
     std::vector<TransformEntry> _transformEntries;

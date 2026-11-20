@@ -6,7 +6,7 @@
 #include <utility>
 #include <vector>
 
-namespace vax::vk {
+namespace vax::rhi {
 class RenderPassDescriptor final {
   public:
     VkFormat imageFormat;
@@ -15,7 +15,7 @@ class RenderPassDescriptor final {
     std::vector<VkClearValue> colorClearValues;
 
     explicit RenderPassDescriptor(
-        const vax::vk::Device& device,
+        const vax::rhi::Device& device,
         VkRenderPass renderPass,
         VkFormat imageFormat,
         VkFormat depthFormat,
@@ -61,7 +61,7 @@ class RenderPassDescriptor final {
     VkRenderPass getVkRenderPass() const noexcept { return _renderPass; }
 
   private:
-    std::reference_wrapper<const vax::vk::Device> _device;
+    std::reference_wrapper<const vax::rhi::Device> _device;
     VkRenderPass _renderPass = VK_NULL_HANDLE;
 };
-} // namespace vax::vk
+} // namespace vax::rhi

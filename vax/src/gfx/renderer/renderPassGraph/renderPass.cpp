@@ -34,7 +34,7 @@ void RenderPass::runPass(RunPassInfo& runPassInfo) {
     }
 }
 
-void RenderPass::_setViewportAndScissor(vax::vk::CommandBuffer& commandBuffer, VkExtent2D extent) {
+void RenderPass::_setViewportAndScissor(vax::rhi::CommandBuffer& commandBuffer, VkExtent2D extent) {
     VkViewport viewport{
         .x = _offset.x,
         .y = static_cast<float>(extent.height),

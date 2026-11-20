@@ -8,10 +8,10 @@
 #include <vector>
 #include "texture.h"
 
-namespace vax::vk {
+namespace vax::rhi {
 class TextureTaskSchedulerInline final {
   public:
-    explicit TextureTaskSchedulerInline(const vax::vk::Device& device, vax::vk::CommandBuffer& commandBuffer)
+    explicit TextureTaskSchedulerInline(const vax::rhi::Device& device, vax::rhi::CommandBuffer& commandBuffer)
         : _device(device)
         , _commandBuffer(commandBuffer) {}
 
@@ -26,20 +26,20 @@ class TextureTaskSchedulerInline final {
         Texture& texture, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageAspectFlags aspectMask
     );
 
-    void copyBufferToTexture(vax::vk::AnyBuffer& buffer, Texture& texture);
+    void copyBufferToTexture(vax::rhi::AnyBuffer& buffer, Texture& texture);
 
     void copyBufferToTexture(
-        vax::vk::AnyBuffer& buffer, Texture& texture, const std::vector<VkBufferImageCopy>& copyRegions
+        vax::rhi::AnyBuffer& buffer, Texture& texture, const std::vector<VkBufferImageCopy>& copyRegions
     );
 
   private:
-    std::reference_wrapper<const vax::vk::Device> _device;
-    std::reference_wrapper<vax::vk::CommandBuffer> _commandBuffer;
+    std::reference_wrapper<const vax::rhi::Device> _device;
+    std::reference_wrapper<vax::rhi::CommandBuffer> _commandBuffer;
 };
 
 class TextureTaskScheduler final {
   public:
-    explicit TextureTaskScheduler(const vax::vk::Device& device, vax::vk::CommandManager& commandManager)
+    explicit TextureTaskScheduler(const vax::rhi::Device& device, vax::rhi::CommandManager& commandManager)
         : _device(device)
         , _commandManager(commandManager) {}
 
@@ -58,10 +58,10 @@ class TextureTaskScheduler final {
         VkImageAspectFlags aspectMask
     );
 
-    void copyBufferToTextureAndSubmit(VkQueue submitQueue, vax::vk::AnyBuffer& buffer, Texture& texture);
+    void copyBufferToTextureAndSubmit(VkQueue submitQueue, vax::rhi::AnyBuffer& buffer, Texture& texture);
 
   private:
-    std::reference_wrapper<const vax::vk::Device> _device;
-    std::reference_wrapper<vax::vk::CommandManager> _commandManager;
+    std::reference_wrapper<const vax::rhi::Device> _device;
+    std::reference_wrapper<vax::rhi::CommandManager> _commandManager;
 };
-}; // namespace vax::vk
+}; // namespace vax::rhi

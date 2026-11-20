@@ -3,11 +3,11 @@
 #include "device.h"
 #include <utility>
 
-namespace vax::vk {
+namespace vax::rhi {
 struct ShaderModule {
     VkShaderModule vkModule;
 
-    explicit ShaderModule(const vax::vk::Device& device, VkShaderModule vkModule) noexcept
+    explicit ShaderModule(const vax::rhi::Device& device, VkShaderModule vkModule) noexcept
         : _device(device)
         , vkModule(vkModule) {}
 
@@ -36,12 +36,12 @@ struct ShaderModule {
     }
 
   private:
-    std::reference_wrapper<const vax::vk::Device> _device;
+    std::reference_wrapper<const vax::rhi::Device> _device;
 };
 
 class ShaderModuleBuilder final {
   public:
-    ShaderModuleBuilder(const vax::vk::Device& device)
+    ShaderModuleBuilder(const vax::rhi::Device& device)
         : _device(device) {}
 
     std::optional<VkShaderModule> build(const std::string& filename);
@@ -51,8 +51,8 @@ class ShaderModuleBuilder final {
   private:
     vax::Logger _logger = vax::Logger("ShaderModuleBuilder");
 
-    std::reference_wrapper<const vax::vk::Device> _device;
+    std::reference_wrapper<const vax::rhi::Device> _device;
 
     std::vector<char> _readFile(const std::string& filename) const;
 };
-} // namespace vax::vk
+} // namespace vax::rhi

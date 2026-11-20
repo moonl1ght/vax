@@ -41,7 +41,7 @@ std::optional<SceneDescriptor> SceneLoader::_loadSceneDescriptor(const std::stri
 std::unique_ptr<Scene> SceneLoader::_initScene(ecs::World& world, const SceneDescriptor& descriptor) {
     std::unique_ptr<ecs::World> gizmoWorld = std::make_unique<ecs::World>();
     std::unique_ptr<ecs::World> backgroundWorld = std::make_unique<ecs::World>();
-    auto maxDrawableInstances = vax::vk::MAX_DRAWABLE_INSTANCES;
+    auto maxDrawableInstances = vax::rhi::MAX_DRAWABLE_INSTANCES;
     _resourceManager.get().load(maxDrawableInstances);
     auto environmentMap = std::make_unique<EnvironmentMap>(*_vkEngine.get().device, _resourceManager.get());
     auto assetsLibrary =

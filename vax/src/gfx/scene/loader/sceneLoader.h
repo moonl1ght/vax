@@ -12,7 +12,7 @@ class SceneLoader {
   public:
     typedef std::pair<std::unique_ptr<Scene>, std::shared_ptr<ecs::World>> SceneWorldPair;
 
-    SceneLoader(vax::vk::Engine& vkEngine, vax::vk::ResourceManager& resourceManager)
+    SceneLoader(vax::rhi::Engine& vkEngine, vax::rhi::ResourceManager& resourceManager)
         : _vkEngine(vkEngine)
         , _resourceManager(resourceManager) {}
     ~SceneLoader() = default;
@@ -29,8 +29,8 @@ class SceneLoader {
   private:
     vax::Logger _logger = vax::Logger("SceneLoader");
 
-    std::reference_wrapper<vax::vk::Engine> _vkEngine;
-    std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;
+    std::reference_wrapper<vax::rhi::Engine> _vkEngine;
+    std::reference_wrapper<vax::rhi::ResourceManager> _resourceManager;
 
     std::string _name;
 

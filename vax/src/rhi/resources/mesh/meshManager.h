@@ -6,7 +6,7 @@
 #include "resourceHandle.h"
 #include "vertex.h"
 
-namespace vax::vk {
+namespace vax::rhi {
 class MeshManager final {
   public:
     using VertexBuffer = Buffer<Vertex>;
@@ -90,4 +90,4 @@ class MeshManager final {
 
     void _commitMemory(std::vector<BufferDescriptor>& bufferDescriptors, const FreeMemorySlot& slot, uint32_t count);
 };
-} // namespace vax::vk
+} // namespace vax::rhi

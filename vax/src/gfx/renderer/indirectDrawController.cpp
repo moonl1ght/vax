@@ -1,13 +1,13 @@
 #include "indirectDrawController.h"
 
 using namespace vax::gfx;
-using namespace vax::vk;
+using namespace vax::rhi;
 using namespace vax;
 
-void IndirectDrawController::setup(uint32_t maxCommands, vk::DescriptorRegistry& descriptorRegistry) noexcept {
+void IndirectDrawController::setup(uint32_t maxCommands, rhi::DescriptorRegistry& descriptorRegistry) noexcept {
     _maxCommands = maxCommands;
     _commands.reserve(maxCommands);
-    for (uint32_t i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; i++) {
+    for (uint32_t i = 0; i < vax::rhi::MAX_FRAMES_IN_FLIGHT; i++) {
         auto buffer = IndirectDrawCommandBuffer::allocate(
             _device.get(),
             "indirect_draw_commands",

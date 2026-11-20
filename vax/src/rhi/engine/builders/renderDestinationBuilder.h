@@ -8,7 +8,7 @@
 #include "swapchain.h"
 #include <optional>
 
-namespace vax::vk {
+namespace vax::rhi {
 class RenderDestinationBuilder {
   public:
     explicit RenderDestinationBuilder(const Device& device, TextureManager& textureManager)
@@ -40,6 +40,6 @@ class RenderDestinationBuilder {
     vax::Logger _logger = vax::Logger("RenderDestinationBuilder");
 
     std::reference_wrapper<const Device> _device;
-    std::reference_wrapper<vax::vk::TextureManager> _textureManager;
+    std::reference_wrapper<vax::rhi::TextureManager> _textureManager;
 };
-} // namespace vax::vk
+} // namespace vax::rhi

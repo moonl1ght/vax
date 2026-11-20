@@ -1,7 +1,7 @@
 #include "renderDestinationBuilder.h"
 #include "textureTaskScheduler.h"
 
-using namespace vax::vk;
+using namespace vax::rhi;
 using namespace vax;
 
 std::optional<RenderDestination> RenderDestinationBuilder::buildMainOffscreen(

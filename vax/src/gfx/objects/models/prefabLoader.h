@@ -9,10 +9,10 @@
 namespace vax::gfx {
 class PrefabLoader {
   public:
-    PrefabLoader(const vax::vk::Device& device, vax::vk::ResourceManager& resourceManager)
+    PrefabLoader(const vax::rhi::Device& device, vax::rhi::ResourceManager& resourceManager)
         : _resourceManager(resourceManager) {
         _modelLoader = std::make_unique<vax::gfx::ModelLoader>(device, resourceManager);
-        _textureLoader = std::make_unique<vax::vk::TextureLoader>(device, resourceManager.textureManager());
+        _textureLoader = std::make_unique<vax::rhi::TextureLoader>(device, resourceManager.textureManager());
         _primitivesBuilder = std::make_unique<vax::gfx::PrimitivesBuilder>(resourceManager);
     };
 
@@ -28,10 +28,10 @@ class PrefabLoader {
   private:
     vax::Logger _logger = vax::Logger("PrefabLoader");
 
-    std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;
+    std::reference_wrapper<vax::rhi::ResourceManager> _resourceManager;
 
     std::unique_ptr<vax::gfx::ModelLoader> _modelLoader;
-    std::unique_ptr<vax::vk::TextureLoader> _textureLoader;
+    std::unique_ptr<vax::rhi::TextureLoader> _textureLoader;
     std::unique_ptr<vax::gfx::PrimitivesBuilder> _primitivesBuilder;
 
     std::optional<std::pair<Prefab, std::vector<DrawableModel>>> _loadURDFPrefab(const PrefabDescriptor& descriptor);

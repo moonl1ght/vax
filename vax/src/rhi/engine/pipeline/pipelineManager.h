@@ -7,7 +7,7 @@
 #include "shaderLibrary.h"
 #include <vector>
 
-namespace vax::vk {
+namespace vax::rhi {
 class PipelineManager final {
   public:
     PipelineManager(const Device& device)
@@ -62,4 +62,4 @@ class PipelineManager final {
 
     void _destroy() noexcept;
 };
-} // namespace vax::vk
+} // namespace vax::rhi

@@ -32,7 +32,7 @@ class DrawableModel final {
     friend class vax::gfx::PrimitivesBuilder;
     friend class vax::gfx::ModelLoader;
 
-    explicit DrawableModel(vax::vk::MeshManager& meshManager, vax::vk::MeshHandle meshHandle)
+    explicit DrawableModel(vax::rhi::MeshManager& meshManager, vax::rhi::MeshHandle meshHandle)
         : _meshManager(meshManager)
         , _meshHandle(meshHandle) {};
 
@@ -54,22 +54,22 @@ class DrawableModel final {
 
     void setSettings(const Settings& settings) { _settings = settings; }
 
-    vax::vk::Submesh& submesh(size_t index) { return _submeshes[index]; }
+    vax::rhi::Submesh& submesh(size_t index) { return _submeshes[index]; }
 
-    const vax::vk::Submesh& submesh(size_t index) const { return _submeshes[index]; }
+    const vax::rhi::Submesh& submesh(size_t index) const { return _submeshes[index]; }
 
     size_t submeshCount() const { return _submeshes.size(); }
 
   private:
     vax::Logger _logger = vax::Logger("DrawableModel");
 
-    std::reference_wrapper<vax::vk::MeshManager> _meshManager;
+    std::reference_wrapper<vax::rhi::MeshManager> _meshManager;
 
-    vax::vk::MeshHandle _meshHandle;
+    vax::rhi::MeshHandle _meshHandle;
 
     // TODO: remove this will need to use mesh manager to get the mesh
-    vax::vk::Mesh* _mesh;
-    std::vector<vax::vk::Submesh> _submeshes;
+    vax::rhi::Mesh* _mesh;
+    std::vector<vax::rhi::Submesh> _submeshes;
     Settings _settings;
 };
 

@@ -17,7 +17,7 @@ class RenderPassNode {
     };
 
     struct RunPassInfo final {
-        vax::vk::CommandBuffer& commandBuffer;
+        vax::rhi::CommandBuffer& commandBuffer;
         vax::gfx::Scene* scene;
         std::vector<uint32_t> imageIndices;
         uint32_t frameIndex;

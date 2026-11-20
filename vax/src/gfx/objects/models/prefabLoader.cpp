@@ -7,7 +7,7 @@
 
 using namespace vax;
 using namespace vax::gfx;
-using namespace vax::vk;
+using namespace vax::rhi;
 
 void _processURDFLink(
     ModelLoader& modelsLoader,

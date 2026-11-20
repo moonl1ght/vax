@@ -12,7 +12,7 @@
 
 using namespace vax::gfx;
 using namespace vax;
-using namespace vax::vk;
+using namespace vax::rhi;
 
 constexpr glm::mat4 toGlm(const aiMatrix4x4& m) {
     return {
@@ -23,7 +23,7 @@ constexpr glm::mat4 toGlm(const aiMatrix4x4& m) {
     };
 }
 
-uint32_t loadTexture(aiString& textureName, vax::vk::TextureLoader& textureLoader, const aiScene* scene) {
+uint32_t loadTexture(aiString& textureName, vax::rhi::TextureLoader& textureLoader, const aiScene* scene) {
     if (textureName.length > 0) {
         const aiTexture* embeddedTexture = scene->GetEmbeddedTexture(textureName.C_Str());
         if (embeddedTexture) {
@@ -51,7 +51,7 @@ uint32_t loadTexture(aiString& textureName, vax::vk::TextureLoader& textureLoade
 }
 
 PBRMaterial processMaterial(
-    aiMaterial* mat, vax::vk::TextureLoader& textureLoader, const aiScene* scene, SamplerShaderHandle samplerId
+    aiMaterial* mat, vax::rhi::TextureLoader& textureLoader, const aiScene* scene, SamplerShaderHandle samplerId
 ) {
     PBRMaterial material{
         .baseColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),

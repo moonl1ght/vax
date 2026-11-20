@@ -10,7 +10,7 @@
 #include <memory>
 #include <string>
 
-namespace vax::vk {
+namespace vax::rhi {
 class Window final {
   public:
     uint32_t width = 1920;
@@ -33,7 +33,7 @@ class Window final {
     void destroyWindow();
     void destroy();
 
-    bool createSwapchain(const vax::vk::Device& device, VkPresentModeKHR presentMode);
+    bool createSwapchain(const vax::rhi::Device& device, VkPresentModeKHR presentMode);
 
     void cleanupSwapchain();
 
@@ -53,19 +53,19 @@ class Window final {
 
     void setWindowName(const std::string& name);
 
-    const vax::vk::Swapchain* getSwapchain() const { return _swapchain.get(); }
+    const vax::rhi::Swapchain* getSwapchain() const { return _swapchain.get(); }
 
-    vax::vk::Swapchain* getSwapchain() { return _swapchain.get(); }
+    vax::rhi::Swapchain* getSwapchain() { return _swapchain.get(); }
 
   private:
     VkInstance _instance = VK_NULL_HANDLE;
     vax::Logger _logger = vax::Logger("Window");
     std::string _name = "VAX";
-    std::unique_ptr<vax::vk::Swapchain> _swapchain;
+    std::unique_ptr<vax::rhi::Swapchain> _swapchain;
     std::function<void()> _windowWillHideCallback;
     std::function<void()> _windowWillShowCallback;
     std::function<void()> _windowDidHideCallback;
     std::function<void()> _windowDidShowCallback;
     bool _visible = false;
 };
-}; // namespace vax::vk
+}; // namespace vax::rhi

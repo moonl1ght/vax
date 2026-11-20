@@ -5,13 +5,13 @@
 #include "vertex.h"
 #include "pbr.h"
 
-using namespace vax::vk;
+using namespace vax::rhi;
 
 using namespace vax;
 
 template <typename T>
 std::optional<Buffer<T>> Buffer<T>::allocateAndFillData(
-    const vax::vk::Device& device,
+    const vax::rhi::Device& device,
     std::string name,
     const T* data,
     VkDeviceSize size,
@@ -31,7 +31,7 @@ std::optional<Buffer<T>> Buffer<T>::allocateAndFillData(
 
 template <typename T>
 std::optional<Buffer<T>> Buffer<T>::allocate(
-    const vax::vk::Device& device,
+    const vax::rhi::Device& device,
     std::string name,
     VkDeviceSize size,
     VkBufferUsageFlags usage,
@@ -122,8 +122,8 @@ template <typename T> bool Buffer<T>::fill(const void* fillData) {
 }
 
 template <typename T>
-void vax::vk::Buffer<T>::copyBufferCommand(
-    vax::vk::CommandBuffer& commandBuffer, Buffer<T>& dstBuffer, VkDeviceSize size
+void vax::rhi::Buffer<T>::copyBufferCommand(
+    vax::rhi::CommandBuffer& commandBuffer, Buffer<T>& dstBuffer, VkDeviceSize size
 ) const {
     VkBufferCopy copyRegion{};
     copyRegion.size = size;
@@ -176,7 +176,7 @@ bool Buffer<T>::_allocate(VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage, 
             .objectHandle = reinterpret_cast<uint64_t>(_vkBuffer),
             .pObjectName = _name.c_str(),
         };
-        vax::vk::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &nameInfo);
+        vax::rhi::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &nameInfo);
     }
     return true;
 }
@@ -207,11 +207,11 @@ template <typename T> std::optional<T*> Buffer<T>::mappedMemory() const {
     return _mappedMemory;
 }
 
-template class vax::vk::Buffer<void>;
-template class vax::vk::Buffer<uint32_t>;
-template class vax::vk::Buffer<vax::vk::Vertex>;
-template class vax::vk::Buffer<PBRMaterial>;
-template class vax::vk::Buffer<InstanceData>;
-template class vax::vk::Buffer<EnvironmentMapData>;
-template class vax::vk::Buffer<VkDrawIndexedIndirectCommand>;
-template class vax::vk::Buffer<PerDrawData>;
+template class vax::rhi::Buffer<void>;
+template class vax::rhi::Buffer<uint32_t>;
+template class vax::rhi::Buffer<vax::rhi::Vertex>;
+template class vax::rhi::Buffer<PBRMaterial>;
+template class vax::rhi::Buffer<InstanceData>;
+template class vax::rhi::Buffer<EnvironmentMapData>;
+template class vax::rhi::Buffer<VkDrawIndexedIndirectCommand>;
+template class vax::rhi::Buffer<PerDrawData>;

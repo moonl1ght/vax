@@ -11,7 +11,7 @@
 namespace vax::ui {
 class UIEngine final {
   public:
-    UIEngine(vax::vk::Engine& vkEngine, vax::vk::Window& window)
+    UIEngine(vax::rhi::Engine& vkEngine, vax::rhi::Window& window)
         : _vkEngine(vkEngine)
         , _window(window) {}
 
@@ -33,15 +33,15 @@ class UIEngine final {
 
     bool isSecondaryViewportEvent(const SDL_Event& event) const;
 
-    vax::vk::Engine& engine() { return _vkEngine.get(); }
+    vax::rhi::Engine& engine() { return _vkEngine.get(); }
 
-    const vax::vk::Engine& engine() const { return _vkEngine.get(); }
+    const vax::rhi::Engine& engine() const { return _vkEngine.get(); }
 
   private:
     ImDrawData* _imguiDrawData = nullptr;
     VkDescriptorPool _imguiDescriptorPool = VK_NULL_HANDLE;
 
-    std::reference_wrapper<vax::vk::Window> _window;
-    std::reference_wrapper<vax::vk::Engine> _vkEngine;
+    std::reference_wrapper<vax::rhi::Window> _window;
+    std::reference_wrapper<vax::rhi::Engine> _vkEngine;
 };
 } // namespace vax::ui

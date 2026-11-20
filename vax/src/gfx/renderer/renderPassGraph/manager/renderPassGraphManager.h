@@ -17,9 +17,9 @@ namespace vax::gfx {
 class RenderPassGraphManager final {
   public:
     RenderPassGraphManager(
-        vax::vk::Device& device,
-        vax::vk::PipelineManager& pipelineManager,
-        vax::vk::ResourceManager& resourceManager,
+        vax::rhi::Device& device,
+        vax::rhi::PipelineManager& pipelineManager,
+        vax::rhi::ResourceManager& resourceManager,
         vax::WindowController& windowController,
         vax::ui::UIEngine& uiEngine
     )
@@ -36,23 +36,23 @@ class RenderPassGraphManager final {
     void setupRenderPassDescriptors(VkFormat imageFormat);
 
     void setupRenderDestinations(
-        vax::vk::CommandManager& commandManager, vax::vk::QueueManager& queueManager, vax::vk::Swapchain& swapchain
+        vax::rhi::CommandManager& commandManager, vax::rhi::QueueManager& queueManager, vax::rhi::Swapchain& swapchain
     );
 
     void setupRenderDestinationsForAgentCamera(
-        vax::vk::CommandManager& commandManager, vax::vk::QueueManager& queueManager, vax::vk::Swapchain& swapchain
+        vax::rhi::CommandManager& commandManager, vax::rhi::QueueManager& queueManager, vax::rhi::Swapchain& swapchain
     );
 
     void buildGraph(const RenderPassGraphMode& graphMode, const RenderPassGraphDescriptor* graphDescriptor);
 
-    vax::vk::RenderPassDescriptor* getRenderPassDescriptor(std::string name) const {
+    vax::rhi::RenderPassDescriptor* getRenderPassDescriptor(std::string name) const {
         if (_renderPassDescriptors.contains(name)) {
             return _renderPassDescriptors.at(name).get();
         }
         return nullptr;
     }
 
-    vax::vk::RenderDestination* getRenderDestination(std::string name) const {
+    vax::rhi::RenderDestination* getRenderDestination(std::string name) const {
         if (_renderDestinations.contains(name)) {
             return _renderDestinations.at(name).get();
         }
@@ -66,12 +66,12 @@ class RenderPassGraphManager final {
   private:
     vax::Logger _logger = vax::Logger("rednerPassGraphFactory");
 
-    std::reference_wrapper<vax::vk::Device> _device;
-    std::reference_wrapper<vax::vk::PipelineManager> _pipelineManager;
-    std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;
+    std::reference_wrapper<vax::rhi::Device> _device;
+    std::reference_wrapper<vax::rhi::PipelineManager> _pipelineManager;
+    std::reference_wrapper<vax::rhi::ResourceManager> _resourceManager;
 
-    std::unordered_map<std::string, std::shared_ptr<vax::vk::RenderPassDescriptor>> _renderPassDescriptors;
-    std::unordered_map<std::string, std::shared_ptr<vax::vk::RenderDestination>> _renderDestinations;
+    std::unordered_map<std::string, std::shared_ptr<vax::rhi::RenderPassDescriptor>> _renderPassDescriptors;
+    std::unordered_map<std::string, std::shared_ptr<vax::rhi::RenderDestination>> _renderDestinations;
 
     std::unique_ptr<RenderPassGraphBuilder> _renderPassGraphBuilder;
 

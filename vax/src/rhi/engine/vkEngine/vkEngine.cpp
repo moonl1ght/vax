@@ -2,7 +2,7 @@
 #include "vkDebug.h"
 #include "vkInstanceBuilder.h"
 
-using namespace vax::vk;
+using namespace vax::rhi;
 
 VkResult CreateDebugUtilsMessengerEXT(
     VkInstance instance,
@@ -36,7 +36,7 @@ void validationLayersDestroyDebugUtilsMessengerEXT(
     }
 }
 
-bool vax::vk::Engine::setup() {
+bool vax::rhi::Engine::setup() {
     std::optional<VkInstance> instanceOptional =
         VkInstanceBuilder(deletionQueue, enableValidationLayers, validationLayers, vulkanApiVersion).build();
     if (instanceOptional.has_value()) {
@@ -50,7 +50,7 @@ bool vax::vk::Engine::setup() {
         vkDestroyInstance(instance, nullptr);
         instance = VK_NULL_HANDLE;
     });
-    vax::vk::setPfnSetDebugUtilsObjectNameEXT(instance);
+    vax::rhi::setPfnSetDebugUtilsObjectNameEXT(instance);
 
     if (!setupDebugMessenger()) {
         _logger.error("Failed to setup debug messenger!");
@@ -112,12 +112,12 @@ bool vax::vk::Engine::setup() {
     return true;
 }
 
-void vax::vk::Engine::cleanup() {
+void vax::rhi::Engine::cleanup() {
     deletionQueue.flush();
     _logger.success("Engine cleanup complete!");
 }
 
-void vax::vk::Engine::resize() {
+void vax::rhi::Engine::resize() {
     _logger.debug("Resizing engine...");
     int width = 0, height = 0;
     SDL_GetWindowSizeInPixels(_windowController.get().getWindow(0)->window, &width, &height);
@@ -130,12 +130,12 @@ void vax::vk::Engine::resize() {
     _windowController.get().getWindow(0)->getSwapchain()->recreate();
 }
 
-bool vax::vk::Engine::setupDebugMessenger() {
+bool vax::rhi::Engine::setupDebugMessenger() {
     if (!enableValidationLayers)
         return false;
 
     VkDebugUtilsMessengerCreateInfoEXT createInfo;
-    vax::vk::populateDebugMessengerCreateInfo(createInfo);
+    vax::rhi::populateDebugMessengerCreateInfo(createInfo);
 
     if (!VK_CHECK(CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger))) {
         _logger.error("Failed to set up debug messenger!");

@@ -3,7 +3,7 @@
 #include <hashUtils.h>
 #include <vulkan/vulkan_core.h>
 
-namespace vax::vk {
+namespace vax::rhi {
 
 struct Pipeline final {
     VkPipeline vkPipeline = VK_NULL_HANDLE;
@@ -11,4 +11,4 @@ struct Pipeline final {
     VkDescriptorSet descriptorSetLayout = VK_NULL_HANDLE;
 };
 
-} // namespace vax::vk
+} // namespace vax::rhi

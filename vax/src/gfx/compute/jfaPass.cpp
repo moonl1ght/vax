@@ -3,16 +3,16 @@
 #include <vulkan/vulkan_core.h>
 
 using namespace vax::gfx;
-using namespace vax::vk;
+using namespace vax::rhi;
 
-void JFAPass::setup(std::weak_ptr<vax::vk::RenderDestination> inputRenderDestination) {
+void JFAPass::setup(std::weak_ptr<vax::rhi::RenderDestination> inputRenderDestination) {
     _initPipeline = _pipelineManager.get().getPipeline("jfa_init");
     _stepPipeline = _pipelineManager.get().getPipeline("jfa_step");
 
     update(inputRenderDestination);
 }
 
-void JFAPass::update(std::weak_ptr<vax::vk::RenderDestination> inputRenderDestination) {
+void JFAPass::update(std::weak_ptr<vax::rhi::RenderDestination> inputRenderDestination) {
     _inputRenderDestination = std::move(inputRenderDestination);
     if (auto inputRenderDestinationShared = _inputRenderDestination.lock()) {
         auto& descriptorRegistry = _pipelineManager.get().descriptorRegistry();
@@ -23,16 +23,16 @@ void JFAPass::update(std::weak_ptr<vax::vk::RenderDestination> inputRenderDestin
 }
 
 void JFAPass::_createTextures(
-    const std::vector<vax::vk::TextureManager::TextureResource*>& maskTextures,
-    const vax::vk::TextureManager::TextureResource* depthTexture
+    const std::vector<vax::rhi::TextureManager::TextureResource*>& maskTextures,
+    const vax::rhi::TextureManager::TextureResource* depthTexture
 ) {
     _jfaTexturesA.clear();
     _jfaTexturesB.clear();
-    for (int i = 0; i < vax::vk::MAX_FRAMES_IN_FLIGHT; ++i) {
+    for (int i = 0; i < vax::rhi::MAX_FRAMES_IN_FLIGHT; ++i) {
 
         auto inputTextureSize = maskTextures[i]->texture.size();
         auto textureCreateInfo = TextureManager::TextureCreateInfo{
-            .registrationType = vax::vk::TextureManager::TextureRegistrationType::Both,
+            .registrationType = vax::rhi::TextureManager::TextureRegistrationType::Both,
             .name = "jfa_texture_a_" + std::to_string(i),
             .format = VK_FORMAT_R16G16_UINT,
             .size = inputTextureSize,

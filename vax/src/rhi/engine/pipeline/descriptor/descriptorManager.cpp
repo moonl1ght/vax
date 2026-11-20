@@ -1,7 +1,7 @@
 #include "descriptorManager.h"
 #include "descriptorSetLayoutBuilder.h"
 
-using namespace vax::vk;
+using namespace vax::rhi;
 
 bool DescriptorManager::setup() noexcept {
     if (!_poolLimits.fitsPerStageLimit()) {

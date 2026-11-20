@@ -1,6 +1,6 @@
 #include "vkUtils.h"
 
-uint32_t vax::vk::findMemoryType(
+uint32_t vax::rhi::findMemoryType(
     const VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties
 ) {
     VkPhysicalDeviceMemoryProperties memProperties;
@@ -15,9 +15,9 @@ uint32_t vax::vk::findMemoryType(
     throw std::runtime_error("failed to find suitable memory type!");
 }
 
-vax::vk::SwapChainSupportDetails
-vax::vk::querySwapChainSupport(const VkPhysicalDevice& device, const VkSurfaceKHR& surface) {
-    vax::vk::SwapChainSupportDetails details;
+vax::rhi::SwapChainSupportDetails
+vax::rhi::querySwapChainSupport(const VkPhysicalDevice& device, const VkSurfaceKHR& surface) {
+    vax::rhi::SwapChainSupportDetails details;
 
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
 
@@ -40,9 +40,9 @@ vax::vk::querySwapChainSupport(const VkPhysicalDevice& device, const VkSurfaceKH
     return details;
 }
 
-vax::vk::QueueFamilyIndices
-vax::vk::findQueueFamilies(const VkPhysicalDevice& device, const VkSurfaceKHR& surface) {
-    vax::vk::QueueFamilyIndices indices;
+vax::rhi::QueueFamilyIndices
+vax::rhi::findQueueFamilies(const VkPhysicalDevice& device, const VkSurfaceKHR& surface) {
+    vax::rhi::QueueFamilyIndices indices;
 
     uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
@@ -73,7 +73,7 @@ vax::vk::findQueueFamilies(const VkPhysicalDevice& device, const VkSurfaceKHR& s
     return indices;
 }
 
-VkFormat vax::vk::findSupportedFormat(
+VkFormat vax::rhi::findSupportedFormat(
     VkPhysicalDevice physicalDevice,
     const std::vector<VkFormat>& candidates,
     VkImageTiling tiling,

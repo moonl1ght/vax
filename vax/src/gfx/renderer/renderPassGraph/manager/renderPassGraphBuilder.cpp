@@ -4,12 +4,12 @@
 #include "renderPass.h"
 
 using namespace vax::gfx;
-using namespace vax::vk;
+using namespace vax::rhi;
 using namespace vax;
 
 std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildUIOnlyGraph(
-    const std::unordered_map<std::string, std::shared_ptr<vax::vk::RenderPassDescriptor>>& renderPassDescriptors,
-    const std::unordered_map<std::string, std::shared_ptr<vax::vk::RenderDestination>>& renderDestinations
+    const std::unordered_map<std::string, std::shared_ptr<vax::rhi::RenderPassDescriptor>>& renderPassDescriptors,
+    const std::unordered_map<std::string, std::shared_ptr<vax::rhi::RenderDestination>>& renderDestinations
 ) {
     auto swapchain = _windowController.get().getWindow(0)->getSwapchain();
 
@@ -33,7 +33,7 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildUIOnlyGraph(
 namespace {
 template <typename PushConstants>
 void pushConstants(
-    vax::vk::CommandBuffer& commandBuffer, const vax::vk::PipelineManager& pipelineManager, const PushConstants& data
+    vax::rhi::CommandBuffer& commandBuffer, const vax::rhi::PipelineManager& pipelineManager, const PushConstants& data
 ) {
     vkCmdPushConstants(
         commandBuffer.vkCommandBuffer, pipelineManager.pipelineLayout(), VK_SHADER_STAGE_ALL, 0, sizeof(data), &data
@@ -43,8 +43,8 @@ void pushConstants(
 
 std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
     const RenderPassGraphDescriptor& graphDescriptor,
-    const std::unordered_map<std::string, std::shared_ptr<vax::vk::RenderPassDescriptor>>& renderPassDescriptors,
-    const std::unordered_map<std::string, std::shared_ptr<vax::vk::RenderDestination>>& renderDestinations
+    const std::unordered_map<std::string, std::shared_ptr<vax::rhi::RenderPassDescriptor>>& renderPassDescriptors,
+    const std::unordered_map<std::string, std::shared_ptr<vax::rhi::RenderDestination>>& renderDestinations
 ) {
     auto swapchain = _windowController.get().getWindow(0)->getSwapchain();
 

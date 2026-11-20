@@ -10,7 +10,7 @@
 #include "resourceHandle.h"
 #include <unordered_map>
 
-namespace vax::vk {
+namespace vax::rhi {
 class BufferManager final {
   public:
     using BufferResource = std::pair<BufferHandle, AnyBuffer*>;
@@ -50,4 +50,4 @@ class BufferManager final {
     std::unordered_map<BufferId, AnyBuffer> _pool;
     BufferId _lastId = 0;
 };
-} // namespace vax::vk
+} // namespace vax::rhi

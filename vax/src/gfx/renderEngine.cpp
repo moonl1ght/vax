@@ -4,14 +4,14 @@ using namespace vax;
 using namespace vax::gfx;
 
 bool RenderEngine::setup(WindowController& windowController) noexcept {
-    _vkEngine = std::make_unique<vk::Engine>(windowController);
+    _vkEngine = std::make_unique<rhi::Engine>(windowController);
     if (!_vkEngine->setup()) {
         return false;
     }
     _uiEngine = std::make_unique<ui::UIEngine>(*_vkEngine, *windowController.getWindow(0));
 
     auto& descriptorRegistry = _vkEngine->pipelineManager->descriptorRegistry();
-    _resourceManager = std::make_unique<vax::vk::ResourceManager>(*_vkEngine->device, descriptorRegistry);
+    _resourceManager = std::make_unique<vax::rhi::ResourceManager>(*_vkEngine->device, descriptorRegistry);
     if (!_resourceManager->setup()) {
         return false;
     }

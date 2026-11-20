@@ -3,41 +3,41 @@
 #include "vertex.h"
 #include <cstdint>
 
-using namespace vax::vk;
+using namespace vax::rhi;
 
-template <typename VertexType> void vax::vk::MeshObject<VertexType>::setVertices(std::vector<VertexType> vertices) {
+template <typename VertexType> void vax::rhi::MeshObject<VertexType>::setVertices(std::vector<VertexType> vertices) {
     if (!_locked) {
         _vertices = std::move(vertices);
         _vertexCount = _vertices.size();
     }
 }
 
-template <typename VertexType> void vax::vk::MeshObject<VertexType>::addVertex(const VertexType& vertex) {
+template <typename VertexType> void vax::rhi::MeshObject<VertexType>::addVertex(const VertexType& vertex) {
     if (!_locked) {
         _vertices.push_back(vertex);
         ++_vertexCount;
     }
 }
 
-template <typename VertexType> void vax::vk::MeshObject<VertexType>::setIndices(std::vector<uint32_t> indices) {
+template <typename VertexType> void vax::rhi::MeshObject<VertexType>::setIndices(std::vector<uint32_t> indices) {
     if (!_locked) {
         _indices = std::move(indices);
         _indexCount = _indices.size();
     }
 }
 
-template <typename VertexType> void vax::vk::MeshObject<VertexType>::addIndex(uint32_t index) {
+template <typename VertexType> void vax::rhi::MeshObject<VertexType>::addIndex(uint32_t index) {
     if (!_locked) {
         _indices.push_back(index);
         ++_indexCount;
     }
 }
 
-template <typename VertexType> void vax::vk::MeshObject<VertexType>::lock() { _locked = true; }
+template <typename VertexType> void vax::rhi::MeshObject<VertexType>::lock() { _locked = true; }
 
-template <typename VertexType> void vax::vk::MeshObject<VertexType>::unlock() { _locked = false; }
+template <typename VertexType> void vax::rhi::MeshObject<VertexType>::unlock() { _locked = false; }
 
-template <typename VertexType> bool vax::vk::MeshObject<VertexType>::bindBuffers() {
+template <typename VertexType> bool vax::rhi::MeshObject<VertexType>::bindBuffers() {
     if (!_locked) {
         return false;
     }
@@ -54,7 +54,7 @@ template <typename VertexType> bool vax::vk::MeshObject<VertexType>::bindBuffers
     return true;
 }
 
-template <typename VertexType> bool vax::vk::MeshObject<VertexType>::flushToGPU() {
+template <typename VertexType> bool vax::rhi::MeshObject<VertexType>::flushToGPU() {
     if (!_bound) {
         return false;
     }
@@ -82,4 +82,4 @@ template <typename VertexType> bool vax::vk::MeshObject<VertexType>::flushToGPU(
     return true;
 }
 
-template class vax::vk::MeshObject<vax::vk::Vertex>;
+template class vax::rhi::MeshObject<vax::rhi::Vertex>;

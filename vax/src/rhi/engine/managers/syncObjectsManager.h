@@ -7,10 +7,10 @@
 #include <vector>
 #include <unordered_map>
 
-namespace vax::vk {
+namespace vax::rhi {
 class SyncObjectsManager {
   public:
-    SyncObjectsManager(const vax::vk::Device& device)
+    SyncObjectsManager(const vax::rhi::Device& device)
         : _device(device) {};
 
     bool setup();
@@ -33,6 +33,6 @@ class SyncObjectsManager {
     std::vector<VkFence> _inFlightFences;
 
     vax::Logger _logger = vax::Logger("SyncObjectsManager");
-    std::reference_wrapper<const vax::vk::Device> _device;
+    std::reference_wrapper<const vax::rhi::Device> _device;
 };
-} // namespace vax::vk
+} // namespace vax::rhi

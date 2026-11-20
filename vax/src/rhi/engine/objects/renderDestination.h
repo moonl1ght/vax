@@ -8,7 +8,7 @@
 #include <utility>
 #include <vector>
 
-namespace vax::vk {
+namespace vax::rhi {
 class RenderDestination final {
   public:
     std::vector<VkFramebuffer> framebuffers;
@@ -48,4 +48,4 @@ class RenderDestination final {
 
     void _destroy() noexcept;
 };
-} // namespace vax::vk
+} // namespace vax::rhi

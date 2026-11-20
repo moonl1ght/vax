@@ -2,7 +2,7 @@
 #include "avxChecker.h"
 #include <immintrin.h>
 
-using namespace vax::vk;
+using namespace vax::rhi;
 
 TextureManager::TextureResource* TextureGenerator::generateCheckerboardTexture(
     const std::string& name, int width, int height, int cellSize

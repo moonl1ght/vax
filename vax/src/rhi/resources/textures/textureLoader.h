@@ -5,10 +5,10 @@
 #include "texture.h"
 #include "textureManager.h"
 
-namespace vax::vk {
+namespace vax::rhi {
 class TextureLoader final {
   public:
-    explicit TextureLoader(const vax::vk::Device& device, TextureManager& textureManager) noexcept
+    explicit TextureLoader(const vax::rhi::Device& device, TextureManager& textureManager) noexcept
         : _device(device)
         , _textureManager(textureManager) {};
 
@@ -28,7 +28,7 @@ class TextureLoader final {
   private:
     vax::Logger _logger = vax::Logger("TextureLoader");
 
-    std::reference_wrapper<const vax::vk::Device> _device;
+    std::reference_wrapper<const vax::rhi::Device> _device;
     std::reference_wrapper<TextureManager> _textureManager;
 
     TextureManager::TextureResource*
@@ -36,4 +36,4 @@ class TextureLoader final {
 
     TextureManager::TextureResource* _loadKTXTexture(std::string path) const noexcept;
 };
-} // namespace vax::vk
+} // namespace vax::rhi

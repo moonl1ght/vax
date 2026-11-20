@@ -7,19 +7,19 @@
 #include <optional>
 #include <string>
 
-namespace vax::vk {
+namespace vax::rhi {
 class CommandBuffer;
 class BufferManager;
-} // namespace vax::vk
+} // namespace vax::rhi
 
-namespace vax::vk {
+namespace vax::rhi {
 
 template <typename T> class Buffer final {
   public:
-    friend class vax::vk::BufferManager;
+    friend class vax::rhi::BufferManager;
 
     static std::optional<Buffer<T>> allocateAndFillData(
-        const vax::vk::Device& device,
+        const vax::rhi::Device& device,
         std::string name,
         const T* data,
         VkDeviceSize size,
@@ -29,7 +29,7 @@ template <typename T> class Buffer final {
     );
 
     static std::optional<Buffer<T>> allocate(
-        const vax::vk::Device& device,
+        const vax::rhi::Device& device,
         std::string name,
         VkDeviceSize size,
         VkBufferUsageFlags usage,
@@ -39,7 +39,7 @@ template <typename T> class Buffer final {
 
     ~Buffer() { cleanup(); }
 
-    Buffer(const vax::vk::Device& device)
+    Buffer(const vax::rhi::Device& device)
         : _device(device) {};
 
     Buffer(const Buffer& other) = delete;
@@ -115,7 +115,7 @@ template <typename T> class Buffer final {
 
     std::optional<T*> mappedMemory() const;
 
-    void copyBufferCommand(vax::vk::CommandBuffer& commandBuffer, Buffer& dstBuffer, VkDeviceSize size) const;
+    void copyBufferCommand(vax::rhi::CommandBuffer& commandBuffer, Buffer& dstBuffer, VkDeviceSize size) const;
 
     bool isEmpty() const;
 
@@ -137,7 +137,7 @@ template <typename T> class Buffer final {
 
   private:
     vax::Logger _logger = vax::Logger("Buffer");
-    std::reference_wrapper<const vax::vk::Device> _device;
+    std::reference_wrapper<const vax::rhi::Device> _device;
 
     std::string _name;
     BufferId _id = NullBufferId;
@@ -160,4 +160,4 @@ using AnyBuffer = Buffer<void>;
 
 template <typename T> using ShaderBufferHandle = std::pair<StructuredBufferShaderHandle, Buffer<T>>;
 
-} // namespace vax::vk
+} // namespace vax::rhi

@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <limits>
 
-namespace vax::vk {
+namespace vax::rhi {
 class SSBOManager final {
   public:
     using InstanceBuffer = Buffer<InstanceData>;
@@ -40,4 +40,4 @@ class SSBOManager final {
     std::array<std::unique_ptr<InstanceBuffer>, MAX_FRAMES_IN_FLIGHT> _buffers;
     uint32_t _maxInstances = 0;
 };
-} // namespace vax::vk
+} // namespace vax::rhi

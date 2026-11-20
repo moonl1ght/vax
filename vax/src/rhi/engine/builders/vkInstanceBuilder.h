@@ -11,7 +11,7 @@
 #include <optional>
 #include <vector>
 
-namespace vax::vk {
+namespace vax::rhi {
 class VkInstanceBuilder {
   public:
     VkInstanceBuilder(
@@ -58,7 +58,7 @@ class VkInstanceBuilder {
             createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
             createInfo.ppEnabledLayerNames = validationLayers.data();
 
-            vax::vk::populateDebugMessengerCreateInfo(debugCreateInfo);
+            vax::rhi::populateDebugMessengerCreateInfo(debugCreateInfo);
             createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
         } else {
             createInfo.enabledLayerCount = 0;
@@ -129,4 +129,4 @@ class VkInstanceBuilder {
         return true;
     }
 };
-} // namespace vax::vk
+} // namespace vax::rhi

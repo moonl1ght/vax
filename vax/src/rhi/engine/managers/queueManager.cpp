@@ -1,7 +1,7 @@
 #include "queueManager.h"
 #include "vkUtils.h"
 
-using namespace vax::vk;
+using namespace vax::rhi;
 
 void QueueManager::setup(const Device& device) {
     QueueFamilyIndices indices = device.queueFamilyIndices();

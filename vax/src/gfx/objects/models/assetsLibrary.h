@@ -14,7 +14,7 @@ class AssetsLibrary {
     friend class ModelLoader;
 
     explicit AssetsLibrary(
-        const vax::vk::Device& device, uint32_t maxDrawableInstances, vax::vk::ResourceManager& resourceManager
+        const vax::rhi::Device& device, uint32_t maxDrawableInstances, vax::rhi::ResourceManager& resourceManager
     )
         : _resourceManager(resourceManager)
         , _maxDrawableInstances(maxDrawableInstances) {
@@ -45,7 +45,7 @@ class AssetsLibrary {
     vax::Logger _logger = vax::Logger("AssetsLibrary");
     const uint32_t _maxDrawableInstances;
 
-    std::reference_wrapper<vax::vk::ResourceManager> _resourceManager;
+    std::reference_wrapper<vax::rhi::ResourceManager> _resourceManager;
 
     std::unique_ptr<vax::gfx::PrefabLoader> _prefabLoader;
 

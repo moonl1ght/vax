@@ -1,7 +1,7 @@
 #include "drawableModel.h"
 
 using namespace vax::gfx;
-using namespace vax::vk;
+using namespace vax::rhi;
 
 void DrawableModel::prepareDrawing(
     gfx::IndirectDrawController* indirectDrawController, uint32_t frameIndex, const DrawSettings& drawSettings
