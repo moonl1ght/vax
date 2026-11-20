@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace vax {
+namespace vax::core {
 class TimeManager final {
   public:
     static std::string getCurrentDatetimeString();
@@ -10,4 +10,4 @@ class TimeManager final {
     TimeManager();
     ~TimeManager();
 };
-} // namespace vax
+} // namespace vax::core

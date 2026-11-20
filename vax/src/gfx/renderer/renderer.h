@@ -21,7 +21,7 @@ class Renderer final : public BaseRenderer {
     state_tracker<RenderPassGraphMode> renderPassGraphMode =
         state_tracker<RenderPassGraphMode>(RenderPassGraphMode::UNKNOWN);
 
-    Renderer(vax::rhi::Engine& vkEngine, vax::ui::UIEngine& uiEngine)
+    Renderer(rhi::Engine& vkEngine, gfx::UIEngine& uiEngine)
         : BaseRenderer(vkEngine, uiEngine) {};
 
     ~Renderer() {};

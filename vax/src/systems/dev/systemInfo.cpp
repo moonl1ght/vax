@@ -1,7 +1,7 @@
 #include "systemInfo.h"
 #include <fstream>
 
-using namespace vax;
+using namespace vax::dev;
 
 SystemInfo::MemoryStats SystemInfo::getRAMStats() const {
     MemoryStats memoryStats;

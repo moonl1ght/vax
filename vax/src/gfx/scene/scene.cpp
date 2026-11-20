@@ -355,14 +355,14 @@ void Scene::drawGizmo(const DrawContext& drawContext) {
     _indirectDrawController->drawRange(drawContext.commandBuffer, drawContext.currentFrame, "gizmo");
 }
 
-void Scene::onMouseMove(const vax::MouseMoveValue& value) {
+void Scene::onMouseMove(const app::MouseMoveValue& value) {
     _mainCamera.rotateBy(value.delta);
     _gizmoCamera.rotateBy(value.delta);
 }
 
 void Scene::onMouseWheel(float delta) { _mainCamera.zoomBy(0.1f * delta); }
 
-void Scene::onKeyEvent(const vax::KeyEvent& keyEvent) {}
+void Scene::onKeyEvent(const app::KeyEvent& keyEvent) {}
 
 void Scene::beginDrawing(CommandBuffer& commandBuffer, uint32_t frameIndex) {
     if (!_world) {

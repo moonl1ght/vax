@@ -3,7 +3,7 @@
 #include "cudaEnv.h"
 #include <string>
 
-namespace vax {
+namespace vax::dev {
 class SystemInfo final {
   public:
     struct MemoryStats { // in MB
@@ -19,9 +19,7 @@ class SystemInfo final {
         MemoryStats memoryStats;
     };
 
-    SystemInfo() {
-        _cudaEnv = CudaEnv();
-    };
+    SystemInfo() { _cudaEnv = CudaEnv(); };
 
     ~SystemInfo() = default;
 
@@ -32,4 +30,4 @@ class SystemInfo final {
   private:
     CudaEnv _cudaEnv;
 };
-} // namespace vax
+} // namespace vax::dev

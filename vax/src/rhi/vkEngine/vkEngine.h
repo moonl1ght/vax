@@ -42,7 +42,7 @@ class Engine final {
     std::unique_ptr<vax::rhi::CommandManager> commandManager;
     std::unique_ptr<vax::rhi::SyncObjectsManager> syncObjectsManager;
 
-    explicit Engine(vax::WindowController& windowController)
+    explicit Engine(app::WindowController& windowController)
         : _windowController(windowController) {};
 
     ~Engine() {};
@@ -56,14 +56,14 @@ class Engine final {
     void cleanup();
     void resize();
 
-    vax::WindowController& getWindowController() { return _windowController.get(); }
+    app::WindowController& getWindowController() { return _windowController.get(); }
 
-    const vax::WindowController& getWindowController() const { return _windowController.get(); }
+    const app::WindowController& getWindowController() const { return _windowController.get(); }
 
   private:
     dev::Logger _logger = dev::Logger("Engine");
 
-    std::reference_wrapper<vax::WindowController> _windowController;
+    std::reference_wrapper<app::WindowController> _windowController;
 
     bool setupDebugMessenger();
 };

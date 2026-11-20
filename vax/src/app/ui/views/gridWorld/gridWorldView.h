@@ -9,13 +9,11 @@
 #include "threadRunner.h"
 #include "windowController.h"
 
-namespace vax::ui {
+namespace vax::app {
 class GridWorldView final : public SceneView<rl::GWSceneController> {
   public:
     GridWorldView(
-        vax::WindowController& windowController,
-        vax::gfx::RenderEngine& renderEngine,
-        vax::InputController& inputController
+        app::WindowController& windowController, gfx::RenderEngine& renderEngine, app::InputController& inputController
     )
         : SceneView(renderEngine, inputController)
         , _windowController(windowController) {}
@@ -28,7 +26,7 @@ class GridWorldView final : public SceneView<rl::GWSceneController> {
 
     void updateUI(const vax::gfx::FrameTime& frameTime) override;
 
-    vax::AppMode getAppMode() override { return vax::AppMode::Continous; }
+    AppMode getAppMode() override { return AppMode::Continous; }
 
   protected:
     bool _load() override;
@@ -43,10 +41,10 @@ class GridWorldView final : public SceneView<rl::GWSceneController> {
 
   private:
     dev::Logger _logger = dev::Logger("GridWorldView");
-    std::reference_wrapper<vax::WindowController> _windowController;
-    std::unique_ptr<vax::rl::GridWorld> _gridWorld;
-    std::unique_ptr<vax::rl::GWTrainingManager> _trainingManager;
-    vax::core::ThreadRunner _mainThreadRunner;
+    std::reference_wrapper<app::WindowController> _windowController;
+    std::unique_ptr<rl::GridWorld> _gridWorld;
+    std::unique_ptr<rl::GWTrainingManager> _trainingManager;
+    core::ThreadRunner _mainThreadRunner;
     std::string _trainingStatus = "Training not started";
     bool _isTrainingRunning = false;
     bool _isDemoLoaded = false;
@@ -68,4 +66,4 @@ class GridWorldView final : public SceneView<rl::GWSceneController> {
 
     void _showAgentCamera();
 };
-} // namespace vax::ui
+} // namespace vax::app

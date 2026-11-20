@@ -2,7 +2,7 @@
 #include "physicsDemoMenu.h"
 #include "startingView.h"
 
-using namespace vax::ui;
+using namespace vax::app;
 
 std::unique_ptr<StartingView> ViewBuilder::buildStartingView() {
     return std::make_unique<StartingView>(_renderEngine.get());

@@ -20,8 +20,8 @@ class RenderPassGraphManager final {
         vax::rhi::Device& device,
         vax::rhi::PipelineManager& pipelineManager,
         vax::rhi::ResourceManager& resourceManager,
-        vax::WindowController& windowController,
-        vax::ui::UIEngine& uiEngine
+        app::WindowController& windowController,
+        gfx::UIEngine& uiEngine
     )
         : _device(device)
         , _pipelineManager(pipelineManager)

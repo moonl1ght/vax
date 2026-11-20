@@ -8,6 +8,7 @@
 #include <cuda_runtime.h>
 
 using namespace vax;
+using namespace vax::app;
 
 void App::setup() noexcept {
     SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11,wayland,windows,cocoa");
@@ -17,7 +18,7 @@ void App::setup() noexcept {
     }
     dev::RenderDoc::init();
 
-    vax::NotificationCenter::getInstance().setup();
+    app::NotificationCenter::getInstance().setup();
     _windowController = std::make_unique<WindowController>();
     _windowController->setupWindow(0, vax::math::SizeUI{1920, 1080}, "VAX");
     if (!_windowController->getWindow(0)->load(true, true)) {
@@ -30,12 +31,8 @@ void App::setup() noexcept {
         return;
     }
 
-    _viewBuilder = std::make_unique<ui::ViewBuilder>(
-        *_windowController,
-        _inputController,
-        *_renderEngine
-    );
-    _viewManager = std::make_unique<ui::ViewManager>(_renderEngine->uiEngine(), *_viewBuilder);
+    _viewBuilder = std::make_unique<app::ViewBuilder>(*_windowController, _inputController, *_renderEngine);
+    _viewManager = std::make_unique<app::ViewManager>(_renderEngine->uiEngine(), *_viewBuilder);
     _viewManager->setRootView(_viewBuilder->buildStartingView());
     _logger.success("App setup complete!");
 }

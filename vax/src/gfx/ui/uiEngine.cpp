@@ -9,7 +9,7 @@
 #include <cstdint>
 #include <string>
 
-using namespace vax::ui;
+using namespace vax::gfx;
 using namespace vax;
 
 void UIEngine::setup(VkRenderPass renderPass) {

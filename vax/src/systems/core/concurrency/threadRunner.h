@@ -21,7 +21,7 @@ class ThreadRunner final {
             std::lock_guard<std::mutex> lock(_queueMutex);
             _mainThreadQueue.push_back(callback);
         }
-        vax::NotificationCenter::getInstance().wakeUpSDL();
+        app::NotificationCenter::getInstance().wakeUpSDL();
     }
 
     void processThreadQueue() {

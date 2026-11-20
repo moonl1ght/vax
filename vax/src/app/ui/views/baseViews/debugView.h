@@ -8,7 +8,7 @@
 #include <imgui_internal.h>
 #include "renderEngine.h"
 
-namespace vax::ui {
+namespace vax::app {
 class DebugView : public View {
   public:
     DebugView(vax::gfx::RenderEngine& renderEngine)
@@ -73,4 +73,4 @@ class DebugView : public View {
         ImGui::EndMainMenuBar();
     }
 };
-} // namespace vax::ui
+} // namespace vax::app

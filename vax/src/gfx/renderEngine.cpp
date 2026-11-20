@@ -1,14 +1,13 @@
 #include "renderEngine.h"
 
-using namespace vax;
 using namespace vax::gfx;
 
-bool RenderEngine::setup(WindowController& windowController) noexcept {
+bool RenderEngine::setup(app::WindowController& windowController) noexcept {
     _vkEngine = std::make_unique<rhi::Engine>(windowController);
     if (!_vkEngine->setup()) {
         return false;
     }
-    _uiEngine = std::make_unique<ui::UIEngine>(*_vkEngine, *windowController.getWindow(0));
+    _uiEngine = std::make_unique<gfx::UIEngine>(*_vkEngine, *windowController.getWindow(0));
 
     auto& descriptorRegistry = _vkEngine->pipelineManager->descriptorRegistry();
     _resourceManager = std::make_unique<vax::rhi::ResourceManager>(*_vkEngine->device, descriptorRegistry);

@@ -9,7 +9,7 @@
 namespace vax::gfx {
 class BaseRenderer {
   public:
-    BaseRenderer(vax::rhi::Engine& vkEngine, vax::ui::UIEngine& uiEngine)
+    BaseRenderer(rhi::Engine& vkEngine, gfx::UIEngine& uiEngine)
         : _vkEngine(vkEngine)
         , _uiEngine(uiEngine) {};
 
@@ -28,8 +28,8 @@ class BaseRenderer {
     };
     dev::Logger _logger = dev::Logger("BaseRenderer");
 
-    std::reference_wrapper<vax::rhi::Engine> _vkEngine;
-    std::reference_wrapper<vax::ui::UIEngine> _uiEngine;
+    std::reference_wrapper<rhi::Engine> _vkEngine;
+    std::reference_wrapper<gfx::UIEngine> _uiEngine;
 
     std::vector<uint32_t> _outputImageIndices;
 
@@ -41,6 +41,6 @@ class BaseRenderer {
 
     SwapchainResult _acquireSwapchainImage(size_t windowIndex, std::string semaphoreName);
 
-    vax::rhi::Swapchain* _getSwapchain(size_t index);
+    rhi::Swapchain* _getSwapchain(size_t index);
 };
 } // namespace vax::gfx

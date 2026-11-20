@@ -28,7 +28,7 @@ void BaseRenderer::_waitForFence() {
 }
 
 vax::rhi::Swapchain* BaseRenderer::_getSwapchain(size_t index) {
-    if (index >= vax::WindowController::maxWindows) {
+    if (index >= app::WindowController::maxWindows) {
         _logger.error("Invalid window index");
         return nullptr;
     }

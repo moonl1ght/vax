@@ -10,7 +10,7 @@
 #include "windowController.h"
 #include <memory>
 
-namespace vax {
+namespace vax::app {
 
 class App final {
   public:
@@ -27,12 +27,12 @@ class App final {
     dev::Logger _logger = dev::Logger("App");
 
     InputController _inputController;
-    AppMode _appMode = vax::AppMode::EventDriven;
+    AppMode _appMode = AppMode::EventDriven;
     gfx::FrameTime _frameTime;
 
-    std::unique_ptr<WindowController> _windowController;
-    std::unique_ptr<ui::ViewBuilder> _viewBuilder;
-    std::unique_ptr<ui::ViewManager> _viewManager;
+    std::unique_ptr<app::WindowController> _windowController;
+    std::unique_ptr<app::ViewBuilder> _viewBuilder;
+    std::unique_ptr<app::ViewManager> _viewManager;
     std::unique_ptr<gfx::RenderEngine> _renderEngine;
 
     void _mainLoop();
@@ -40,4 +40,4 @@ class App final {
     void _cleanup();
     void _updateTimestamp();
 };
-} // namespace vax
+} // namespace vax::app

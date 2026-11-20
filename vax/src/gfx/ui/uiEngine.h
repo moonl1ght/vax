@@ -1,14 +1,14 @@
 #pragma once
 
-#include "vulkanCommon.h"
-#include <SDL3/SDL.h>
 #include "vkEngine.h"
+#include "vulkanCommon.h"
 #include "window.h"
+#include <SDL3/SDL.h>
 #undef Status
 #include "imgui.h"
 #include <optional>
 
-namespace vax::ui {
+namespace vax::gfx {
 class UIEngine final {
   public:
     UIEngine(vax::rhi::Engine& vkEngine, vax::rhi::Window& window)
@@ -44,4 +44,4 @@ class UIEngine final {
     std::reference_wrapper<vax::rhi::Window> _window;
     std::reference_wrapper<vax::rhi::Engine> _vkEngine;
 };
-} // namespace vax::ui
+} // namespace vax::gfx

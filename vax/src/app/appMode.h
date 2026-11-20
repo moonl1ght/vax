@@ -1,5 +1,5 @@
 #pragma once
 
-namespace vax {
+namespace vax::app {
 enum class AppMode { Continous, EventDriven };
 }

@@ -4,7 +4,7 @@
 #include "startingView.h"
 #include "viewManager.h"
 
-using namespace vax::ui;
+using namespace vax::app;
 
 void PhysicsDemoMenuView::updateUI(const vax::gfx::FrameTime& frameTime) {
     ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetWorkCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));

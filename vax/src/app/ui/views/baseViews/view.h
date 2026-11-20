@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <imgui_internal.h>
 
-namespace vax::ui {
+namespace vax::app {
 class ViewManager;
 
 class View {
@@ -26,7 +26,7 @@ class View {
 
     virtual void viewWillShow() { _renderer.get().renderPassGraphMode.set(gfx::RenderPassGraphMode::UI_ONLY); }
 
-    virtual vax::AppMode getAppMode() { return vax::AppMode::EventDriven; }
+    virtual AppMode getAppMode() { return AppMode::EventDriven; }
 
     void linkViewManager(ViewManager* viewManager) { _viewManager = viewManager; }
 
@@ -55,4 +55,4 @@ class View {
         return ImGui::Begin(name, nullptr, flags | ImGuiWindowFlags_NoDocking);
     }
 };
-} // namespace vax::ui
+} // namespace vax::app

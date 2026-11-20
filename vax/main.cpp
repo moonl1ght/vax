@@ -25,7 +25,7 @@ int main() {
         return 1;
     }
     std::srand(std::time(0));
-    vax::App app = vax::App();
+    vax::app::App app = vax::app::App();
     app.setup();
     app.run();
 

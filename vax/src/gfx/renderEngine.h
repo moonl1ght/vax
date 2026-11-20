@@ -20,7 +20,7 @@ class RenderEngine final {
     RenderEngine(RenderEngine&& other) noexcept = delete;
     RenderEngine& operator=(RenderEngine&& other) noexcept = delete;
 
-    bool setup(vax::WindowController& windowController) noexcept;
+    bool setup(app::WindowController& windowController) noexcept;
 
     void waitIdle() noexcept;
 
@@ -32,15 +32,15 @@ class RenderEngine final {
 
     gfx::Renderer& renderer() noexcept { return *_renderer; }
 
-    ui::UIEngine& uiEngine() noexcept { return *_uiEngine; }
+    gfx::UIEngine& uiEngine() noexcept { return *_uiEngine; }
 
   private:
     dev::Logger _logger = dev::Logger("RenderEngine");
 
-    std::unique_ptr<vax::rhi::Engine> _vkEngine;
-    std::unique_ptr<vax::gfx::Renderer> _renderer;
-    std::unique_ptr<vax::ui::UIEngine> _uiEngine;
-    std::unique_ptr<vax::rhi::ResourceManager> _resourceManager;
+    std::unique_ptr<rhi::Engine> _vkEngine;
+    std::unique_ptr<gfx::Renderer> _renderer;
+    std::unique_ptr<gfx::UIEngine> _uiEngine;
+    std::unique_ptr<rhi::ResourceManager> _resourceManager;
 };
 
 } // namespace vax::gfx

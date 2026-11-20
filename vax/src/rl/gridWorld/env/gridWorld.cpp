@@ -96,25 +96,25 @@ bool GridWorld::canMoveAgent(const Position2DInt& newPosition) const {
     return _grid.get({newPosition.x, newPosition.y}) != static_cast<float>(BlockType::WALL);
 }
 
-void GridWorld::onKeyEvent(const KeyEvent& keyEvent) {
+void GridWorld::onKeyEvent(const app::KeyEvent& keyEvent) {
     if (_evalMode == vax::rl::EvalMode::TRAINING) {
         return;
     }
-    if (keyEvent.state != KeyEvent::State::DOWN) {
+    if (keyEvent.state != app::KeyEvent::State::DOWN) {
         return;
     }
     MoveAction action;
     switch (keyEvent.key) {
-    case vax::KeyCode::A:
+    case app::KeyCode::A:
         action = MoveAction::WEST;
         break;
-    case vax::KeyCode::S:
+    case app::KeyCode::S:
         action = MoveAction::SOUTH;
         break;
-    case vax::KeyCode::D:
+    case app::KeyCode::D:
         action = MoveAction::EAST;
         break;
-    case vax::KeyCode::W:
+    case app::KeyCode::W:
         action = MoveAction::NORTH;
         break;
     default:

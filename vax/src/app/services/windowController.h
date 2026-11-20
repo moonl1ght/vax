@@ -4,7 +4,7 @@
 #include "size.h"
 #include "window.h"
 
-namespace vax {
+namespace vax::app {
 class WindowController final {
   public:
     static constexpr uint32_t maxWindows = 3;
@@ -17,11 +17,11 @@ class WindowController final {
     WindowController(WindowController&&) = delete;
     WindowController& operator=(WindowController&&) = delete;
 
-    void setupWindow(uint32_t index, vax::math::SizeUI size, const std::string& name);
+    void setupWindow(uint32_t index, math::SizeUI size, const std::string& name);
 
-    const vax::rhi::Window* getWindow(uint32_t index) const { return _windows[index].get(); }
+    const rhi::Window* getWindow(uint32_t index) const { return _windows[index].get(); }
 
-    vax::rhi::Window* getWindow(uint32_t index) { return _windows[index].get(); }
+    rhi::Window* getWindow(uint32_t index) { return _windows[index].get(); }
 
     void destroyWindow(uint32_t index);
 
@@ -30,6 +30,6 @@ class WindowController final {
   private:
     dev::Logger _logger = dev::Logger("WindowController");
 
-    std::array<std::unique_ptr<vax::rhi::Window>, maxWindows> _windows;
+    std::array<std::unique_ptr<rhi::Window>, maxWindows> _windows;
 };
-} // namespace vax
+} // namespace vax::app

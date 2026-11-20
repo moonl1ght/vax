@@ -4,7 +4,7 @@
 #include "physicsDemoMenu.h"
 #include "viewManager.h"
 
-using namespace vax::ui;
+using namespace vax::app;
 using namespace vax;
 
 void StartingView::updateUI(const vax::gfx::FrameTime& frameTime) {

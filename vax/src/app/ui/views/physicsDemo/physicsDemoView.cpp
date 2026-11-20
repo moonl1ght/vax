@@ -3,7 +3,7 @@
 #include "sceneLoader.h"
 #include "viewManager.h"
 
-using namespace vax::ui;
+using namespace vax::app;
 
 void PhysicsDemoView::updateUI(const vax::gfx::FrameTime& frameTime) { SceneView::updateUI(frameTime); }
 
@@ -18,7 +18,7 @@ bool PhysicsDemoView::_load() {
     }
 
     _controller =
-        std::make_unique<vax::MainSceneController>(std::move(sceneWorldPair->first), std::move(sceneWorldPair->second));
+        std::make_unique<app::MainSceneController>(std::move(sceneWorldPair->first), std::move(sceneWorldPair->second));
 
     _controller->load();
 

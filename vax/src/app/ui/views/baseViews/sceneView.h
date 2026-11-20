@@ -7,11 +7,11 @@
 #include "scene.h"
 #include "vkEngine.h"
 
-namespace vax::ui {
+namespace vax::app {
 
 template <typename ControllerType> class SceneView : public DebugView {
   public:
-    SceneView(vax::gfx::RenderEngine& renderEngine, vax::InputController& inputController)
+    SceneView(vax::gfx::RenderEngine& renderEngine, app::InputController& inputController)
         : DebugView(renderEngine)
         , _inputController(inputController)
         , _renderEngine(renderEngine) {
@@ -60,7 +60,7 @@ template <typename ControllerType> class SceneView : public DebugView {
   protected:
     dev::Logger _logger = dev::Logger("SceneView");
 
-    std::reference_wrapper<vax::InputController> _inputController;
+    std::reference_wrapper<app::InputController> _inputController;
     std::reference_wrapper<vax::gfx::RenderEngine> _renderEngine;
 
     std::unique_ptr<LoadingView> _loadingView;
@@ -106,4 +106,4 @@ template <typename ControllerType> class SceneView : public DebugView {
     }
 };
 
-} // namespace vax::ui
+} // namespace vax::app

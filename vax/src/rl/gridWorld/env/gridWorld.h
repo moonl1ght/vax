@@ -11,7 +11,7 @@
 #include "vaxMath.h"
 
 namespace vax::rl {
-class GridWorld final : public vax::InputController::Observer,
+class GridWorld final : public app::InputController::Observer,
                         public vax::rl::Environment<GridWorld, State, MoveAction> {
   public:
     enum class BlockType : uint8_t {
@@ -46,11 +46,11 @@ class GridWorld final : public vax::InputController::Observer,
 
     bool canMoveAgent(const vax::math::Position2DInt& newPosition) const;
 
-    void onMouseMove(const vax::MouseMoveValue& value) {};
+    void onMouseMove(const app::MouseMoveValue& value) {};
 
     void onMouseWheel(float delta) {};
 
-    void onKeyEvent(const vax::KeyEvent& keyEvent);
+    void onKeyEvent(const app::KeyEvent& keyEvent);
 
     void linkSceneController(GWSceneController* sceneController);
 

@@ -44,7 +44,7 @@ enum class FrameUniformSlot : uint32_t {
     SLOTS_COUNT = 3,
 };
 
-class Scene final : public vax::InputController::Observer {
+class Scene final : public app::InputController::Observer {
   public:
     friend class SceneLoader;
 
@@ -99,11 +99,11 @@ class Scene final : public vax::InputController::Observer {
 
     void drawGizmo(const vax::gfx::DrawContext& drawContext);
 
-    void onMouseMove(const vax::MouseMoveValue& value);
+    void onMouseMove(const app::MouseMoveValue& value);
 
     void onMouseWheel(float delta);
 
-    void onKeyEvent(const vax::KeyEvent& keyEvent);
+    void onKeyEvent(const app::KeyEvent& keyEvent);
 
     bool shouldRebuildRenderPassGraph() const { return _renderPassGraphDescriptor.is_dirty(); }
 

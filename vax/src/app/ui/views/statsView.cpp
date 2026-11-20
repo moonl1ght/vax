@@ -3,7 +3,7 @@
 #include <imgui.h>
 #include <ratio>
 
-using namespace vax::ui;
+using namespace vax::app;
 
 void StatsView::updateUI(const vax::gfx::FrameTime& frameTime) {
     if (!_isShown) {

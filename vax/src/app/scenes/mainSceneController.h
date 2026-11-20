@@ -2,7 +2,7 @@
 
 #include "sceneController.h"
 
-namespace vax {
+namespace vax::app {
 
 class MainSceneController final : public gfx::SceneController<MainSceneController> {
   public:
@@ -20,4 +20,4 @@ class MainSceneController final : public gfx::SceneController<MainSceneControlle
 
     void onUpdate(const gfx::SceneUpdateContext& context);
 };
-} // namespace vax
+} // namespace vax::app

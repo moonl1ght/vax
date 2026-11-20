@@ -2,8 +2,8 @@
 
 #include <cstdint>
 
-namespace vax {
-enum class KeyCode: uint32_t {
+namespace vax::app {
+enum class KeyCode : uint32_t {
     UNKNOWN = 0,
     A = 1,
     B = 2,
@@ -46,4 +46,4 @@ enum class KeyCode: uint32_t {
     arrow_up = 39,
     arrow_down = 40,
 };
-} // namespace vax
+} // namespace vax::app

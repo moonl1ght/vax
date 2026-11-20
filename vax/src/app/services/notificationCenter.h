@@ -2,7 +2,7 @@
 
 #include <atomic>
 
-namespace vax {
+namespace vax::app {
 
 class NotificationCenter final {
   public:
@@ -16,8 +16,9 @@ class NotificationCenter final {
     NotificationCenter(NotificationCenter&& other) noexcept = delete;
     NotificationCenter& operator=(NotificationCenter&& other) noexcept = delete;
 
-    void setup();
-    void wakeUpSDL();
+    void setup() noexcept;
+
+    void wakeUpSDL() noexcept;
 
   private:
     NotificationCenter() = default;
@@ -26,4 +27,4 @@ class NotificationCenter final {
     std::atomic<int> _wakeUpSDLEventId = 0;
 };
 
-} // namespace vax
+} // namespace vax::app

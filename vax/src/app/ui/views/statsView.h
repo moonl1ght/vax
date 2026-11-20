@@ -6,14 +6,14 @@
 #include "systemInfo.h"
 #include "view.h"
 
-namespace vax::ui {
+namespace vax::app {
 class StatsView final : public View {
   public:
     StatsView(vax::gfx::RenderEngine& renderEngine)
         : View(renderEngine.renderer())
         , _renderEngine(renderEngine)
         , _debouncer(std::chrono::milliseconds(500)) {
-        _systemInfo = SystemInfo();
+        _systemInfo = dev::SystemInfo();
     };
 
     ~StatsView() = default;
@@ -32,11 +32,11 @@ class StatsView final : public View {
     std::reference_wrapper<vax::gfx::RenderEngine> _renderEngine;
 
     bool _isShown = false;
-    SystemInfo _systemInfo;
+    dev::SystemInfo _systemInfo;
     dev::FrameProfiler* _frameProfiler = nullptr;
     vax::core::Debouncer _debouncer;
-    SystemInfo::MemoryStats _memoryStats = SystemInfo::MemoryStats();
-    SystemInfo::GPUStats _gpuStats = SystemInfo::GPUStats();
+    dev::SystemInfo::MemoryStats _memoryStats = dev::SystemInfo::MemoryStats();
+    dev::SystemInfo::GPUStats _gpuStats = dev::SystemInfo::GPUStats();
     dev::FrameProfiler::FrameInfo _frameInfo = dev::FrameProfiler::FrameInfo();
     dev::FrameProfiler::FrameInfo _frameWorkloadInfo = dev::FrameProfiler::FrameInfo();
 
@@ -48,4 +48,4 @@ class StatsView final : public View {
 
     void _updateStats();
 };
-} // namespace vax::ui
+} // namespace vax::app

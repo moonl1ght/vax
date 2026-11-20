@@ -7,18 +7,14 @@
 #include "uiEngine.h"
 #include "windowController.h"
 
-namespace vax::ui {
+namespace vax::app {
 
 class StartingView;
 class PhysicsDemoMenuView;
 
 class ViewBuilder {
   public:
-    ViewBuilder(
-        WindowController& windowController,
-        InputController& inputController,
-        gfx::RenderEngine& renderEngine
-    )
+    ViewBuilder(WindowController& windowController, InputController& inputController, gfx::RenderEngine& renderEngine)
         : _windowController(windowController)
         , _inputController(inputController)
         , _renderEngine(renderEngine) {}
@@ -39,4 +35,4 @@ class ViewBuilder {
     std::reference_wrapper<gfx::RenderEngine> _renderEngine;
 };
 
-} // namespace vax::ui
+} // namespace vax::app

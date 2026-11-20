@@ -1,18 +1,18 @@
 #include "gwTrainingManager.h"
-#include <fstream>
-#include "paths.h"
 #include "fileSystem.h"
-#include "timeManager.h"
 #include "nlohmann/json.hpp"
-#include <filesystem>
+#include "paths.h"
 #include "tensorOp.h"
+#include "timeManager.h"
+#include <filesystem>
+#include <fstream>
 
 using namespace vax;
 using namespace vax::rl;
 using namespace vax::core;
 
 GWTrainingManager::GWTrainingManager() {
-    _trainDirectory = RELATIVE_PATH("output/qlearning/train_" + vax::TimeManager::getCurrentDatetimeString());
+    _trainDirectory = RELATIVE_PATH("output/qlearning/train_" + core::TimeManager::getCurrentDatetimeString());
     std::filesystem::create_directories(_trainDirectory);
     _fsLogger = std::make_shared<dev::FsLogger>(_trainDirectory + "/training.log");
     _logger.setFsLogger(_fsLogger);
