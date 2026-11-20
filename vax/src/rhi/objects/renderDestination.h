@@ -2,7 +2,6 @@
 
 #include "device.h"
 #include "texture.h"
-#include "textureManager.h"
 #include "vulkanCommon.h"
 #include <memory>
 #include <utility>
@@ -15,13 +14,13 @@ class RenderDestination final {
 
     explicit RenderDestination(
         const Device& device,
-        TextureManager::TextureResource* depthTexture,
-        std::vector<TextureManager::TextureResource*> colorTextures,
-        std::vector<TextureManager::TextureResource*> maskTextures,
+        std::unique_ptr<Texture> depthTexture,
+        std::vector<std::unique_ptr<Texture>> colorTextures,
+        std::vector<std::unique_ptr<Texture>> maskTextures,
         std::vector<VkFramebuffer> framebuffers
     ) noexcept
         : _device(device)
-        , _depthTexture(depthTexture)
+        , _depthTexture(std::move(depthTexture))
         , _colorTextures(std::move(colorTextures))
         , _maskTextures(std::move(maskTextures))
         , framebuffers(std::move(framebuffers)) {}
@@ -33,18 +32,18 @@ class RenderDestination final {
 
     ~RenderDestination() { _destroy(); }
 
-    const std::vector<TextureManager::TextureResource*>& colorTextures() const noexcept { return _colorTextures; }
+    const std::vector<std::unique_ptr<Texture>>& colorTextures() const noexcept { return _colorTextures; }
 
-    const TextureManager::TextureResource* depthTexture() const noexcept { return _depthTexture; }
+    const std::unique_ptr<Texture>& depthTexture() const noexcept { return _depthTexture; }
 
-    const std::vector<TextureManager::TextureResource*>& maskTextures() const noexcept { return _maskTextures; }
+    const std::vector<std::unique_ptr<Texture>>& maskTextures() const noexcept { return _maskTextures; }
 
   private:
     std::reference_wrapper<const Device> _device;
 
-    std::vector<TextureManager::TextureResource*> _colorTextures;
-    TextureManager::TextureResource* _depthTexture;
-    std::vector<TextureManager::TextureResource*> _maskTextures;
+    std::vector<std::unique_ptr<Texture>> _colorTextures;
+    std::unique_ptr<Texture> _depthTexture;
+    std::vector<std::unique_ptr<Texture>> _maskTextures;
 
     void _destroy() noexcept;
 };

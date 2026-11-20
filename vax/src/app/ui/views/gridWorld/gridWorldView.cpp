@@ -82,8 +82,11 @@ bool GridWorldView::_load() {
     });
     _gridWorld->createRandomGrid();
 
-    auto sceneLoader =
-        vax::gfx::SceneLoader(_renderEngine.get().vkEngine(), _renderEngine.get().resourceManager());
+    auto sceneLoader = vax::gfx::SceneLoader(
+        _renderEngine.get().vkEngine(),
+        *_renderEngine.get().vkEngine().pipelineManager,
+        _renderEngine.get().resourceManager()
+    );
     auto gridWorldSceneDescriptor = GridWorldSceneBuilder().buildScene(
         _gridWorld->getGrid(), _gridWorld->getDrawableWorldPosition(), _gridWorld->getAgent()
     );

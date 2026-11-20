@@ -3,9 +3,14 @@
 using namespace vax::gfx;
 using namespace vax;
 
-bool EnvironmentMap::load(const Descriptor& descriptor) noexcept {
+bool EnvironmentMap::load(
+    const Descriptor& descriptor,
+    rhi::ResourceManager& resourceManager,
+    rhi::TextureLoader& textureLoader,
+    vax::rhi::TextureGpuUploader& textureGpuUploader
+) noexcept {
     auto cubeMapSampler =
-        _resourceManager.get().textureManager().getGlobalSampler(rhi::TextureManager::GlobalSampler::CubeMapSampler);
+        resourceManager.samplerManager().getGlobalSampler(rhi::SamplerManager::GlobalSampler::CubeMapSampler);
     if (!cubeMapSampler) {
         _logger.error("Cube map sampler is missing!");
         return false;
@@ -18,23 +23,25 @@ bool EnvironmentMap::load(const Descriptor& descriptor) noexcept {
         .texBRDFLUT = NO_TEXTURE_FLAG,
         .texBRDFLUTSampler = cubeMapSampler->shaderHandle.index,
     };
-    for (const auto& texture : descriptor.textures) {
-        auto textureResource = _textureLoader->loadTexture(texture.second);
-        if (!textureResource) {
-            _logger.error("Failed to load texture: {}", texture.second);
+    for (const auto& textureDescriptor : descriptor.textures) {
+        auto texture = textureLoader.loadTexture(textureDescriptor.second);
+        textureGpuUploader.addTexture(texture.get());
+        if (!texture) {
+            _logger.error("Failed to load texture: {}", textureDescriptor.second);
             continue;
         }
-        switch (texture.first) {
+        switch (textureDescriptor.first) {
         case TextureType::EnvMap:
-            _environmentMapData.envMapTexture = textureResource->sampledShaderHandle.index;
+            _environmentMapData.envMapTexture = texture->sampledShaderHandle().index;
             break;
         case TextureType::EnvMapIrradiance:
-            _environmentMapData.envMapTextureIrradiance = textureResource->sampledShaderHandle.index;
+            _environmentMapData.envMapTextureIrradiance = texture->sampledShaderHandle().index;
             break;
         case TextureType::BRDFLUT:
-            _environmentMapData.texBRDFLUT = textureResource->sampledShaderHandle.index;
+            _environmentMapData.texBRDFLUT = texture->sampledShaderHandle().index;
             break;
         }
+        resourceManager.textureLibrary().addTexture(std::move(texture));
     }
     VkDeviceSize bufferSize = sizeof(EnvironmentMapData);
     auto allocation = EnvironmentMapBuffer::allocate(

@@ -33,11 +33,45 @@ void RenderPassGraphManager::setupRenderPassDescriptors(VkFormat imageFormat) {
 void RenderPassGraphManager::setupRenderDestinations(
     vax::rhi::CommandManager& commandManager, vax::rhi::QueueManager& queueManager, vax::rhi::Swapchain& swapchain
 ) {
+    if (_renderDestinations.contains("main") && _renderDestinations.contains("swapchain") &&
+        _renderDestinations.contains("shadow_sun")) {
+        // auto& mainRenderDestination = _renderDestinations.at("main");
+        // auto& swapchainRenderDestination = _renderDestinations.at("swapchain");
+        // auto& shadowSunRenderDestination = _renderDestinations.at("shadow_sun");
+        // for (auto& colorTexture : mainRenderDestination->colorTextures()) {
+        //     _pipelineManager.get().descriptorRegistry().releaseSampledTexture(colorTexture->sampledShaderHandle);
+        // }
+        // for (auto& maskTexture : mainRenderDestination->maskTextures()) {
+        //     _pipelineManager.get().descriptorRegistry().releaseSampledTexture(maskTexture->sampledShaderHandle);
+        // }
+        // _pipelineManager.get().descriptorRegistry().releaseSampledTexture(
+        //     mainRenderDestination->depthTexture()->sampledShaderHandle
+        // );
+        // for (auto& colorTexture : swapchainRenderDestination->colorTextures()) {
+        //     _pipelineManager.get().descriptorRegistry().releaseSampledTexture(colorTexture->sampledShaderHandle);
+        // }
+        // for (auto& maskTexture : swapchainRenderDestination->maskTextures()) {
+        //     _pipelineManager.get().descriptorRegistry().releaseSampledTexture(maskTexture->sampledShaderHandle);
+        // }
+        // _pipelineManager.get().descriptorRegistry().releaseSampledTexture(
+        //     swapchainRenderDestination->depthTexture()->sampledShaderHandle
+        // );
+        // for (auto& colorTexture : shadowSunRenderDestination->colorTextures()) {
+        //     _pipelineManager.get().descriptorRegistry().releaseSampledTexture(colorTexture->sampledShaderHandle);
+        // }
+        // for (auto& maskTexture : shadowSunRenderDestination->maskTextures()) {
+        //     _pipelineManager.get().descriptorRegistry().releaseSampledTexture(maskTexture->sampledShaderHandle);
+        // }
+        // _pipelineManager.get().descriptorRegistry().releaseSampledTexture(
+        //     shadowSunRenderDestination->depthTexture()->sampledShaderHandle
+        // );
+    }
+
     auto& mainRenderPassDescriptor = _renderPassDescriptors.at("main");
     auto& swapchainRenderPassDescriptor = _renderPassDescriptors.at("swapchain");
     auto& shadowSunRenderPassDescriptor = _renderPassDescriptors.at("shadow_sun");
 
-    auto renderDestinationBuilder = RenderDestinationBuilder(_device.get(), _resourceManager.get().textureManager());
+    auto renderDestinationBuilder = RenderDestinationBuilder(_device.get(), _pipelineManager.get().descriptorRegistry());
     auto mainRenderDestination = renderDestinationBuilder.buildMainOffscreen(
         commandManager, queueManager.graphicsQueue, swapchain.swapchainExtent, *mainRenderPassDescriptor
     );
@@ -80,7 +114,7 @@ void RenderPassGraphManager::setupRenderDestinationsForAgentCamera(
     auto& mainRenderPassDescriptor = _renderPassDescriptors.at("main");
     auto& swapchainRenderPassDescriptor = _renderPassDescriptors.at("swapchain");
 
-    auto renderDestinationBuilder = RenderDestinationBuilder(_device.get(), _resourceManager.get().textureManager());
+    auto renderDestinationBuilder = RenderDestinationBuilder(_device.get(), _pipelineManager.get().descriptorRegistry());
 
     auto agentCameraRenderDestination = renderDestinationBuilder.buildMainOffscreen(
         commandManager, queueManager.graphicsQueue, swapchain.swapchainExtent, *mainRenderPassDescriptor

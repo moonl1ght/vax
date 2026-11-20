@@ -9,7 +9,7 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildMainOffscreen(
 ) const noexcept {
     _logger.debug("Building main offscreen render destination...");
     VkFormat depthFormat = renderPassDescriptor.depthFormat;
-    auto depthTexture = _textureManager.get().createDepthTexture(depthFormat, math::SizeUI(extent));
+    auto depthTexture = _textureFactory->createDepthTexture(depthFormat, math::SizeUI(extent));
 
     if (!depthTexture) {
         return std::nullopt;
@@ -18,27 +18,26 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildMainOffscreen(
     auto textureTaskScheduler = TextureTaskScheduler(_device.get(), commandManager);
     textureTaskScheduler.transitionTextureLayoutAndSubmit(
         submitQueue,
-        depthTexture->texture,
+        *depthTexture,
         VK_IMAGE_LAYOUT_UNDEFINED,
         VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
         VK_IMAGE_ASPECT_DEPTH_BIT
     );
 
-
     VkImageUsageFlags colorImageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
-    std::vector<TextureManager::TextureResource*> colorTextures;
+    std::vector<std::unique_ptr<Texture>> colorTextures;
     colorTextures.reserve(MAX_FRAMES_IN_FLIGHT);
 
-    std::vector<TextureManager::TextureResource*> maskTextures;
+    std::vector<std::unique_ptr<Texture>> maskTextures;
     maskTextures.reserve(MAX_FRAMES_IN_FLIGHT);
 
     std::vector<VkFramebuffer> framebuffers;
     framebuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
     for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-        auto colorTexture = _textureManager.get().createTexture(
-            TextureManager::TextureCreateInfo{
+        auto colorTexture = _textureFactory->createTexture(
+            TextureFactory::TextureCreateInfo{
             .name = "main_offscreen_color_" + std::to_string(i),
             .format = renderPassDescriptor.imageFormat,
             .size = math::SizeUI(extent),
@@ -50,8 +49,8 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildMainOffscreen(
             return std::nullopt;
         }
 
-        auto maskTexture = _textureManager.get().createTexture(
-            TextureManager::TextureCreateInfo{
+        auto maskTexture = _textureFactory->createTexture(
+            TextureFactory::TextureCreateInfo{
             .name = "main_offscreen_mask_" + std::to_string(i),
             .format = VK_FORMAT_R32_UINT,
             .size = math::SizeUI(extent),
@@ -64,7 +63,7 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildMainOffscreen(
         }
 
         std::array<VkImageView, 3> attachments = {
-            colorTexture->texture.imageView(), maskTexture->texture.imageView(), depthTexture->texture.imageView()
+            colorTexture->imageView(), maskTexture->imageView(), depthTexture->imageView()
         };
         VkFramebufferCreateInfo framebufferInfo{
             .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
@@ -80,12 +79,16 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildMainOffscreen(
             return std::nullopt;
         }
 
-        colorTextures.push_back(colorTexture);
-        maskTextures.push_back(maskTexture);
+        colorTextures.push_back(std::move(colorTexture));
+        maskTextures.push_back(std::move(maskTexture));
     }
 
     return std::make_optional<RenderDestination>(
-        _device.get(), depthTexture, std::move(colorTextures), std::move(maskTextures), std::move(framebuffers)
+        _device.get(),
+        std::move(depthTexture),
+        std::move(colorTextures),
+        std::move(maskTextures),
+        std::move(framebuffers)
     );
 }
 
@@ -97,7 +100,7 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildSwapchain(
 ) const noexcept {
     _logger.info("Building swapchain render destination...");
     VkFormat depthFormat = renderPassDescriptor.depthFormat;
-    auto depthTexture = _textureManager.get().createDepthTexture(depthFormat, math::SizeUI(swapchain.swapchainExtent));
+    auto depthTexture = _textureFactory->createDepthTexture(depthFormat, math::SizeUI(swapchain.swapchainExtent));
 
     if (!depthTexture) {
         return std::nullopt;
@@ -106,18 +109,17 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildSwapchain(
     auto textureTaskScheduler = TextureTaskScheduler(_device.get(), commandManager);
     textureTaskScheduler.transitionTextureLayoutAndSubmit(
         submitQueue,
-        depthTexture->texture,
+        *depthTexture,
         VK_IMAGE_LAYOUT_UNDEFINED,
         VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
         VK_IMAGE_ASPECT_DEPTH_BIT
     );
 
-
     std::vector<VkFramebuffer> swapchainFramebuffers;
     swapchainFramebuffers.resize(swapchain.swapchainImageViews.size());
 
     for (size_t i = 0; i < swapchain.swapchainImageViews.size(); ++i) {
-        std::array<VkImageView, 2> attachments = {swapchain.swapchainImageViews[i], depthTexture->texture.imageView()};
+        std::array<VkImageView, 2> attachments = {swapchain.swapchainImageViews[i], depthTexture->imageView()};
 
         VkFramebufferCreateInfo framebufferInfo{
             .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
@@ -138,9 +140,9 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildSwapchain(
 
     return std::make_optional<RenderDestination>(
         _device.get(),
-        depthTexture,
-        std::vector<TextureManager::TextureResource*>(),
-        std::vector<TextureManager::TextureResource*>(),
+        std::move(depthTexture),
+        std::vector<std::unique_ptr<Texture>>(),
+        std::vector<std::unique_ptr<Texture>>(),
         std::move(swapchainFramebuffers)
     );
 }
@@ -150,7 +152,7 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildShadowSunOffscre
 ) const noexcept {
     _logger.info("Building shadow sun offscreen render destination...");
     VkFormat depthFormat = renderPassDescriptor.depthFormat;
-    auto depthTexture = _textureManager.get().createDepthTexture(depthFormat, math::SizeUI(extent));
+    auto depthTexture = _textureFactory->createDepthTexture(depthFormat, math::SizeUI(extent));
 
     if (!depthTexture) {
         return std::nullopt;
@@ -159,18 +161,17 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildShadowSunOffscre
     auto textureTaskScheduler = TextureTaskScheduler(_device.get(), commandManager);
     textureTaskScheduler.transitionTextureLayoutAndSubmit(
         submitQueue,
-        depthTexture->texture,
+        *depthTexture,
         VK_IMAGE_LAYOUT_UNDEFINED,
         VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
         VK_IMAGE_ASPECT_DEPTH_BIT
     );
 
-
     std::vector<VkFramebuffer> framebuffers;
     framebuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
     for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-        auto depthAttachmentRef = depthTexture->texture.imageView();
+        auto depthAttachmentRef = depthTexture->imageView();
 
         VkFramebufferCreateInfo framebufferInfo{
             .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
@@ -189,9 +190,9 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildShadowSunOffscre
 
     return std::make_optional<RenderDestination>(
         _device.get(),
-        depthTexture,
-        std::vector<TextureManager::TextureResource*>(),
-        std::vector<TextureManager::TextureResource*>(),
+        std::move(depthTexture),
+        std::vector<std::unique_ptr<Texture>>(),
+        std::vector<std::unique_ptr<Texture>>(),
         std::move(framebuffers)
     );
 }

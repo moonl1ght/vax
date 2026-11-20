@@ -8,16 +8,12 @@
 namespace vax::gfx {
 class JFAPass final : public RenderPassNode {
   public:
-    JFAPass(
-        std::string_view id,
-        const vax::rhi::Device& device,
-        vax::rhi::PipelineManager& pipelineManager,
-        vax::rhi::TextureManager& textureManager
-    ) noexcept
+    JFAPass(std::string_view id, const vax::rhi::Device& device, vax::rhi::PipelineManager& pipelineManager) noexcept
         : RenderPassNode(id)
         , _device(device)
-        , _pipelineManager(pipelineManager)
-        , _textureManager(textureManager) {};
+        , _pipelineManager(pipelineManager) {
+        _textureFactory = std::make_unique<vax::rhi::TextureFactory>(device, pipelineManager.descriptorRegistry());
+    };
 
     ~JFAPass() = default;
 
@@ -30,11 +26,11 @@ class JFAPass final : public RenderPassNode {
 
     void update(std::weak_ptr<vax::rhi::RenderDestination> inputRenderDestination);
 
-    const SampledImageShaderHandle& outputImage(RunPassInfo& runPassInfo) const {
+    SampledImageShaderHandle outputImage(RunPassInfo& runPassInfo) const {
         if (_isFinalImageA) {
-            return _jfaTexturesA[runPassInfo.frameIndex]->sampledShaderHandle;
+            return _jfaTexturesA[runPassInfo.frameIndex]->sampledShaderHandle();
         } else {
-            return _jfaTexturesB[runPassInfo.frameIndex]->sampledShaderHandle;
+            return _jfaTexturesB[runPassInfo.frameIndex]->sampledShaderHandle();
         }
     }
 
@@ -44,19 +40,19 @@ class JFAPass final : public RenderPassNode {
     dev::Logger _logger = dev::Logger("JFAPass");
     std::reference_wrapper<const vax::rhi::Device> _device;
     std::reference_wrapper<const vax::rhi::PipelineManager> _pipelineManager;
-    std::reference_wrapper<vax::rhi::TextureManager> _textureManager;
+    std::unique_ptr<vax::rhi::TextureFactory> _textureFactory;
     std::optional<vax::rhi::Pipeline> _initPipeline;
     std::optional<vax::rhi::Pipeline> _stepPipeline;
-    std::vector<vax::rhi::TextureManager::TextureResource*> _inputMaskTextures;
-    const vax::rhi::TextureManager::TextureResource* _inputDepthTextures;
-    std::vector<vax::rhi::TextureManager::TextureResource*> _jfaTexturesA;
-    std::vector<vax::rhi::TextureManager::TextureResource*> _jfaTexturesB;
+    const std::vector<std::unique_ptr<vax::rhi::Texture>>* _inputMaskTextures;
+    vax::rhi::Texture* _inputDepthTextures;
+    std::vector<std::unique_ptr<vax::rhi::Texture>> _jfaTexturesA;
+    std::vector<std::unique_ptr<vax::rhi::Texture>> _jfaTexturesB;
     std::weak_ptr<vax::rhi::RenderDestination> _inputRenderDestination;
     bool _isFinalImageA = true;
 
     void _createTextures(
-        const std::vector<vax::rhi::TextureManager::TextureResource*>& maskTextures,
-        const vax::rhi::TextureManager::TextureResource* depthTexture
+        const std::vector<std::unique_ptr<vax::rhi::Texture>>& maskTextures,
+        const std::unique_ptr<vax::rhi::Texture>& depthTexture
     );
 };
 } // namespace vax::gfx

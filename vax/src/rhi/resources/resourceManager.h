@@ -4,8 +4,10 @@
 #include "logger.h"
 #include "materialManager.h"
 #include "meshManager.h"
+#include "samplerManager.h"
 #include "ssboManager.h"
-#include "textureManager.h"
+#include "textureFactory.h"
+#include "textureLibrary.h"
 #include <cstdint>
 
 namespace vax::rhi {
@@ -14,7 +16,8 @@ class ResourceManager final {
     explicit ResourceManager(const vax::rhi::Device& device, DescriptorRegistry& descriptorRegistry)
         : _bufferManager(device)
         , _meshManager(device)
-        , _textureManager(device, descriptorRegistry)
+        , _samplerManager(device, descriptorRegistry)
+        , _textureLibrary()
         , _materialManager(device)
         , _ssboManager(device) {};
 
@@ -29,13 +32,17 @@ class ResourceManager final {
 
     bool load(uint32_t maxInstances) noexcept;
 
+    SamplerManager& samplerManager() { return _samplerManager; }
+
+    const SamplerManager& samplerManager() const { return _samplerManager; }
+
+    TextureLibrary& textureLibrary() { return _textureLibrary; }
+
+    const TextureLibrary& textureLibrary() const { return _textureLibrary; }
+
     BufferManager& bufferManager() { return _bufferManager; }
 
     MeshManager& meshManager() { return _meshManager; }
-
-    TextureManager& textureManager() { return _textureManager; }
-
-    const TextureManager& textureManager() const { return _textureManager; }
 
     MaterialManager& materialManager() { return _materialManager; }
 
@@ -46,7 +53,8 @@ class ResourceManager final {
 
     BufferManager _bufferManager;
     MeshManager _meshManager;
-    TextureManager _textureManager;
+    SamplerManager _samplerManager;
+    TextureLibrary _textureLibrary;
     MaterialManager _materialManager;
     SSBOManager _ssboManager;
 

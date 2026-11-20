@@ -5,6 +5,7 @@
 #include "prefabSpawner.h"
 #include "resourceManager.h"
 #include "sceneDescriptor.h"
+#include "textureLoader.h"
 #include <fstream>
 #include <nlohmann/json.hpp>
 
@@ -24,6 +25,17 @@ SceneLoader::SceneWorldPair SceneLoader::load(SceneDescriptor& descriptor) {
     auto scene = _initScene(*world, descriptor);
     scene->load(descriptor);
     scene->setWorld(world);
+    auto loadQueue = _vkEngine.get().queueManager->graphicsQueue;
+    auto loadCommandBuffer = _vkEngine.get().commandManager->createSingleTimeCommandBuffer();
+
+    loadCommandBuffer.begin();
+
+    _textureGpuUploader->uploadTextures(loadCommandBuffer);
+
+    loadCommandBuffer.end();
+    loadCommandBuffer.submitAndWait(loadQueue);
+
+    _textureGpuUploader->resetAllTexturesStagingBuffers();
     return std::make_pair(std::move(scene), std::move(world));
 }
 
@@ -43,17 +55,29 @@ std::unique_ptr<Scene> SceneLoader::_initScene(ecs::World& world, const SceneDes
     std::unique_ptr<ecs::World> backgroundWorld = std::make_unique<ecs::World>();
     auto maxDrawableInstances = vax::rhi::MAX_DRAWABLE_INSTANCES;
     _resourceManager.get().load(maxDrawableInstances);
-    auto environmentMap = std::make_unique<EnvironmentMap>(*_vkEngine.get().device, _resourceManager.get());
-    auto assetsLibrary =
-        std::make_unique<AssetsLibrary>(*_vkEngine.get().device, maxDrawableInstances, _resourceManager.get());
+    auto environmentMap = std::make_unique<EnvironmentMap>(*_vkEngine.get().device);
+    auto assetsLibrary = std::make_unique<AssetsLibrary>(
+        *_vkEngine.get().device,
+        maxDrawableInstances,
+        _resourceManager.get(),
+        *_textureGpuUploader,
+        _pipelineManager.get().descriptorRegistry()
+    );
 
-    environmentMap->load({
-        .textures = {
-        {gfx::EnvironmentMap::TextureType::BRDFLUT, RES_PATH("brdf/brdfLUT.ktx")},
-        {gfx::EnvironmentMap::TextureType::EnvMapIrradiance, RES_PATH("brdf/irradiance.ktx")},
-        {gfx::EnvironmentMap::TextureType::EnvMap, RES_PATH("brdf/prefilter.ktx")},
+    auto textureLoader = rhi::TextureLoader(*_vkEngine.get().device, _pipelineManager.get().descriptorRegistry());
+    environmentMap->load(
+        {
+        .textures =
+            {
+            {gfx::EnvironmentMap::TextureType::BRDFLUT, RES_PATH("brdf/brdfLUT.ktx")},
+            {gfx::EnvironmentMap::TextureType::EnvMapIrradiance, RES_PATH("brdf/irradiance.ktx")},
+            {gfx::EnvironmentMap::TextureType::EnvMap, RES_PATH("brdf/prefilter.ktx")},
+            },
         },
-    });
+        _resourceManager.get(),
+        textureLoader,
+        *_textureGpuUploader
+    );
 
     PrefabDescriptor backgroundDescriptor = {
         .prefabType = vax::gfx::PrefabDescriptor::PrefabType::PRESET,

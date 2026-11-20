@@ -5,9 +5,24 @@
 using namespace vax::rhi;
 using namespace vax;
 
-void Texture::cleanup() { _destroy(); }
+void Texture::registerTexture() noexcept {
+    switch (_registrationType) {
+    case RegistrationType::SampledImage:
+        _sampledShaderHandle = _descriptorRegistry.get().registerSampledTextures({this}).value().front();
+        break;
+    case RegistrationType::StorageImage:
+        _storageShaderHandle = _descriptorRegistry.get().registerStorageTextures({this}).value().front();
+        break;
+    case RegistrationType::Both: {
+        _sampledShaderHandle = _descriptorRegistry.get().registerSampledTextures({this}).value().front();
+        _storageShaderHandle = _descriptorRegistry.get().registerStorageTextures({this}).value().front();
+    } break;
+    }
+}
 
 void Texture::_destroy() {
+    _descriptorRegistry.get().releaseSampledTexture(_sampledShaderHandle);
+    _descriptorRegistry.get().releaseStorageTexture(_storageShaderHandle);
     if (_imageView != VK_NULL_HANDLE) {
         vkDestroyImageView(_device.get().vkDevice(), _imageView, nullptr);
         _imageView = VK_NULL_HANDLE;
@@ -21,6 +36,8 @@ void Texture::_destroy() {
     _size = math::SizeUI::zero();
     _format = VK_FORMAT_UNDEFINED;
     _aspectMask = VK_IMAGE_ASPECT_NONE;
+    _sampledShaderHandle = {};
+    _storageShaderHandle = {};
 }
 
 void Texture::loadImageView(VkImageViewType viewType, uint32_t layerCount, uint32_t levelCount) {

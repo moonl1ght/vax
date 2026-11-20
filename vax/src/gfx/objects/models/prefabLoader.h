@@ -9,10 +9,17 @@
 namespace vax::gfx {
 class PrefabLoader {
   public:
-    PrefabLoader(const vax::rhi::Device& device, vax::rhi::ResourceManager& resourceManager)
-        : _resourceManager(resourceManager) {
-        _modelLoader = std::make_unique<vax::gfx::ModelLoader>(device, resourceManager);
-        _textureLoader = std::make_unique<vax::rhi::TextureLoader>(device, resourceManager.textureManager());
+    PrefabLoader(
+        const vax::rhi::Device& device,
+        vax::rhi::ResourceManager& resourceManager,
+        vax::rhi::TextureGpuUploader& textureGpuUploader,
+        vax::rhi::DescriptorRegistry& descriptorRegistry
+    )
+        : _resourceManager(resourceManager)
+        , _textureGpuUploader(textureGpuUploader) {
+        _modelLoader =
+            std::make_unique<vax::gfx::ModelLoader>(device, resourceManager, textureGpuUploader, descriptorRegistry);
+        _textureLoader = std::make_unique<vax::rhi::TextureLoader>(device, descriptorRegistry);
         _primitivesBuilder = std::make_unique<vax::gfx::PrimitivesBuilder>(resourceManager);
     };
 
@@ -29,6 +36,7 @@ class PrefabLoader {
     dev::Logger _logger = dev::Logger("PrefabLoader");
 
     std::reference_wrapper<vax::rhi::ResourceManager> _resourceManager;
+    std::reference_wrapper<vax::rhi::TextureGpuUploader> _textureGpuUploader;
 
     std::unique_ptr<vax::gfx::ModelLoader> _modelLoader;
     std::unique_ptr<vax::rhi::TextureLoader> _textureLoader;

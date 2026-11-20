@@ -2,6 +2,7 @@
 
 #include "buffer.h"
 #include "indexAllocator.h"
+#include "logger.h"
 #include "poolDescriptor.h"
 #include "shaderResourceHandle.h"
 #include <span>
@@ -103,6 +104,8 @@ class DescriptorRegistry {
     }
 
   private:
+    dev::Logger _logger = dev::Logger("DescriptorRegistry");
+
     template <typename Handle>
     static std::optional<std::vector<Handle>>
     _toHandles(std::optional<std::vector<ShaderResourceIndex>> indices) noexcept {

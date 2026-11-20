@@ -4,7 +4,7 @@
 
 using namespace vax::rhi;
 
-TextureManager::TextureResource* TextureGenerator::generateCheckerboardTexture(
+std::unique_ptr<Texture> TextureGenerator::generateCheckerboardTexture(
     const std::string& name, int width, int height, int cellSize
 ) const noexcept {
     std::vector<uint8_t> pixels(width * height * 4);

@@ -97,8 +97,7 @@ VkFormat getVkFormatFromGlInternalFormat(uint32_t glInternalFormat) noexcept {
     }
 }
 
-TextureManager::TextureResource*
-TextureLoader::loadTexture(std::string name, std::span<unsigned char> data) const noexcept {
+std::unique_ptr<Texture> TextureLoader::loadTexture(std::string name, std::span<unsigned char> data) const noexcept {
     int texWidth, texHeight, texChannels;
     stbi_uc* pixels =
         stbi_load_from_memory(data.data(), data.size(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
@@ -111,7 +110,7 @@ TextureLoader::loadTexture(std::string name, std::span<unsigned char> data) cons
     return texture;
 }
 
-TextureManager::TextureResource* TextureLoader::loadRawRGBATexture(
+std::unique_ptr<Texture> TextureLoader::loadRawRGBATexture(
     std::string name, std::span<const unsigned char> pixels, int width, int height
 ) const noexcept {
     if (width <= 0 || height <= 0 || pixels.size() != static_cast<size_t>(width) * height * 4) {
@@ -121,7 +120,7 @@ TextureManager::TextureResource* TextureLoader::loadRawRGBATexture(
     return _loadTexture(name, pixels.data(), width, height);
 }
 
-TextureManager::TextureResource* TextureLoader::loadTexture(std::string path) const noexcept {
+std::unique_ptr<Texture> TextureLoader::loadTexture(std::string path) const noexcept {
     if (path.ends_with(".ktx")) {
         return _loadKTXTexture(path);
     }
@@ -136,7 +135,7 @@ TextureManager::TextureResource* TextureLoader::loadTexture(std::string path) co
     return texture;
 }
 
-TextureManager::TextureResource* TextureLoader::_loadKTXTexture(std::string path) const noexcept {
+std::unique_ptr<Texture> TextureLoader::_loadKTXTexture(std::string path) const noexcept {
     ktxTexture* ktxTex = nullptr;
     ktxResult result = ktxTexture_CreateFromNamedFile(path.c_str(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &ktxTex);
     if (result != KTX_SUCCESS) {
@@ -206,8 +205,8 @@ TextureManager::TextureResource* TextureLoader::_loadKTXTexture(std::string path
 
     ktxTexture_Destroy(ktxTex);
 
-    auto textureResource = _textureManager.get().createTexture(
-        TextureManager::TextureCreateInfo{
+    auto texture = _textureFactory->createTexture(
+        TextureFactory::TextureCreateInfo{
         .name = path,
         .format = format,
         .size = math::SizeUI(width, height),
@@ -217,16 +216,16 @@ TextureManager::TextureResource* TextureLoader::_loadKTXTexture(std::string path
         .numMips = numMips
         }
     );
-    if (!textureResource) {
+    if (!texture) {
         stagingBuffer->cleanup();
         return nullptr;
     }
 
-    textureResource->texture.setStagingBuffer(std::move(*stagingBuffer), std::move(copyRegions));
-    return textureResource;
+    texture->setStagingBuffer(std::move(*stagingBuffer), std::move(copyRegions));
+    return texture;
 }
 
-TextureManager::TextureResource*
+std::unique_ptr<Texture>
 TextureLoader::_loadTexture(std::string name, const unsigned char* pixels, int texWidth, int texHeight) const noexcept {
     VkDeviceSize imageSize = texWidth * texHeight * 4;
     auto stagingBuffer = rhi::AnyBuffer::allocateAndFillData(
@@ -243,8 +242,8 @@ TextureLoader::_loadTexture(std::string name, const unsigned char* pixels, int t
         return nullptr;
     }
 
-    auto textureResource = _textureManager.get().createTexture(
-        TextureManager::TextureCreateInfo{
+    auto texture = _textureFactory->createTexture(
+        TextureFactory::TextureCreateInfo{
         .name = name,
         .format = VK_FORMAT_R8G8B8A8_SRGB,
         .size = math::SizeUI(texWidth, texHeight),
@@ -252,10 +251,10 @@ TextureLoader::_loadTexture(std::string name, const unsigned char* pixels, int t
         }
     );
 
-    if (!textureResource) {
+    if (!texture) {
         return nullptr;
     }
 
-    textureResource->texture.setStagingBuffer(std::move(*stagingBuffer));
-    return textureResource;
+    texture->setStagingBuffer(std::move(*stagingBuffer));
+    return texture;
 }

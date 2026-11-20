@@ -14,11 +14,16 @@ class AssetsLibrary {
     friend class ModelLoader;
 
     explicit AssetsLibrary(
-        const vax::rhi::Device& device, uint32_t maxDrawableInstances, vax::rhi::ResourceManager& resourceManager
+        const vax::rhi::Device& device,
+        uint32_t maxDrawableInstances,
+        vax::rhi::ResourceManager& resourceManager,
+        vax::rhi::TextureGpuUploader& textureGpuUploader,
+        vax::rhi::DescriptorRegistry& descriptorRegistry
     )
         : _resourceManager(resourceManager)
         , _maxDrawableInstances(maxDrawableInstances) {
-        _prefabLoader = std::make_unique<vax::gfx::PrefabLoader>(device, resourceManager);
+        _prefabLoader =
+            std::make_unique<vax::gfx::PrefabLoader>(device, resourceManager, textureGpuUploader, descriptorRegistry);
         _drawableModels.reserve(_maxDrawableInstances);
     };
 

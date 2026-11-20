@@ -20,7 +20,7 @@ It runs the full loop inside one engine: sensors → policy → actions → phys
 - 🟢 **Engine v0.1** — real-time Vulkan renderer and the base to build the simulator on:
   bindless resources, PBR with IBL, shadows, render pass graph, CPU-driven indirect drawing,
   compute passes, Slang shaders, ECS, glTF/KTX asset loading.
-- ⚪ **Simulation loop** — fixed-step simulation decoupled from rendering, headless mode, offscreen sensors
+- 🟡 **Simulation loop** — fixed-step simulation decoupled from rendering, headless mode, offscreen sensors
 - 🟡 **Physics** — rigid bodies, colliders, joints, URDF robots
 - ⚪ **Policy training & inference** — RL and VLA models controlling the rover inside the simulation loop
 - ⚪ **Real2Sim** — scanned real rooms as environments: meshes for physics, Gaussian splats for cameras

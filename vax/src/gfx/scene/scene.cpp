@@ -51,18 +51,6 @@ void Scene::load(const vax::gfx::SceneDescriptor& descriptor) {
 
     _indirectDrawController->setup(10000, _vkEngine.get().pipelineManager->descriptorRegistry());
 
-    auto loadQueue = _vkEngine.get().queueManager->graphicsQueue;
-    auto loadCommandBuffer = _vkEngine.get().commandManager->createSingleTimeCommandBuffer();
-
-    loadCommandBuffer.begin();
-
-    _resourceManager.get().textureManager().loadAllTextures(loadCommandBuffer);
-
-    loadCommandBuffer.end();
-    loadCommandBuffer.submitAndWait(loadQueue);
-
-    _resourceManager.get().textureManager().resetAllTexturesStagingBuffers();
-
     registerResources();
 
     auto sunCamera = Camera();
@@ -112,7 +100,7 @@ void Scene::prepareForDraw(gfx::RenderCallContext renderCallContext) {
         lightData->lights[sunLightUbo].shadowMapIndex = renderCallContext.shadowMapIndex;
         lightData->lights[sunLightUbo].radius = 10.0f;
         auto pbrSampler =
-            _resourceManager.get().textureManager().getGlobalSampler(TextureManager::GlobalSampler::PBRSampler);
+            _resourceManager.get().samplerManager().getGlobalSampler(SamplerManager::GlobalSampler::PBRSampler);
         if (pbrSampler) {
             lightData->lights[sunLightUbo].shadowMapSamplerIndex = pbrSampler->shaderHandle.index;
         } else {
@@ -158,7 +146,6 @@ void Scene::resize() {
 
 void Scene::registerResources() noexcept {
     auto& registry = _vkEngine.get().pipelineManager->descriptorRegistry();
-    auto& textureManager = _resourceManager.get().textureManager();
 
     if (_resourcesRegistered) {
         _releaseResources();

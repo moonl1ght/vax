@@ -57,12 +57,12 @@ void Renderer::_prepareForRender(Scene* scene) {
     ZoneScopedN("Renderer::prepareForRender");
     bool shouldRebuildGraph = renderPassGraphMode.is_dirty() || _wasResized;
     if (scene != nullptr) {
-        auto shadowMapResource = _renderPassGraphManager->getRenderDestination("shadow_sun")->depthTexture();
+        auto& shadowMapResource = _renderPassGraphManager->getRenderDestination("shadow_sun")->depthTexture();
         scene->prepareForDraw(
             gfx::RenderCallContext{
             .currentFrame = _currentFrame,
             .shadowMapIndex =
-                shadowMapResource ? shadowMapResource->sampledShaderHandle.index : NullShaderResourceIndex,
+                shadowMapResource ? shadowMapResource->sampledShaderHandle().index : NullShaderResourceIndex,
             }
         );
 
@@ -297,19 +297,15 @@ bool Renderer::_drawScene(CommandBuffer& commandBuffer, Scene* scene) {
     auto mainRenderDestination = _renderPassGraphManager->getRenderDestination("main");
     bool drawSecondaryWindow = scene->renderPassGraphDescriptor().withSecondaryWindow;
     if (_currentFrame < mainRenderDestination->colorTextures().size()) {
-        frameTextures.mainColor =
-            SampledImageShaderHandle(mainRenderDestination->colorTextures()[_currentFrame]->sampledShaderHandle.index);
-        frameTextures.mainMask =
-            SampledImageShaderHandle(mainRenderDestination->maskTextures()[_currentFrame]->sampledShaderHandle.index);
-        frameTextures.mainDepth =
-            SampledImageShaderHandle(mainRenderDestination->depthTexture()->sampledShaderHandle.index);
+        frameTextures.mainColor = mainRenderDestination->colorTextures()[_currentFrame]->sampledShaderHandle();
+        frameTextures.mainMask = mainRenderDestination->maskTextures()[_currentFrame]->sampledShaderHandle();
+        frameTextures.mainDepth = mainRenderDestination->depthTexture()->sampledShaderHandle();
     }
     if (drawSecondaryWindow) {
         auto agentCameraRenderDestination = _renderPassGraphManager->getRenderDestination("agent_camera_main");
         if (_currentFrame < agentCameraRenderDestination->colorTextures().size()) {
-            frameTextures.agentCameraColor = SampledImageShaderHandle(
-                agentCameraRenderDestination->colorTextures()[_currentFrame]->sampledShaderHandle.index
-            );
+            frameTextures.agentCameraColor =
+                agentCameraRenderDestination->colorTextures()[_currentFrame]->sampledShaderHandle();
         }
     }
 

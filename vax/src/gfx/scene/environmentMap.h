@@ -4,6 +4,8 @@
 #include "logger.h"
 #include "resourceManager.h"
 #include "shaderData.h"
+#include "textureGpuUploader.h"
+#include "textureLibrary.h"
 #include "textureLoader.h"
 #include <memory>
 #include <string>
@@ -25,11 +27,8 @@ class EnvironmentMap final {
         std::vector<std::pair<TextureType, std::string>> textures;
     };
 
-    EnvironmentMap(const vax::rhi::Device& device, vax::rhi::ResourceManager& resourceManager) noexcept
-        : _device(device)
-        , _resourceManager(resourceManager) {
-        _textureLoader = std::make_unique<vax::rhi::TextureLoader>(device, resourceManager.textureManager());
-    };
+    EnvironmentMap(const vax::rhi::Device& device) noexcept
+        : _device(device) {};
 
     ~EnvironmentMap() = default;
 
@@ -38,7 +37,12 @@ class EnvironmentMap final {
     EnvironmentMap& operator=(const EnvironmentMap& other) = delete;
     EnvironmentMap& operator=(EnvironmentMap&& other) noexcept = delete;
 
-    bool load(const Descriptor& descriptor) noexcept;
+    bool load(
+        const Descriptor& descriptor,
+        rhi::ResourceManager& resourceManager,
+        rhi::TextureLoader& textureLoader,
+        vax::rhi::TextureGpuUploader& textureGpuUploader
+    ) noexcept;
 
     const EnvironmentMapBuffer& environmentMapBuffer() const noexcept { return *_buffer; }
 
@@ -46,10 +50,8 @@ class EnvironmentMap final {
     dev::Logger _logger = dev::Logger("EnvironmentMap");
 
     std::reference_wrapper<const vax::rhi::Device> _device;
-    std::reference_wrapper<const vax::rhi::ResourceManager> _resourceManager;
 
     std::unique_ptr<EnvironmentMapBuffer> _buffer = nullptr;
-    std::unique_ptr<vax::rhi::TextureLoader> _textureLoader = nullptr;
 
     EnvironmentMapData _environmentMapData;
 };

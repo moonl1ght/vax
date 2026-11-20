@@ -18,7 +18,7 @@ class TextureGenerator final {
     TextureGenerator& operator=(const TextureGenerator& other) = delete;
     TextureGenerator& operator=(TextureGenerator&& other) noexcept = delete;
 
-    TextureManager::TextureResource*
+    std::unique_ptr<Texture>
     generateCheckerboardTexture(const std::string& name, int width, int height, int cellSize) const noexcept;
 
   private:

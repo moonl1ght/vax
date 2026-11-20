@@ -5,7 +5,6 @@ using namespace vax::rhi;
 void ResourceManager::_cleanup() {
     _bufferManager.fullCleanup();
     _meshManager.fullCleanup();
-    _textureManager.cleanup();
     _materialManager.cleanup();
     _ssboManager.cleanup();
     _logger.debug("ResourceManager cleanup completed");
@@ -21,7 +20,7 @@ bool ResourceManager::load(uint32_t maxInstances) noexcept {
 }
 
 bool ResourceManager::setup() noexcept {
-    if (!_textureManager.setup())
+    if (!_samplerManager.setup())
         return false;
     return true;
 }

@@ -4,6 +4,7 @@
 #include "resourceManager.h"
 #include "scene.h"
 #include "sceneDescriptor.h"
+#include "textureGpuUploader.h"
 #include "world.h"
 
 namespace vax::gfx {
@@ -12,9 +13,17 @@ class SceneLoader {
   public:
     typedef std::pair<std::unique_ptr<Scene>, std::shared_ptr<ecs::World>> SceneWorldPair;
 
-    SceneLoader(vax::rhi::Engine& vkEngine, vax::rhi::ResourceManager& resourceManager)
+    SceneLoader(
+        vax::rhi::Engine& vkEngine,
+        vax::rhi::PipelineManager& pipelineManager,
+        vax::rhi::ResourceManager& resourceManager
+    )
         : _vkEngine(vkEngine)
-        , _resourceManager(resourceManager) {}
+        , _pipelineManager(pipelineManager)
+        , _resourceManager(resourceManager) {
+        _textureGpuUploader = std::make_unique<vax::rhi::TextureGpuUploader>();
+    }
+
     ~SceneLoader() = default;
 
     SceneLoader(const SceneLoader& other) = delete;
@@ -30,7 +39,10 @@ class SceneLoader {
     dev::Logger _logger = dev::Logger("SceneLoader");
 
     std::reference_wrapper<vax::rhi::Engine> _vkEngine;
+    std::reference_wrapper<vax::rhi::PipelineManager> _pipelineManager;
     std::reference_wrapper<vax::rhi::ResourceManager> _resourceManager;
+
+    std::unique_ptr<vax::rhi::TextureGpuUploader> _textureGpuUploader;
 
     std::string _name;
 

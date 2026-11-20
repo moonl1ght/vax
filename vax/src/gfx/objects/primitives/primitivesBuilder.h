@@ -2,7 +2,6 @@
 
 #include "drawableModel.h"
 #include "resourceManager.h"
-#include "textureManager.h"
 
 namespace vax::gfx {
 class PrimitivesBuilder {

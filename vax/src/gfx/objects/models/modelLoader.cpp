@@ -23,7 +23,8 @@ constexpr glm::mat4 toGlm(const aiMatrix4x4& m) {
     };
 }
 
-uint32_t loadTexture(aiString& textureName, vax::rhi::TextureLoader& textureLoader, const aiScene* scene) {
+std::unique_ptr<Texture>
+loadTexture(aiString& textureName, vax::rhi::TextureLoader& textureLoader, const aiScene* scene) {
     if (textureName.length > 0) {
         const aiTexture* embeddedTexture = scene->GetEmbeddedTexture(textureName.C_Str());
         if (embeddedTexture) {
@@ -34,24 +35,21 @@ uint32_t loadTexture(aiString& textureName, vax::rhi::TextureLoader& textureLoad
             auto data = std::span<unsigned char>(reinterpret_cast<unsigned char*>(textData), size);
             std::string name =
                 std::string(scene->mRootNode->mName.C_Str()) + "_baseColorTexture_" + std::string(textureName.C_Str());
-            auto texture = textureLoader.loadTexture(name, data);
-            if (texture) {
-                return texture->sampledShaderHandle.index;
-            }
-            return NO_TEXTURE_FLAG;
+            return textureLoader.loadTexture(name, data);
         } else {
-            auto texture = textureLoader.loadTexture(textureName.C_Str());
-            if (texture) {
-                return texture->sampledShaderHandle.index;
-            }
-            return NO_TEXTURE_FLAG;
+            return textureLoader.loadTexture(textureName.C_Str());
         }
     }
-    return NO_TEXTURE_FLAG;
+    return nullptr;
 }
 
 PBRMaterial processMaterial(
-    aiMaterial* mat, vax::rhi::TextureLoader& textureLoader, const aiScene* scene, SamplerShaderHandle samplerId
+    aiMaterial* mat,
+    vax::rhi::TextureLoader& textureLoader,
+    vax::rhi::TextureGpuUploader& textureGpuUploader,
+    vax::rhi::TextureLibrary& textureLibrary,
+    const aiScene* scene,
+    SamplerShaderHandle samplerId
 ) {
     PBRMaterial material{
         .baseColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
@@ -122,15 +120,54 @@ PBRMaterial processMaterial(
     mat->GetTexture(aiTextureType_AMBIENT_OCCLUSION, 0, &aoTextureName, nullptr, &material.aoTextureUVIndex);
     mat->GetTexture(aiTextureType_EMISSIVE, 0, &emissiveTextureName, nullptr, &material.emissiveTextureUVIndex);
 
-    material.baseColorTextureIndex = loadTexture(baseColorTextureName, textureLoader, scene);
+    auto baseColorTexture = loadTexture(baseColorTextureName, textureLoader, scene);
+    if (baseColorTexture) {
+        textureGpuUploader.addTexture(baseColorTexture.get());
+        material.baseColorTextureIndex = baseColorTexture->sampledShaderHandle().index;
+        textureLibrary.addTexture(std::move(baseColorTexture));
+    } else {
+        material.baseColorTextureIndex = NO_TEXTURE_FLAG;
+    }
     material.baseColorTextureSamplerIndex = samplerId.index;
-    material.normalMapTextureIndex = loadTexture(normalMapTextureName, textureLoader, scene);
+
+    auto normalMapTexture = loadTexture(normalMapTextureName, textureLoader, scene);
+    if (normalMapTexture) {
+        textureGpuUploader.addTexture(normalMapTexture.get());
+        material.normalMapTextureIndex = normalMapTexture->sampledShaderHandle().index;
+        textureLibrary.addTexture(std::move(normalMapTexture));
+    } else {
+        material.normalMapTextureIndex = NO_TEXTURE_FLAG;
+    }
     material.normalMapTextureSamplerIndex = samplerId.index;
-    material.metallicRoughnessTextureIndex = loadTexture(metallicRoughnessTextureName, textureLoader, scene);
+
+    auto metallicRoughnessTexture = loadTexture(metallicRoughnessTextureName, textureLoader, scene);
+    if (metallicRoughnessTexture) {
+        textureGpuUploader.addTexture(metallicRoughnessTexture.get());
+        material.metallicRoughnessTextureIndex = metallicRoughnessTexture->sampledShaderHandle().index;
+        textureLibrary.addTexture(std::move(metallicRoughnessTexture));
+    } else {
+        material.metallicRoughnessTextureIndex = NO_TEXTURE_FLAG;
+    }
     material.metallicRoughnessTextureSamplerIndex = samplerId.index;
-    material.aoTextureIndex = loadTexture(aoTextureName, textureLoader, scene);
+
+    auto aoTexture = loadTexture(aoTextureName, textureLoader, scene);
+    if (aoTexture) {
+        textureGpuUploader.addTexture(aoTexture.get());
+        material.aoTextureIndex = aoTexture->sampledShaderHandle().index;
+        textureLibrary.addTexture(std::move(aoTexture));
+    } else {
+        material.aoTextureIndex = NO_TEXTURE_FLAG;
+    }
     material.aoTextureSamplerIndex = samplerId.index;
-    material.emissiveTextureIndex = loadTexture(emissiveTextureName, textureLoader, scene);
+
+    auto emissiveTexture = loadTexture(emissiveTextureName, textureLoader, scene);
+    if (emissiveTexture) {
+        textureGpuUploader.addTexture(emissiveTexture.get());
+        material.emissiveTextureIndex = emissiveTexture->sampledShaderHandle().index;
+        textureLibrary.addTexture(std::move(emissiveTexture));
+    } else {
+        material.emissiveTextureIndex = NO_TEXTURE_FLAG;
+    }
     material.emissiveTextureSamplerIndex = samplerId.index;
 
     return material;
@@ -240,7 +277,7 @@ std::optional<DrawableModel> ModelLoader::loadModel(const std::string& path, uin
     }
 
     auto pbrSamplerId =
-        _resourceManager.get().textureManager().getGlobalSampler(TextureManager::GlobalSampler::PBRSampler);
+        _resourceManager.get().samplerManager().getGlobalSampler(SamplerManager::GlobalSampler::PBRSampler);
     if (!pbrSamplerId) {
         _logger.error("Failed to get PBR sampler");
         return std::nullopt;
@@ -261,7 +298,14 @@ std::optional<DrawableModel> ModelLoader::loadModel(const std::string& path, uin
     std::vector<PBRMaterial> materials;
     materials.reserve(scene->mNumMaterials);
     for (unsigned int i = 0; i < scene->mNumMaterials; i++) {
-        materials.push_back(processMaterial(scene->mMaterials[i], *_textureLoader, scene, pbrSamplerId->shaderHandle));
+        materials.push_back(processMaterial(
+            scene->mMaterials[i],
+            *_textureLoader,
+            _textureGpuUploader.get(),
+            _resourceManager.get().textureLibrary(),
+            scene,
+            pbrSamplerId->shaderHandle
+        ));
     }
 
     auto materialIds = _resourceManager.get().materialManager().insertMaterials(materials);

@@ -119,9 +119,7 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
         mainPass->addSubpass(std::move(gizmoSubpass));
     }
 
-    auto jfaPass = std::make_shared<JFAPass>(
-        "jfa_pass", _device.get(), _pipelineManager.get(), _resourceManager.get().textureManager()
-    );
+    auto jfaPass = std::make_shared<JFAPass>("jfa_pass", _device.get(), _pipelineManager.get());
     jfaPass->setup(renderDestinations.at("main"));
 
     auto finalBlendPass = std::make_shared<RenderPass>(
@@ -140,7 +138,7 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
                                  &resourceManager = _resourceManager.get(),
                                  jfa = jfaPass.get()](RenderPass::RunPassInfo& runPassInfo, DrawContext& drawContext) {
         const auto& pbrSampler =
-            resourceManager.textureManager().getGlobalSampler(TextureManager::GlobalSampler::PBRSampler);
+            resourceManager.samplerManager().getGlobalSampler(SamplerManager::GlobalSampler::PBRSampler);
         if (!pbrSampler) {
             return;
         }
@@ -191,7 +189,7 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
                                            RenderPass::RunPassInfo& runPassInfo, DrawContext& drawContext
                                        ) {
             const auto& pbrSampler =
-                resourceManager.textureManager().getGlobalSampler(TextureManager::GlobalSampler::PBRSampler);
+                resourceManager.samplerManager().getGlobalSampler(SamplerManager::GlobalSampler::PBRSampler);
             if (!pbrSampler) {
                 return;
             }
