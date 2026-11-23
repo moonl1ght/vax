@@ -6,7 +6,7 @@
 
 using namespace vax::editor;
 
-void PhysicsDemoView::updateUI(const vax::gfx::FrameTime& frameTime) { SceneView::updateUI(frameTime); }
+void PhysicsDemoView::updateUI(const vax::time::FrameTime& frameTime) { SceneView::updateUI(frameTime); }
 
 bool PhysicsDemoView::_load() {
     auto sceneLoader = vax::gfx::SceneLoader(

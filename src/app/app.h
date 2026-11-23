@@ -27,7 +27,7 @@ class App final {
 
     InputController _inputController;
     AppMode _appMode = AppMode::EventDriven;
-    gfx::FrameTime _frameTime;
+    time::FrameTime _frameTime;
 
     std::unique_ptr<editor::Editor> _editor;
     std::unique_ptr<gfx::RenderEngine> _renderEngine;

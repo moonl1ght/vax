@@ -1,6 +1,6 @@
 #pragma once
 
-#include "renderer.h"
+#include "editorRenderer.h"
 #include "simSettingsView.h"
 #include "simStatsView.h"
 #include "view.h"
@@ -9,17 +9,17 @@ namespace vax::editor {
 
 class SimulationView final : public View {
   public:
-    SimulationView(vax::gfx::Renderer& renderer)
-        : View(renderer) {
-        _simSettingsView = std::make_unique<SimSettingsView>(renderer);
-        _simStatsView = std::make_unique<SimStatsView>(renderer);
+    SimulationView(vax::gfx::EditorRenderer& editorRenderer)
+        : View(editorRenderer) {
+        _simSettingsView = std::make_unique<SimSettingsView>(editorRenderer);
+        _simStatsView = std::make_unique<SimStatsView>(editorRenderer);
     }
 
     ~SimulationView() override = default;
 
-    void update(const vax::gfx::FrameTime& frameTime) override {}
+    void update(const vax::time::FrameTime& frameTime) override {}
 
-    void updateUI(const vax::gfx::FrameTime& frameTime) override;
+    void updateUI(const vax::time::FrameTime& frameTime) override;
 
     bool isShown() const noexcept { return _isShown; }
 

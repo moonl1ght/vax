@@ -1,4 +1,4 @@
-#include "renderer.h"
+#include "editorRenderer.h"
 #include "imageUtils.h"
 #include "paths.h"
 #include "profiler.h"
@@ -9,7 +9,7 @@ using namespace vax::gfx;
 using namespace vax;
 using namespace vax::rhi;
 
-void Renderer::setup(vax::rhi::ResourceManager& resourceManager) noexcept {
+void EditorRenderer::setup(vax::rhi::ResourceManager& resourceManager) noexcept {
     _renderPassGraphManager = std::make_unique<RenderPassGraphManager>(
         *_vkEngine.get().device,
         *_vkEngine.get().pipelineManager,
@@ -27,7 +27,7 @@ void Renderer::setup(vax::rhi::ResourceManager& resourceManager) noexcept {
     );
 }
 
-void Renderer::load() {
+void EditorRenderer::load() {
     if (_isLoaded) {
         return;
     }
@@ -53,7 +53,7 @@ void Renderer::load() {
     _isLoaded = true;
 }
 
-void Renderer::_prepareForRender(Scene* scene) {
+void EditorRenderer::_prepareForRender(Scene* scene) {
     ZoneScopedN("Renderer::prepareForRender");
     bool shouldRebuildGraph = renderPassGraphMode.is_dirty() || _wasResized;
     if (scene != nullptr) {
@@ -97,7 +97,7 @@ void Renderer::_prepareForRender(Scene* scene) {
     }
 }
 
-bool Renderer::render(Scene* scene, const FrameTime& frameTime) {
+bool EditorRenderer::render(Scene* scene, const time::FrameTime& frameTime) {
     _prepareForRender(scene);
     ZoneScopedN("Renderer::render");
     _waitForFence();
@@ -259,7 +259,7 @@ bool Renderer::render(Scene* scene, const FrameTime& frameTime) {
     return true;
 }
 
-bool Renderer::_updateCommandBuffer(
+bool EditorRenderer::_updateCommandBuffer(
     CommandBuffer& commandBuffer, uint32_t imageIndex, uint32_t agentCameraImageIndex, vax::gfx::Scene* scene
 ) {
     ZoneScopedN("Renderer::updateCommandBuffer");
@@ -277,7 +277,7 @@ bool Renderer::_updateCommandBuffer(
     return true;
 }
 
-void Renderer::_drawUi(CommandBuffer& commandBuffer) {
+void EditorRenderer::_drawUi(CommandBuffer& commandBuffer) {
     RenderPassNode::RunPassInfo runPassInfo{
         .commandBuffer = commandBuffer,
         .scene = nullptr,
@@ -288,7 +288,7 @@ void Renderer::_drawUi(CommandBuffer& commandBuffer) {
     _renderPassGraphManager->getRenderPassGraph().run(runPassInfo);
 }
 
-bool Renderer::_drawScene(CommandBuffer& commandBuffer, Scene* scene) {
+bool EditorRenderer::_drawScene(CommandBuffer& commandBuffer, Scene* scene) {
     ZoneScopedN("Renderer::_drawScene");
     if (!_bindDescriptorSets(commandBuffer))
         return false;
@@ -323,7 +323,7 @@ bool Renderer::_drawScene(CommandBuffer& commandBuffer, Scene* scene) {
     return true;
 }
 
-bool Renderer::_bindDescriptorSets(CommandBuffer& commandBuffer) {
+bool EditorRenderer::_bindDescriptorSets(CommandBuffer& commandBuffer) {
     auto& pipelineManager = *_vkEngine.get().pipelineManager;
     VkPipelineLayout pipelineLayout = pipelineManager.pipelineLayout();
     std::array<VkDescriptorSet, 2> descriptorSets{
@@ -349,7 +349,7 @@ bool Renderer::_bindDescriptorSets(CommandBuffer& commandBuffer) {
     return true;
 }
 
-void Renderer::_resize() {
+void EditorRenderer::_resize() {
     auto swapchain = _getSwapchain(0);
     _renderPassGraphManager->setupRenderDestinations(
         *_vkEngine.get().commandManager, *_vkEngine.get().queueManager, *swapchain
@@ -357,13 +357,13 @@ void Renderer::_resize() {
     _wasResized = true;
 }
 
-void Renderer::_resizeSecondary() {
+void EditorRenderer::_resizeSecondary() {
     vkDeviceWaitIdle(_vkEngine.get().device->vkDevice());
     _getSwapchain(1)->recreate();
     _wasResized = true;
 }
 
-vax::rhi::Swapchain* Renderer::_getSwapchain(size_t index) {
+vax::rhi::Swapchain* EditorRenderer::_getSwapchain(size_t index) {
     if (index >= editor::WindowController::maxWindows) {
         _logger.error("Invalid window index");
         return nullptr;
@@ -371,7 +371,7 @@ vax::rhi::Swapchain* Renderer::_getSwapchain(size_t index) {
     return _windowController.get().getWindow(index)->vkWindow()->swapchain();
 }
 
-Renderer::SwapchainResult Renderer::_acquireSwapchainImage(size_t windowIndex, std::string semaphoreName) {
+EditorRenderer::SwapchainResult EditorRenderer::_acquireSwapchainImage(size_t windowIndex, std::string semaphoreName) {
     uint32_t imageIndex = UINT32_MAX;
     bool hasError = false;
     bool shouldRecreateSwapchain = false;
@@ -390,5 +390,7 @@ Renderer::SwapchainResult Renderer::_acquireSwapchainImage(size_t windowIndex, s
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         shouldRecreateSwapchain = true;
     }
-    return Renderer::SwapchainResult{.imageIndex = imageIndex, .shouldRecreateSwapchain = false, .hasError = false};
+    return EditorRenderer::SwapchainResult{
+        .imageIndex = imageIndex, .shouldRecreateSwapchain = false, .hasError = false
+    };
 }

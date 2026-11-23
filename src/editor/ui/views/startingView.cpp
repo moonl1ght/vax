@@ -7,7 +7,7 @@
 using namespace vax::editor;
 using namespace vax;
 
-void StartingView::updateUI(const vax::gfx::FrameTime& frameTime) {
+void StartingView::updateUI(const vax::time::FrameTime& frameTime) {
     ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetWorkCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     ImGui::SetNextWindowSize(ImVec2(480, 0), ImGuiCond_Always);
     _beginInMainWindow(

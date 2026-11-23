@@ -19,7 +19,9 @@ void Editor::createUIEngine(rhi::VulkanEngine& vkEngine) noexcept {
 }
 
 void Editor::loadMainView(gfx::RenderEngine& renderEngine) noexcept {
-    _viewBuilder = std::make_unique<ViewBuilder>(*_windowController, _inputController, renderEngine.renderer(), renderEngine);
+    _viewBuilder = std::make_unique<ViewBuilder>(
+        *_windowController, _inputController, renderEngine.editorRenderer(), renderEngine
+    );
     _viewManager = std::make_unique<ViewManager>(*_uiEngine, *_viewBuilder);
     _viewManager->setRootView(_viewBuilder->buildStartingView());
 }

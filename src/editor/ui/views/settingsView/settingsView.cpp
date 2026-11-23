@@ -3,7 +3,7 @@
 
 using namespace vax::editor;
 
-void SettingsView::updateUI(const vax::gfx::FrameTime& frameTime) {
+void SettingsView::updateUI(const vax::time::FrameTime& frameTime) {
     if (!_isShown) {
         return;
     }

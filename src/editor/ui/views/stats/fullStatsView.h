@@ -1,13 +1,13 @@
 #pragma once
 
-#include "renderer.h"
+#include "editorRenderer.h"
 #include "view.h"
 
 namespace vax::editor {
 class FullStatsView final : public View {
   public:
-    FullStatsView(vax::gfx::Renderer& renderer)
-        : View(renderer) {}
+    FullStatsView(vax::gfx::EditorRenderer& editorRenderer)
+        : View(editorRenderer) {}
 
     ~FullStatsView() override = default;
 
@@ -16,9 +16,9 @@ class FullStatsView final : public View {
     FullStatsView& operator=(const FullStatsView& other) = delete;
     FullStatsView& operator=(FullStatsView&& other) noexcept = delete;
 
-    void update(const vax::gfx::FrameTime& frameTime) override {}
+    void update(const vax::time::FrameTime& frameTime) override {}
 
-    void updateUI(const vax::gfx::FrameTime& frameTime) override;
+    void updateUI(const vax::time::FrameTime& frameTime) override;
 
     bool isShown() const noexcept { return _isShown; }
 

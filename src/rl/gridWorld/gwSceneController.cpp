@@ -99,7 +99,7 @@ ecs::Entity GWSceneController::_findInSubtree(ecs::Entity root, std::string_view
     return found;
 }
 
-void GWSceneController::_spinWheels(const gfx::FrameTime& frameTime) {
+void GWSceneController::_spinWheels(const time::FrameTime& frameTime) {
     Transform spin;
     auto timestamp = std::chrono::duration<float, std::chrono::seconds::period>(frameTime.timestamp).count();
     spin.setOrientationInDegrees({0.0f, timestamp * -100.0f, 0.0f});

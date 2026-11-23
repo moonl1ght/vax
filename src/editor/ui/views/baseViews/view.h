@@ -1,8 +1,8 @@
 #pragma once
 
 #include "appMode.h"
+#include "editorRenderer.h"
 #include "frameTime.h"
-#include "renderer.h"
 #undef Status
 #include "imgui.h"
 #include <algorithm>
@@ -13,25 +13,25 @@ class ViewManager;
 
 class View {
   public:
-    View(vax::gfx::Renderer& renderer)
-        : _renderer(renderer) {};
+    View(vax::gfx::EditorRenderer& editorRenderer)
+        : _editorRenderer(editorRenderer) {};
 
     virtual ~View() = default;
 
-    virtual void updateUI(const vax::gfx::FrameTime& frameTime) = 0;
+    virtual void updateUI(const vax::time::FrameTime& frameTime) = 0;
 
-    virtual void update(const vax::gfx::FrameTime& frameTime) = 0;
+    virtual void update(const vax::time::FrameTime& frameTime) = 0;
 
-    virtual bool draw(const vax::gfx::FrameTime& frameTime) { return _renderer.get().render(nullptr, frameTime); }
+    virtual bool draw(const vax::time::FrameTime& frameTime) { return _editorRenderer.get().render(nullptr, frameTime); }
 
-    virtual void viewWillShow() { _renderer.get().renderPassGraphMode.set(gfx::RenderPassGraphMode::UI_ONLY); }
+    virtual void viewWillShow() { _editorRenderer.get().renderPassGraphMode.set(gfx::RenderPassGraphMode::UI_ONLY); }
 
     virtual app::AppMode getAppMode() { return app::AppMode::EventDriven; }
 
     void linkViewManager(ViewManager* viewManager) { _viewManager = viewManager; }
 
   protected:
-    std::reference_wrapper<vax::gfx::Renderer> _renderer;
+    std::reference_wrapper<vax::gfx::EditorRenderer> _editorRenderer;
     ViewManager* _viewManager = nullptr;
 
     bool _beginInMainWindow(const char* name, ImGuiWindowFlags flags = 0) {

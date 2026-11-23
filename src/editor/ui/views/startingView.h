@@ -5,8 +5,8 @@
 namespace vax::editor {
 class StartingView final : public DebugView {
   public:
-    StartingView(vax::gfx::Renderer& renderer)
-        : DebugView(renderer) {};
+    StartingView(vax::gfx::EditorRenderer& editorRenderer)
+        : DebugView(editorRenderer) {};
 
     ~StartingView() override = default;
 
@@ -15,7 +15,7 @@ class StartingView final : public DebugView {
     StartingView(StartingView&& other) noexcept = delete;
     StartingView& operator=(StartingView&& other) noexcept = delete;
 
-    void updateUI(const vax::gfx::FrameTime& frameTime) override;
+    void updateUI(const vax::time::FrameTime& frameTime) override;
 
   protected:
     bool _isClosable() const override { return false; }

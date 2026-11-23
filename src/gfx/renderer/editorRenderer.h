@@ -16,23 +16,23 @@
 #include <optional>
 
 namespace vax::gfx {
-class Renderer final : public BaseRenderer {
+class EditorRenderer final : public BaseRenderer {
   public:
     state_tracker<RenderPassGraphMode> renderPassGraphMode =
         state_tracker<RenderPassGraphMode>(RenderPassGraphMode::UNKNOWN);
 
-    Renderer(rhi::VulkanEngine& vkEngine, editor::UIEngine& uiEngine, editor::WindowController& windowController)
+    EditorRenderer(rhi::VulkanEngine& vkEngine, editor::UIEngine& uiEngine, editor::WindowController& windowController)
         : BaseRenderer(vkEngine, uiEngine)
         , _windowController(windowController) {};
 
-    ~Renderer() {};
+    ~EditorRenderer() {};
 
-    Renderer(const Renderer& other) = delete;
-    Renderer& operator=(const Renderer& other) = delete;
-    Renderer(Renderer&& other) noexcept = delete;
-    Renderer& operator=(Renderer&& other) noexcept = delete;
+    EditorRenderer(const EditorRenderer& other) = delete;
+    EditorRenderer& operator=(const EditorRenderer& other) = delete;
+    EditorRenderer(EditorRenderer&& other) noexcept = delete;
+    EditorRenderer& operator=(EditorRenderer&& other) noexcept = delete;
 
-    bool render(Scene* scene, const FrameTime& frameTime);
+    bool render(Scene* scene, const time::FrameTime& frameTime);
 
     void setup(vax::rhi::ResourceManager& resourceManager) noexcept;
 
@@ -65,7 +65,7 @@ class Renderer final : public BaseRenderer {
         uint32_t imageIndex;
     };
 
-    dev::Logger _logger = dev::Logger("Renderer");
+    dev::Logger _logger = dev::Logger("EditorRenderer");
 
     std::reference_wrapper<editor::WindowController> _windowController;
 

@@ -13,12 +13,12 @@ namespace vax::editor {
 class PhysicsDemoView final : public SceneView<app::MainSceneController> {
   public:
     PhysicsDemoView(
-        vax::gfx::Renderer& renderer,
+        vax::gfx::EditorRenderer& editorRenderer,
         gfx::RenderEngine& rendererEngine,
         WindowController& windowController,
         app::InputController& inputController
     )
-        : SceneView(renderer, inputController)
+        : SceneView(editorRenderer, inputController)
         , _rendererEngine(rendererEngine)
         , _windowController(windowController) {}
 
@@ -29,7 +29,7 @@ class PhysicsDemoView final : public SceneView<app::MainSceneController> {
     PhysicsDemoView(PhysicsDemoView&& other) noexcept = delete;
     PhysicsDemoView& operator=(PhysicsDemoView&& other) noexcept = delete;
 
-    void updateUI(const vax::gfx::FrameTime& frameTime) override;
+    void updateUI(const vax::time::FrameTime& frameTime) override;
 
     app::AppMode getAppMode() override { return app::AppMode::Continous; }
 

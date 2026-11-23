@@ -21,7 +21,7 @@ GridWorldView::~GridWorldView() {
     }
 }
 
-void GridWorldView::updateUI(const vax::gfx::FrameTime& frameTime) {
+void GridWorldView::updateUI(const vax::time::FrameTime& frameTime) {
     _mainThreadRunner.processThreadQueue();
     _showStatus();
 

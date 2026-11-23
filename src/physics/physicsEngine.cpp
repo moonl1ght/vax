@@ -100,7 +100,7 @@ void PhysicsEngine::_loadPhysics() noexcept {
     collisionDetector.buildStaticAABB(_bodyStorage);
 }
 
-void PhysicsEngine::step(const vax::gfx::FrameTime& frameTime) noexcept {
+void PhysicsEngine::step(const vax::time::FrameTime& frameTime) noexcept {
 
     auto frameDeltaTime = frameTime.deltaTimePrecise;
 

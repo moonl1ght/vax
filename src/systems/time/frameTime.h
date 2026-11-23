@@ -3,7 +3,7 @@
 #include <chrono>
 #include <cstdint>
 
-namespace vax::gfx {
+namespace vax::time {
 struct FrameTime final {
     std::chrono::nanoseconds timestamp = std::chrono::nanoseconds::zero();
     std::chrono::nanoseconds deltaTimePrecise = std::chrono::nanoseconds::zero();
@@ -11,4 +11,4 @@ struct FrameTime final {
     float fps = 0.0f;
     uint64_t frameCount = 0;
 };
-} // namespace vax::gfx
+} // namespace vax::time

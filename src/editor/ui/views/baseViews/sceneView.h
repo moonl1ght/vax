@@ -11,18 +11,18 @@ namespace vax::editor {
 
 template <typename ControllerType> class SceneView : public DebugView {
   public:
-    SceneView(vax::gfx::Renderer& renderer, app::InputController& inputController)
-        : DebugView(renderer)
+    SceneView(vax::gfx::EditorRenderer& editorRenderer, app::InputController& inputController)
+        : DebugView(editorRenderer)
         , _inputController(inputController) {
-        _loadingView = std::make_unique<LoadingView>(renderer);
+        _loadingView = std::make_unique<LoadingView>(editorRenderer);
     }
 
-    void updateUI(const vax::gfx::FrameTime& frameTime) override {
+    void updateUI(const vax::time::FrameTime& frameTime) override {
         DebugView::updateUI(frameTime);
         _loadingView->updateUI(frameTime);
     }
 
-    void update(const vax::gfx::FrameTime& frameTime) override {
+    void update(const vax::time::FrameTime& frameTime) override {
         _frameProfiler->beginFrameZone("frame");
         _frameProfiler->beginFrameZone("frame_update");
         _updateLoading();
@@ -34,10 +34,10 @@ template <typename ControllerType> class SceneView : public DebugView {
         DebugView::update(frameTime);
     }
 
-    bool draw(const vax::gfx::FrameTime& frameTime) override {
+    bool draw(const vax::time::FrameTime& frameTime) override {
         _frameProfiler->beginFrameZone("draw");
         vax::gfx::Scene* scene = _loadState == LoadState::LOADED ? &_controller->getScene() : nullptr;
-        bool renderResult = _renderer.get().render(scene, frameTime);
+        bool renderResult = _editorRenderer.get().render(scene, frameTime);
 
         if (!renderResult) {
             _logger.error("Failed to render scene!");
@@ -48,8 +48,8 @@ template <typename ControllerType> class SceneView : public DebugView {
     }
 
     void viewWillShow() override {
-        _renderer.get().linkFrameProfiler(_frameProfiler.get());
-        _renderer.get().renderPassGraphMode.set(
+        _editorRenderer.get().linkFrameProfiler(_frameProfiler.get());
+        _editorRenderer.get().renderPassGraphMode.set(
             _loadState == LoadState::LOADED ? gfx::RenderPassGraphMode::SCENE_GRAPH : gfx::RenderPassGraphMode::UI_ONLY
         );
     }
@@ -87,10 +87,10 @@ template <typename ControllerType> class SceneView : public DebugView {
             _loadState = LoadState::LOADING;
             break;
         case LoadState::LOADING:
-            _renderer.get().load();
+            _editorRenderer.get().load();
             if (_load() && _controller) {
                 _loadState = LoadState::LOADED;
-                _renderer.get().renderPassGraphMode.set(gfx::RenderPassGraphMode::SCENE_GRAPH);
+                _editorRenderer.get().renderPassGraphMode.set(gfx::RenderPassGraphMode::SCENE_GRAPH);
             } else {
                 _logger.error("Failed to load scene!");
                 _loadState = LoadState::FAILED;

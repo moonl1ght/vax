@@ -30,7 +30,7 @@ class PhysicsEngine {
 
     bool setup(const PhysicsConfig& config) noexcept;
 
-    void step(const vax::gfx::FrameTime& frameTime) noexcept;
+    void step(const vax::time::FrameTime& frameTime) noexcept;
 
     void loadWorld(std::shared_ptr<vax::ecs::World> world) noexcept;
 

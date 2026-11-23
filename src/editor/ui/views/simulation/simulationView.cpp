@@ -5,7 +5,7 @@
 
 using namespace vax::editor;
 
-void SimulationView::updateUI(const vax::gfx::FrameTime& frameTime) {
+void SimulationView::updateUI(const vax::time::FrameTime& frameTime) {
     _simSettingsView->updateUI(frameTime);
     _simStatsView->updateUI(frameTime);
 

@@ -3,7 +3,7 @@
 
 using namespace vax::editor;
 
-void FullStatsView::updateUI(const vax::gfx::FrameTime& frameTime) {
+void FullStatsView::updateUI(const vax::time::FrameTime& frameTime) {
     if (!_isShown) {
         return;
     }

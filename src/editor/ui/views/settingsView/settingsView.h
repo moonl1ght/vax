@@ -1,14 +1,14 @@
 #pragma once
 
-#include "renderer.h"
+#include "editorRenderer.h"
 #include "view.h"
 
 namespace vax::editor {
 
 class SettingsView final : public View {
   public:
-    SettingsView(vax::gfx::Renderer& renderer)
-        : View(renderer) {}
+    SettingsView(vax::gfx::EditorRenderer& editorRenderer)
+        : View(editorRenderer) {}
 
     ~SettingsView() override = default;
 
@@ -17,9 +17,9 @@ class SettingsView final : public View {
     SettingsView& operator=(const SettingsView& other) = delete;
     SettingsView& operator=(SettingsView&& other) noexcept = delete;
 
-    void update(const vax::gfx::FrameTime& frameTime) override {}
+    void update(const vax::time::FrameTime& frameTime) override {}
 
-    void updateUI(const vax::gfx::FrameTime& frameTime) override;
+    void updateUI(const vax::time::FrameTime& frameTime) override;
 
     bool isShown() const noexcept { return _isShown; }
 

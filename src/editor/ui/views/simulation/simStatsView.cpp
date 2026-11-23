@@ -3,7 +3,7 @@
 
 using namespace vax::editor;
 
-void SimStatsView::updateUI(const vax::gfx::FrameTime& frameTime) {
+void SimStatsView::updateUI(const vax::time::FrameTime& frameTime) {
     if (!_isShown) {
         return;
     }

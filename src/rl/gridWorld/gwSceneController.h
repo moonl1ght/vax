@@ -76,7 +76,7 @@ class GWSceneController final : public vax::gfx::SceneController<GWSceneControll
 
     bool _loadAgent();
 
-    void _spinWheels(const vax::gfx::FrameTime& frameTime);
+    void _spinWheels(const vax::time::FrameTime& frameTime);
 
     vax::ecs::Entity _findInSubtree(vax::ecs::Entity root, std::string_view name);
 

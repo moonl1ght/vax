@@ -3,7 +3,7 @@
 
 using namespace vax::animation;
 
-bool ValueAnimation::updateImpl(const vax::gfx::FrameTime& frameTime) {
+bool ValueAnimation::updateImpl(const vax::time::FrameTime& frameTime) {
     if (_isCompleted)
         return true;
     _isStarted = true;

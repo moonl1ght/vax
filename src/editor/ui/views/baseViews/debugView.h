@@ -1,8 +1,8 @@
 #pragma once
 
 #include "IconsFontAwesome6.h"
+#include "editorRenderer.h"
 #include "frameProfiler.h"
-#include "renderer.h"
 #include "settingsView.h"
 #include "simSettingsView.h"
 #include "simStatsView.h"
@@ -16,18 +16,18 @@
 namespace vax::editor {
 class DebugView : public View {
   public:
-    DebugView(vax::gfx::Renderer& renderer)
-        : View(renderer) {
-        _statsView = std::make_unique<StatsView>(renderer);
-        _settingsView = std::make_unique<SettingsView>(renderer);
-        _simulationView = std::make_unique<SimulationView>(renderer);
+    DebugView(vax::gfx::EditorRenderer& editorRenderer)
+        : View(editorRenderer) {
+        _statsView = std::make_unique<StatsView>(editorRenderer);
+        _settingsView = std::make_unique<SettingsView>(editorRenderer);
+        _simulationView = std::make_unique<SimulationView>(editorRenderer);
         _frameProfiler = std::make_unique<dev::FrameProfiler>();
         _statsView->linkFrameProfiler(_frameProfiler.get());
     }
 
-    ~DebugView() override { _renderer.get().unlinkFrameProfiler(_frameProfiler.get()); }
+    ~DebugView() override { _editorRenderer.get().unlinkFrameProfiler(_frameProfiler.get()); }
 
-    void updateUI(const vax::gfx::FrameTime& frameTime) override {
+    void updateUI(const vax::time::FrameTime& frameTime) override {
         _showMenuBar();
         _showDockSpace();
         _simulationView->updateUI(frameTime);
@@ -35,13 +35,13 @@ class DebugView : public View {
         _settingsView->updateUI(frameTime);
     }
 
-    void update(const vax::gfx::FrameTime& frameTime) override {
+    void update(const vax::time::FrameTime& frameTime) override {
         _statsView->update(frameTime);
         _simulationView->update(frameTime);
     }
 
     void viewWillShow() override {
-        _renderer.get().linkFrameProfiler(_frameProfiler.get());
+        _editorRenderer.get().linkFrameProfiler(_frameProfiler.get());
         View::viewWillShow();
     }
 
@@ -104,7 +104,7 @@ class DebugView : public View {
         ImGui::SetItemTooltip("Settings");
         if (_isClosable()) {
             ImGui::Separator();
-            if (ImGui::MenuItem("Close", nullptr, false, _isCloseEnabled())) {
+            if (ImGui::MenuItem(ICON_FA_XMARK "##close", nullptr, false, _isCloseEnabled())) {
                 _onClose();
             }
         }

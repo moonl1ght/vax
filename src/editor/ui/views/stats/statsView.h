@@ -3,25 +3,25 @@
 #include "debouncer.h"
 #include "frameProfiler.h"
 #include "fullStatsView.h"
-#include "renderer.h"
+#include "editorRenderer.h"
 #include "systemInfo.h"
 #include "view.h"
 
 namespace vax::editor {
 class StatsView final : public View {
   public:
-    StatsView(vax::gfx::Renderer& renderer)
-        : View(renderer)
+    StatsView(vax::gfx::EditorRenderer& editorRenderer)
+        : View(editorRenderer)
         , _debouncer(std::chrono::milliseconds(500)) {
         _systemInfo = dev::SystemInfo();
-        _fullStatsView = std::make_unique<FullStatsView>(renderer);
+        _fullStatsView = std::make_unique<FullStatsView>(editorRenderer);
     };
 
     ~StatsView() = default;
 
-    void update(const vax::gfx::FrameTime& frameTime) override {};
+    void update(const vax::time::FrameTime& frameTime) override {};
 
-    void updateUI(const vax::gfx::FrameTime& frameTime) override;
+    void updateUI(const vax::time::FrameTime& frameTime) override;
 
     void linkFrameProfiler(dev::FrameProfiler* frameProfiler) noexcept { _frameProfiler = frameProfiler; }
 

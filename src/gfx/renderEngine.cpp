@@ -35,8 +35,8 @@ bool RenderEngine::setup(editor::Editor* editor) noexcept {
         return false;
     }
     editor->createUIEngine(*_vkEngine);
-    _renderer = std::make_unique<gfx::Renderer>(*_vkEngine, editor->uiEngine(), editor->windowController());
-    _renderer->setup(*_resourceManager);
+    _editorRenderer = std::make_unique<gfx::EditorRenderer>(*_vkEngine, editor->uiEngine(), editor->windowController());
+    _editorRenderer->setup(*_resourceManager);
     _logger.success("Rendering engine setup complete!");
     return true;
 }
@@ -45,7 +45,7 @@ void RenderEngine::waitIdle() noexcept { _vkEngine->device->waitIdle(); }
 
 void RenderEngine::cleanup() noexcept {
     _logger.info("Starting rendering engine cleanup...");
-    _renderer = nullptr;
+    _editorRenderer = nullptr;
     _resourceManager = nullptr;
     _vkEngine->cleanup();
     _vkEngine = nullptr;

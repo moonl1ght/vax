@@ -9,7 +9,7 @@ template <typename Derived> class Animation {
     Animation() = default;
     ~Animation() = default;
 
-    bool update(const vax::gfx::FrameTime& frameTime) { return static_cast<Derived*>(this)->updateImpl(frameTime); }
+    bool update(const vax::time::FrameTime& frameTime) { return static_cast<Derived*>(this)->updateImpl(frameTime); }
 };
 
 } // namespace vax::animation

@@ -34,7 +34,7 @@ struct SceneLoader;
 
 namespace vax::gfx {
 struct SceneUpdateContext {
-    FrameTime frameTime;
+    time::FrameTime frameTime;
 };
 
 enum class FrameUniformSlot : uint32_t {

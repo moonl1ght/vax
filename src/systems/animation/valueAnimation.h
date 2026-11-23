@@ -18,7 +18,7 @@ class ValueAnimation final : public Animation<ValueAnimation> {
         _isReversed = startValue > endValue;
     }
 
-    bool updateImpl(const vax::gfx::FrameTime& frameTime);
+    bool updateImpl(const vax::time::FrameTime& frameTime);
 
     bool isStarted() const { return _isStarted; }
 

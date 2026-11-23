@@ -5,7 +5,7 @@
 #include "gwTrainingManager.h"
 #include "inputController.h"
 #include "logger.h"
-#include "renderer.h"
+#include "editorRenderer.h"
 #include "sceneView.h"
 #include "threadRunner.h"
 #include "windowController.h"
@@ -19,11 +19,11 @@ class GridWorldView final : public SceneView<rl::GWSceneController> {
   public:
     GridWorldView(
         WindowController& windowController,
-        gfx::Renderer& renderer,
+        gfx::EditorRenderer& editorRenderer,
         gfx::RenderEngine& rendererEngine,
         app::InputController& inputController
     )
-        : SceneView(renderer, inputController)
+        : SceneView(editorRenderer, inputController)
         , _windowController(windowController)
         , _rendererEngine(rendererEngine) {}
 
@@ -34,7 +34,7 @@ class GridWorldView final : public SceneView<rl::GWSceneController> {
     GridWorldView(GridWorldView&& other) noexcept = delete;
     GridWorldView& operator=(GridWorldView&& other) noexcept = delete;
 
-    void updateUI(const vax::gfx::FrameTime& frameTime) override;
+    void updateUI(const vax::time::FrameTime& frameTime) override;
 
     app::AppMode getAppMode() override { return app::AppMode::Continous; }
 

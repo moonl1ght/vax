@@ -5,8 +5,8 @@
 namespace vax::editor {
 class PhysicsDemoMenuView final : public DebugView {
   public:
-    PhysicsDemoMenuView(vax::gfx::Renderer& renderer)
-        : DebugView(renderer) {}
+    PhysicsDemoMenuView(vax::gfx::EditorRenderer& editorRenderer)
+        : DebugView(editorRenderer) {}
 
     ~PhysicsDemoMenuView() override = default;
 
@@ -15,7 +15,7 @@ class PhysicsDemoMenuView final : public DebugView {
     PhysicsDemoMenuView(PhysicsDemoMenuView&& other) noexcept = delete;
     PhysicsDemoMenuView& operator=(PhysicsDemoMenuView&& other) noexcept = delete;
 
-    void updateUI(const vax::gfx::FrameTime& frameTime) override;
+    void updateUI(const vax::time::FrameTime& frameTime) override;
 
   private:
     void _showSimpleDemo();

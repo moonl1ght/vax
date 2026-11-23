@@ -5,7 +5,7 @@
 
 using namespace vax::editor;
 
-void LoadingView::updateUI(const vax::gfx::FrameTime& frameTime) {
+void LoadingView::updateUI(const vax::time::FrameTime& frameTime) {
     if (!_isShown) {
         return;
     }
