@@ -32,6 +32,8 @@ class Editor {
 
     void loadMainView(gfx::RenderEngine& renderEngine) noexcept;
 
+    void createUIEngine(rhi::VulkanEngine& vkEngine) noexcept;
+
     UIEngine& uiEngine() noexcept { return *_uiEngine; }
 
     const UIEngine& uiEngine() const noexcept { return *_uiEngine; }

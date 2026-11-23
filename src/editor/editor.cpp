@@ -14,6 +14,10 @@ bool Editor::setup() noexcept {
     return true;
 }
 
+void Editor::createUIEngine(rhi::VulkanEngine& vkEngine) noexcept {
+    _uiEngine = std::make_unique<UIEngine>(vkEngine, *_windowController->getWindow(0));
+}
+
 void Editor::loadMainView(gfx::RenderEngine& renderEngine) noexcept {
     _viewBuilder = std::make_unique<ViewBuilder>(*_windowController, _inputController, renderEngine.renderer(), renderEngine);
     _viewManager = std::make_unique<ViewManager>(*_uiEngine, *_viewBuilder);

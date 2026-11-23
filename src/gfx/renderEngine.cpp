@@ -9,8 +9,10 @@ bool RenderEngine::setup(editor::Editor* editor) noexcept {
     }
     if (editor) {
         auto mainWindow = editor->windowController().getWindow(0);
-        auto vkWindow = std::unique_ptr<rhi::VulkanWindow>();
-        vkWindow->setup(_vkEngine->instance, mainWindow->sdlWindow());
+        auto vkWindow = std::make_unique<rhi::VulkanWindow>();
+        if (!vkWindow->setup(_vkEngine->instance, mainWindow->sdlWindow())) {
+            return false;
+        }
         if (!_vkEngine->setup(vkWindow->surface())) {
             return false;
         }
@@ -28,6 +30,11 @@ bool RenderEngine::setup(editor::Editor* editor) noexcept {
         return false;
     }
 
+    if (!editor) {
+        _logger.failure("Headless rendering is not supported yet!");
+        return false;
+    }
+    editor->createUIEngine(*_vkEngine);
     _renderer = std::make_unique<gfx::Renderer>(*_vkEngine, editor->uiEngine(), editor->windowController());
     _renderer->setup(*_resourceManager);
     _logger.success("Rendering engine setup complete!");
