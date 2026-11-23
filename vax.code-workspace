@@ -5,6 +5,11 @@
 		}
 	],
 	"settings": {
+		// Slang language server: same search paths as slangc (-I src -I include)
+		"slang.additionalSearchPaths": [
+			"/home/alex/dev/vax_project/vax/src/gfx/shaders/src",
+			"/home/alex/dev/vax_project/vax/src/gfx/shaders/include"
+		],
 		"sweetpad.build.xcodeWorkspacePath": "macos/VAXEngine/VAXEngine.xcodeproj/project.xcworkspace",
 		"cmake.enabledOutputParsers": [
 			"cmake",

@@ -80,8 +80,7 @@ get_filename_component(_SLANG_ROOT "${SLANG_COMPILER}" DIRECTORY)
 get_filename_component(_SLANG_ROOT "${_SLANG_ROOT}" DIRECTORY)
 find_package(slang REQUIRED CONFIG HINTS "${_SLANG_ROOT}")
 
-set(VAX_DIR "${PROJECT_SOURCE_DIR}/vax")
-set(VAX_SRC_DIR "${VAX_DIR}/src")
+set(VAX_SRC_DIR "${PROJECT_SOURCE_DIR}/src")
 
 include_directories(${VAX_SRC_DIR})
 
@@ -172,7 +171,7 @@ set(IMGUI_BACKEND_SRCS
     "${IMGUI_PACKAGE_DIR}/res/bindings/imgui_impl_sdl3.cpp"
 )
 
-add_executable(Luna ${VAX_DIR}/main.cpp ${all_SRCS} ${IMGUI_BACKEND_SRCS})
+add_executable(Luna ${all_SRCS} ${IMGUI_BACKEND_SRCS})
 
 set(VAX_LOG_LEVEL "" CACHE STRING "Compile-time global log level")
 if(VAX_LOG_LEVEL)
