@@ -27,7 +27,10 @@ void Editor::loadMainView(gfx::RenderEngine& renderEngine) noexcept {
 void Editor::cleanup() noexcept {
     _viewManager = nullptr;
     _viewBuilder = nullptr;
-    _uiEngine = nullptr;
+    if (_uiEngine) {
+        _uiEngine->cleanup();
+        _uiEngine = nullptr;
+    }
     _windowController->destroyAllWindows();
     _windowController = nullptr;
 }

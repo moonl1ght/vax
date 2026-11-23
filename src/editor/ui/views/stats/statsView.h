@@ -2,6 +2,7 @@
 
 #include "debouncer.h"
 #include "frameProfiler.h"
+#include "fullStatsView.h"
 #include "renderer.h"
 #include "systemInfo.h"
 #include "view.h"
@@ -13,6 +14,7 @@ class StatsView final : public View {
         : View(renderer)
         , _debouncer(std::chrono::milliseconds(500)) {
         _systemInfo = dev::SystemInfo();
+        _fullStatsView = std::make_unique<FullStatsView>(renderer);
     };
 
     ~StatsView() = default;
@@ -28,8 +30,10 @@ class StatsView final : public View {
     void setShown(bool isShown) noexcept { _isShown = isShown; }
 
   private:
+    static constexpr ImVec2 SIZE = ImVec2(600.0f, 300.0f);
+
     bool _isShown = false;
-    bool _isDetached = false;
+    std::unique_ptr<FullStatsView> _fullStatsView;
     dev::SystemInfo _systemInfo;
     dev::FrameProfiler* _frameProfiler = nullptr;
     vax::core::Debouncer _debouncer;

@@ -1,7 +1,12 @@
 #pragma once
 
+#include "IconsFontAwesome6.h"
 #include "frameProfiler.h"
 #include "renderer.h"
+#include "settingsView.h"
+#include "simSettingsView.h"
+#include "simStatsView.h"
+#include "simulationView.h"
 #include "statsView.h"
 #include "view.h"
 #include <algorithm>
@@ -14,6 +19,8 @@ class DebugView : public View {
     DebugView(vax::gfx::Renderer& renderer)
         : View(renderer) {
         _statsView = std::make_unique<StatsView>(renderer);
+        _settingsView = std::make_unique<SettingsView>(renderer);
+        _simulationView = std::make_unique<SimulationView>(renderer);
         _frameProfiler = std::make_unique<dev::FrameProfiler>();
         _statsView->linkFrameProfiler(_frameProfiler.get());
     }
@@ -23,10 +30,15 @@ class DebugView : public View {
     void updateUI(const vax::gfx::FrameTime& frameTime) override {
         _showMenuBar();
         _showDockSpace();
+        _simulationView->updateUI(frameTime);
         _statsView->updateUI(frameTime);
+        _settingsView->updateUI(frameTime);
     }
 
-    void update(const vax::gfx::FrameTime& frameTime) override { _statsView->update(frameTime); }
+    void update(const vax::gfx::FrameTime& frameTime) override {
+        _statsView->update(frameTime);
+        _simulationView->update(frameTime);
+    }
 
     void viewWillShow() override {
         _renderer.get().linkFrameProfiler(_frameProfiler.get());
@@ -35,6 +47,8 @@ class DebugView : public View {
 
   protected:
     std::unique_ptr<StatsView> _statsView;
+    std::unique_ptr<SettingsView> _settingsView;
+    std::unique_ptr<SimulationView> _simulationView;
     std::unique_ptr<dev::FrameProfiler> _frameProfiler;
 
     virtual void _showMenuBarItems() {}
@@ -49,7 +63,6 @@ class DebugView : public View {
     static constexpr float DOCK_RIGHT_RATIO = 0.28f;
 
     float _menuBarRightBlockWidth = 0.0f;
-
 
     void _showDockSpace() {
         const ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -71,6 +84,11 @@ class DebugView : public View {
         if (!ImGui::BeginMainMenuBar()) {
             return;
         }
+
+        if (ImGui::MenuItem("Simulation", nullptr, _simulationView->isShown())) {
+            _simulationView->setShown(!_simulationView->isShown());
+        }
+        ImGui::Separator();
         _showMenuBarItems();
 
         const float rightBlockX = ImGui::GetWindowWidth() - _menuBarRightBlockWidth - ImGui::GetStyle().ItemSpacing.x;
@@ -80,9 +98,10 @@ class DebugView : public View {
             _statsView->setShown(!_statsView->isShown());
         }
         ImGui::Separator();
-        if (ImGui::MenuItem("Settings")) {
-            // TODO: settings
+        if (ImGui::MenuItem(ICON_FA_GEAR "##settings", nullptr, _settingsView->isShown())) {
+            _settingsView->setShown(!_settingsView->isShown());
         }
+        ImGui::SetItemTooltip("Settings");
         if (_isClosable()) {
             ImGui::Separator();
             if (ImGui::MenuItem("Close", nullptr, false, _isCloseEnabled())) {

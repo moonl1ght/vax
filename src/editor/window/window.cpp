@@ -24,12 +24,12 @@ bool Window::setup(bool visible, bool resizable) noexcept {
 void Window::destroy() {
     if (_window != nullptr) {
         _logger.info("Destroying window...");
-        SDL_DestroyWindow(_window);
-        _window = nullptr;
         if (_vkWindow) {
             _vkWindow->cleanup();
             _vkWindow = nullptr;
         }
+        SDL_DestroyWindow(_window);
+        _window = nullptr;
     }
 }
 

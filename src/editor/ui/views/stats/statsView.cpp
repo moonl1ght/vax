@@ -1,4 +1,6 @@
 #include "statsView.h"
+#include "IconsFontAwesome6.h"
+#include "closeButton.h"
 #include "debouncer.h"
 #include <imgui.h>
 #include <ratio>
@@ -6,20 +8,24 @@
 using namespace vax::editor;
 
 void StatsView::updateUI(const vax::gfx::FrameTime& frameTime) {
+    _fullStatsView->updateUI(frameTime);
+
     if (!_isShown) {
         return;
     }
     const ImGuiViewport* mainViewport = ImGui::GetMainViewport();
 
+    ImGui::SetNextWindowViewport(mainViewport->ID);
     ImGui::SetNextWindowPos(
         ImVec2(mainViewport->WorkPos.x + mainViewport->WorkSize.x - 10.0f, mainViewport->WorkPos.y + 10.0f),
-        ImGuiCond_FirstUseEver,
+        ImGuiCond_Always,
         ImVec2(1.0f, 0.0f)
     );
-    ImGui::SetNextWindowSize(ImVec2(420, 190), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowBgAlpha(_isDetached ? 1.0f : 0.35f);
+    ImGui::SetNextWindowSize(SIZE, ImGuiCond_Always);
+    ImGui::SetNextWindowBgAlpha(0.35f);
 
-    constexpr ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar |
+    constexpr ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove |
+                                       ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar |
                                        ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking |
                                        ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 2.0f);
@@ -32,29 +38,23 @@ void StatsView::updateUI(const vax::gfx::FrameTime& frameTime) {
         ImGui::End();
         return;
     }
-    _isDetached = ImGui::GetWindowViewport() != mainViewport;
 
-    if (!_isDetached) {
-        const ImGuiStyle& style = ImGui::GetStyle();
-        const ImVec2 windowPos = ImGui::GetWindowPos();
-        const ImVec2 buttonPos = ImVec2(
-            windowPos.x + ImGui::GetWindowWidth() - ImGui::GetFontSize() - style.WindowPadding.x * 0.5f,
-            windowPos.y + style.WindowPadding.y * 0.5f
-        );
-        if (ImGui::CloseButton(ImGui::GetID("##close"), buttonPos)) {
-            _isShown = false;
-        }
+    CloseButton::topCorner(_isShown);
+
+    if (ImGui::SmallButton(ICON_FA_CHART_LINE " Full stats")) {
+        _fullStatsView->setShown(!_fullStatsView->isShown());
     }
+    ImGui::Spacing();
 
     _updateStats();
     _showSystemInfo();
-    ImGui::Spacing();
-    ImGui::Separator();
-    ImGui::Spacing();
-    _showFrameInfo();
-    ImGui::Spacing();
-    ImGui::Separator();
-    ImGui::Spacing();
+    // ImGui::Spacing();
+    // ImGui::Separator();
+    // ImGui::Spacing();
+    // _showFrameInfo();
+    // ImGui::Spacing();
+    // ImGui::Separator();
+    // ImGui::Spacing();
     _showFrameResourcesInfo();
     ImGui::End();
 }
@@ -77,21 +77,22 @@ void StatsView::_showSystemInfo() const {
 }
 
 void StatsView::_showFrameInfo() const {
-    if (_frameProfiler) {
-        using float_milliseconds = std::chrono::duration<float, std::milli>;
-        auto duration = float_milliseconds(_frameInfo.duration).count();
-        ImGui::Text("Frame Info:");
-        ImGui::Text("VSYNC FB: %.2fms, FPS: %d", duration, _frameInfo.fps);
+    // if (_frameProfiler) {
+    //     using float_milliseconds = std::chrono::duration<float, std::milli>;
+    //     auto duration = float_milliseconds(_frameInfo.duration).count();
+    //     ImGui::Text("Frame Info:");
+    //     ImGui::Text("VSYNC FB: %.2fms, FPS: %d", duration, _frameInfo.fps);
 
-        auto workloadDuration = float_milliseconds(_frameWorkloadInfo.duration).count();
-        if (duration > 0.0f) {
-            ImGui::Text(
-                "Used FT: %.2fms / %.2fms (%.2f%%)", workloadDuration, duration, (workloadDuration * 100.0f) / duration
-            );
-        } else {
-            ImGui::Text("Used FT: %.2fms / %.2fms", workloadDuration, duration);
-        }
-    }
+    //     auto workloadDuration = float_milliseconds(_frameWorkloadInfo.duration).count();
+    //     if (duration > 0.0f) {
+    //         ImGui::Text(
+    //             "Used FT: %.2fms / %.2fms (%.2f%%)", workloadDuration, duration, (workloadDuration * 100.0f) /
+    //             duration
+    //         );
+    //     } else {
+    //         ImGui::Text("Used FT: %.2fms / %.2fms", workloadDuration, duration);
+    //     }
+    // }
 }
 
 void StatsView::_showFrameResourcesInfo() const noexcept {

@@ -20,6 +20,7 @@ int main() {
 #if defined(__linux__)
     SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
 #endif
+    SDL_SetHint(SDL_HINT_QUIT_ON_LAST_WINDOW_CLOSE, "0");
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         SDL_Log("SDL_Init failed: %s", SDL_GetError());
         return 1;

@@ -4,9 +4,9 @@
 #include "imgui.h"
 #include "paths.h"
 #include "qlConfig.h"
+#include "renderEngine.h"
 #include "sceneLoader.h"
 #include "viewManager.h"
-#include "renderEngine.h"
 
 using namespace vax::editor;
 using namespace vax::rl;
@@ -144,7 +144,9 @@ void GridWorldView::_showStatus() {
         return;
     }
     const ImGuiViewport* mainViewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(ImVec2(mainViewport->WorkPos.x + 10.0f, mainViewport->WorkPos.y + 10.0f));
+    const float simulationHeight = _simulationView->height();
+    const float topOffset = simulationHeight > 0.0f ? simulationHeight + 10.0f : 0.0f;
+    ImGui::SetNextWindowPos(ImVec2(mainViewport->WorkPos.x + 10.0f, mainViewport->WorkPos.y + 10.0f + topOffset));
     ImGui::SetNextWindowBgAlpha(0.35f);
     constexpr ImGuiWindowFlags overlayFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
                                               ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
