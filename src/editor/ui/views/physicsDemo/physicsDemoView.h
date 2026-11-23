@@ -5,11 +5,22 @@
 #include "sceneView.h"
 #include "vkEngine.h"
 
+namespace vax::gfx {
+class RenderEngine;
+}
+
 namespace vax::editor {
 class PhysicsDemoView final : public SceneView<app::MainSceneController> {
   public:
-    PhysicsDemoView(vax::gfx::RenderEngine& renderEngine, app::InputController& inputController)
-        : SceneView(renderEngine, inputController) {}
+    PhysicsDemoView(
+        vax::gfx::Renderer& renderer,
+        gfx::RenderEngine& rendererEngine,
+        WindowController& windowController,
+        app::InputController& inputController
+    )
+        : SceneView(renderer, inputController)
+        , _rendererEngine(rendererEngine)
+        , _windowController(windowController) {}
 
     ~PhysicsDemoView() = default;
 
@@ -23,6 +34,9 @@ class PhysicsDemoView final : public SceneView<app::MainSceneController> {
     app::AppMode getAppMode() override { return app::AppMode::Continous; }
 
   protected:
+    std::reference_wrapper<gfx::RenderEngine> _rendererEngine;
+    std::reference_wrapper<WindowController> _windowController;
+
     bool _load() override;
 
     const char* _loadingMessage() const override { return "Loading physics demo"; }

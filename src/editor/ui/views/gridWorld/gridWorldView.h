@@ -5,18 +5,28 @@
 #include "gwTrainingManager.h"
 #include "inputController.h"
 #include "logger.h"
+#include "renderer.h"
 #include "sceneView.h"
 #include "threadRunner.h"
 #include "windowController.h"
+
+namespace vax::gfx {
+class RenderEngine;
+}
 
 namespace vax::editor {
 class GridWorldView final : public SceneView<rl::GWSceneController> {
   public:
     GridWorldView(
-        WindowController& windowController, gfx::RenderEngine& renderEngine, app::InputController& inputController
+        WindowController& windowController,
+        gfx::Renderer& renderer,
+        gfx::RenderEngine& rendererEngine,
+        app::InputController& inputController
     )
-        : SceneView(renderEngine, inputController)
-        , _windowController(windowController) {}
+        : SceneView(renderer, inputController)
+        , _windowController(windowController)
+        , _rendererEngine(rendererEngine) {}
+
     ~GridWorldView();
 
     GridWorldView(const GridWorldView& other) = delete;
@@ -42,6 +52,7 @@ class GridWorldView final : public SceneView<rl::GWSceneController> {
   private:
     dev::Logger _logger = dev::Logger("GridWorldView");
     std::reference_wrapper<WindowController> _windowController;
+    std::reference_wrapper<gfx::RenderEngine> _rendererEngine;
     std::unique_ptr<rl::GridWorld> _gridWorld;
     std::unique_ptr<rl::GWTrainingManager> _trainingManager;
     core::ThreadRunner _mainThreadRunner;

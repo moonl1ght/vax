@@ -1,7 +1,7 @@
 #pragma once
 
 #include "frameProfiler.h"
-#include "renderEngine.h"
+#include "renderer.h"
 #include "statsView.h"
 #include "view.h"
 #include <algorithm>
@@ -11,9 +11,9 @@
 namespace vax::editor {
 class DebugView : public View {
   public:
-    DebugView(vax::gfx::RenderEngine& renderEngine)
-        : View(renderEngine.renderer()) {
-        _statsView = std::make_unique<StatsView>(renderEngine);
+    DebugView(vax::gfx::Renderer& renderer)
+        : View(renderer) {
+        _statsView = std::make_unique<StatsView>(renderer);
         _frameProfiler = std::make_unique<dev::FrameProfiler>();
         _statsView->linkFrameProfiler(_frameProfiler.get());
     }

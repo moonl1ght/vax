@@ -50,12 +50,35 @@ bool checkDeviceExtensionSupport(VkPhysicalDevice device) {
     return requiredExtensions.empty();
 }
 
+static QueueFamilyIndices findDeviceQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface) {
+    if (surface != VK_NULL_HANDLE) {
+        return findQueueFamilies(device, surface);
+    }
+
+    QueueFamilyIndices indices;
+    uint32_t count = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &count, nullptr);
+    std::vector<VkQueueFamilyProperties> families(count);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &count, families.data());
+
+    for (uint32_t i = 0; i < count; ++i) {
+        if (families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            indices.graphicsFamily = i;
+            break;
+        }
+    }
+    return indices;
+}
+
 int Device::_createLogicalDevice(
-    const VkPhysicalDevice& physicalDevice, const VkSurfaceKHR& surface, VkDevice& device, bool enableValidationLayers
+    const VkPhysicalDevice& physicalDevice, VkDevice& device, bool enableValidationLayers
 ) noexcept {
 
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-    std::set<uint32_t> uniqueQueueFamilies{_indices.graphicsFamily.value(), _indices.presentFamily.value()};
+    std::set<uint32_t> uniqueQueueFamilies{_indices.graphicsFamily.value()};
+    if (_indices.presentFamily.has_value()) {
+        uniqueQueueFamilies.insert(_indices.presentFamily.value());
+    }
 
     float queuePriority = 1.0f;
     for (uint32_t queueFamily : uniqueQueueFamilies) {
@@ -132,25 +155,26 @@ int Device::_createLogicalDevice(
     return EXIT_SUCCESS;
 }
 
-bool Device::_isDeviceSuitable(const VkPhysicalDevice& device, const VkSurfaceKHR& surface) noexcept {
-    QueueFamilyIndices indices = findQueueFamilies(device, surface);
+bool Device::_isDeviceSuitable(const VkPhysicalDevice& device, VkSurfaceKHR surface) noexcept {
+    QueueFamilyIndices indices = findDeviceQueueFamilies(device, surface);
 
     bool extensionsSupported = checkDeviceExtensionSupport(device);
-
-    bool swapChainAdequate = false;
-    if (extensionsSupported) {
-        SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device, surface);
-        swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
-    }
 
     VkPhysicalDeviceFeatures supportedFeatures;
     vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
 
-    return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
+    bool baseOk = indices.graphicsFamily.has_value() && extensionsSupported && supportedFeatures.samplerAnisotropy;
+    if (!baseOk || surface == VK_NULL_HANDLE) {
+        return baseOk;
+    }
+
+    SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device, surface);
+    bool swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+    return indices.isComplete() && swapChainAdequate;
 }
 
 int Device::_pickPhysicalDevice(
-    const VkInstance& instance, const VkSurfaceKHR& surface, VkPhysicalDevice& physicalDevice
+    const VkInstance& instance, VkSurfaceKHR surface, VkPhysicalDevice& physicalDevice
 ) noexcept {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
@@ -217,10 +241,10 @@ int Device::_pickPhysicalDevice(
 bool Device::load(
     VkInstance instance, VkSurfaceKHR surface, bool enableValidationLayers, uint32_t vulkanApiVersion
 ) noexcept {
-    _logger.debug("Loading device...");
+    _logger.debug("Loading device", surface == VK_NULL_HANDLE ? " (headless)..." : "...");
     if (_pickPhysicalDevice(instance, surface, _vkPhysicalDevice) == EXIT_SUCCESS) {
-        _indices = findQueueFamilies(_vkPhysicalDevice, surface);
-        if (_createLogicalDevice(_vkPhysicalDevice, surface, _vkDevice, enableValidationLayers) == EXIT_SUCCESS) {
+        _indices = findDeviceQueueFamilies(_vkPhysicalDevice, surface);
+        if (_createLogicalDevice(_vkPhysicalDevice, _vkDevice, enableValidationLayers) == EXIT_SUCCESS) {
             VmaAllocatorCreateInfo allocatorInfo{
                 .flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT,
                 .physicalDevice = _vkPhysicalDevice,

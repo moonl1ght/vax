@@ -5,8 +5,8 @@
 namespace vax::editor {
 class StartingView final : public DebugView {
   public:
-    StartingView(vax::gfx::RenderEngine& renderEngine)
-        : DebugView(renderEngine) {};
+    StartingView(vax::gfx::Renderer& renderer)
+        : DebugView(renderer) {};
 
     ~StartingView() override = default;
 

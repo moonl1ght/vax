@@ -72,15 +72,15 @@ void StatsView::_showFrameInfo() const {
 }
 
 void StatsView::_showFrameResourcesInfo() const noexcept {
-    auto& descriptorRegistry = _renderEngine.get().vkEngine().pipelineManager->descriptorRegistry();
+    // auto& descriptorRegistry = _renderEngine.get().vkEngine().pipelineManager->descriptorRegistry();
 
-    ImGui::Text("Pipeline state:");
+    // ImGui::Text("Pipeline state:");
 
-    ImGui::Text("Descriptor registry state:");
-    ImGui::Text("Storage textures: %d", descriptorRegistry.stats().storageTextures);
-    ImGui::Text("Sampled textures: %d", descriptorRegistry.stats().sampledTextures);
-    ImGui::Text("Storage buffers: %d", descriptorRegistry.stats().storageBuffers);
-    ImGui::Text("Samplers: %d", descriptorRegistry.stats().samplers);
+    // ImGui::Text("Descriptor registry state:");
+    // ImGui::Text("Storage textures: %d", descriptorRegistry.stats().storageTextures);
+    // ImGui::Text("Sampled textures: %d", descriptorRegistry.stats().sampledTextures);
+    // ImGui::Text("Storage buffers: %d", descriptorRegistry.stats().storageBuffers);
+    // ImGui::Text("Samplers: %d", descriptorRegistry.stats().samplers);
 }
 
 void StatsView::_updateStats() {

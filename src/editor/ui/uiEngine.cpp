@@ -25,7 +25,7 @@ void UIEngine::setup(VkRenderPass renderPass) {
     };
     vkCreateDescriptorPool(_vkEngine.get().device->vkDevice(), &pool_info, nullptr, &_imguiDescriptorPool);
 
-    ImGui_ImplSDL3_InitForVulkan(_window.get().window);
+    ImGui_ImplSDL3_InitForVulkan(_window.get().sdlWindow());
 
     ImGui_ImplVulkan_InitInfo init_info = {};
     init_info.Instance = _vkEngine.get().instance;
@@ -36,9 +36,7 @@ void UIEngine::setup(VkRenderPass renderPass) {
     init_info.DescriptorPool = _imguiDescriptorPool;
     init_info.RenderPass = renderPass;
     init_info.MinImageCount = 2;
-    init_info.ImageCount = static_cast<uint32_t>(
-        _vkEngine.get().getWindowController().getWindow(0)->getSwapchain()->swapchainImages.size()
-    );
+    init_info.ImageCount = static_cast<uint32_t>(_window.get().vkWindow()->swapchain()->swapchainImages.size());
     init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
     ImGui_ImplVulkan_Init(&init_info);
 
@@ -48,7 +46,7 @@ void UIEngine::setup(VkRenderPass renderPass) {
     _setupFonts();
     _applyTheme();
 
-    const float dpi = SDL_GetWindowDisplayScale(_window.get().window);
+    const float dpi = SDL_GetWindowDisplayScale(_window.get().sdlWindow());
     if (dpi > 0.0f) {
         ImGuiStyle& style = ImGui::GetStyle();
         style.ScaleAllSizes(dpi);

@@ -11,7 +11,7 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildUIOnlyGraph(
     const std::unordered_map<std::string, std::shared_ptr<vax::rhi::RenderPassDescriptor>>& renderPassDescriptors,
     const std::unordered_map<std::string, std::shared_ptr<vax::rhi::RenderDestination>>& renderDestinations
 ) {
-    auto swapchain = _windowController.get().getWindow(0)->getSwapchain();
+    auto swapchain = _windowController.get().getWindow(0)->vkWindow()->swapchain();
 
     auto uiPass = std::make_shared<RenderPass>(
         "ui_pass",
@@ -46,7 +46,7 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
     const std::unordered_map<std::string, std::shared_ptr<vax::rhi::RenderPassDescriptor>>& renderPassDescriptors,
     const std::unordered_map<std::string, std::shared_ptr<vax::rhi::RenderDestination>>& renderDestinations
 ) {
-    auto swapchain = _windowController.get().getWindow(0)->getSwapchain();
+    auto swapchain = _windowController.get().getWindow(0)->vkWindow()->swapchain();
 
     auto shadowPass = std::make_shared<RenderPass>(
         "shadow_pass",
@@ -157,7 +157,7 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
     });
 
     if (graphDescriptor.withSecondaryWindow) {
-        auto agentCameraSwapchain = _windowController.get().getWindow(1)->getSwapchain();
+        auto agentCameraSwapchain = _windowController.get().getWindow(1)->vkWindow()->swapchain();
         auto agentCameraMainPass = std::make_shared<RenderPass>(
             "agent_camera_main_pass",
             _device.get(),

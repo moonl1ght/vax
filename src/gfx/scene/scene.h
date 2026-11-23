@@ -50,6 +50,7 @@ class Scene final : public app::InputController::Observer {
 
     explicit Scene(
         vax::rhi::VulkanEngine& vkEngine,
+        editor::WindowController& windowController,
         std::unique_ptr<vax::ecs::World> gizmoWorld,
         std::unique_ptr<vax::ecs::World> backgroundWorld,
         std::unique_ptr<vax::gfx::EnvironmentMap> environmentMap,
@@ -57,6 +58,7 @@ class Scene final : public app::InputController::Observer {
         vax::rhi::ResourceManager& resourceManager
     )
         : _vkEngine(vkEngine)
+        , _windowController(windowController)
         , _gizmoWorld(std::move(gizmoWorld))
         , _backgroundWorld(std::move(backgroundWorld))
         , _environmentMap(std::move(environmentMap))
@@ -130,6 +132,7 @@ class Scene final : public app::InputController::Observer {
 
     std::reference_wrapper<vax::rhi::ResourceManager> _resourceManager;
     std::reference_wrapper<vax::rhi::VulkanEngine> _vkEngine;
+    std::reference_wrapper<editor::WindowController> _windowController;
 
     std::unique_ptr<IndirectDrawController> _indirectDrawController;
     std::unique_ptr<vax::gfx::EnvironmentMap> _environmentMap;

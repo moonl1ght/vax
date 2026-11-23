@@ -16,11 +16,13 @@ class SceneLoader {
     SceneLoader(
         vax::rhi::VulkanEngine& vkEngine,
         vax::rhi::PipelineManager& pipelineManager,
-        vax::rhi::ResourceManager& resourceManager
+        vax::rhi::ResourceManager& resourceManager,
+        editor::WindowController& windowController
     )
         : _vkEngine(vkEngine)
         , _pipelineManager(pipelineManager)
-        , _resourceManager(resourceManager) {
+        , _resourceManager(resourceManager)
+        , _windowController(windowController) {
         _textureGpuUploader = std::make_unique<vax::rhi::TextureGpuUploader>();
     }
 
@@ -41,6 +43,7 @@ class SceneLoader {
     std::reference_wrapper<vax::rhi::VulkanEngine> _vkEngine;
     std::reference_wrapper<vax::rhi::PipelineManager> _pipelineManager;
     std::reference_wrapper<vax::rhi::ResourceManager> _resourceManager;
+    std::reference_wrapper<editor::WindowController> _windowController;
 
     std::unique_ptr<vax::rhi::TextureGpuUploader> _textureGpuUploader;
 

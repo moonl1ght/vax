@@ -58,17 +58,13 @@ class Device final {
     VkPhysicalDevice _vkPhysicalDevice = VK_NULL_HANDLE;
 
     int _createLogicalDevice(
-        const VkPhysicalDevice& physicalDevice,
-        const VkSurfaceKHR& surface,
-        VkDevice& device,
-        bool enableValidationLayers
+        const VkPhysicalDevice& physicalDevice, VkDevice& device, bool enableValidationLayers
     ) noexcept;
 
-    bool _isDeviceSuitable(const VkPhysicalDevice& device, const VkSurfaceKHR& surface) noexcept;
+    bool _isDeviceSuitable(const VkPhysicalDevice& device, VkSurfaceKHR surface) noexcept;
 
-    int _pickPhysicalDevice(
-        const VkInstance& instance, const VkSurfaceKHR& surface, VkPhysicalDevice& physicalDevice
-    ) noexcept;
+    int
+    _pickPhysicalDevice(const VkInstance& instance, VkSurfaceKHR surface, VkPhysicalDevice& physicalDevice) noexcept;
 
     void _loadDeviceProps();
 };

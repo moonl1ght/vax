@@ -2,16 +2,15 @@
 
 #include "debouncer.h"
 #include "frameProfiler.h"
-#include "renderEngine.h"
+#include "renderer.h"
 #include "systemInfo.h"
 #include "view.h"
 
 namespace vax::editor {
 class StatsView final : public View {
   public:
-    StatsView(vax::gfx::RenderEngine& renderEngine)
-        : View(renderEngine.renderer())
-        , _renderEngine(renderEngine)
+    StatsView(vax::gfx::Renderer& renderer)
+        : View(renderer)
         , _debouncer(std::chrono::milliseconds(500)) {
         _systemInfo = dev::SystemInfo();
     };
@@ -29,8 +28,6 @@ class StatsView final : public View {
     void setShown(bool isShown) noexcept { _isShown = isShown; }
 
   private:
-    std::reference_wrapper<vax::gfx::RenderEngine> _renderEngine;
-
     bool _isShown = false;
     dev::SystemInfo _systemInfo;
     dev::FrameProfiler* _frameProfiler = nullptr;

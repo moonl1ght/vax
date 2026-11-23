@@ -14,7 +14,7 @@ void Renderer::setup(vax::rhi::ResourceManager& resourceManager) noexcept {
         *_vkEngine.get().device,
         *_vkEngine.get().pipelineManager,
         resourceManager,
-        _vkEngine.get().getWindowController(),
+        _windowController.get(),
         _uiEngine.get()
     );
     auto swapchain = _getSwapchain(0);
@@ -105,7 +105,7 @@ bool Renderer::render(Scene* scene, const FrameTime& frameTime) {
     uint32_t imageIndex = 0;
     VkResult result = vkAcquireNextImageKHR(
         _vkEngine.get().device->vkDevice(),
-        _vkEngine.get().getWindowController().getWindow(0)->getSwapchain()->swapchain,
+        _windowController.get().getWindow(0)->vkWindow()->swapchain()->swapchain,
         UINT64_MAX,
         _vkEngine.get().syncObjectsManager->getImageAvailableSemaphores("main")[_currentFrame],
         VK_NULL_HANDLE,
@@ -119,7 +119,7 @@ bool Renderer::render(Scene* scene, const FrameTime& frameTime) {
     if (drawSecondaryWindow) {
         VkResult agentCameraResult = vkAcquireNextImageKHR(
             _vkEngine.get().device->vkDevice(),
-            _vkEngine.get().getWindowController().getWindow(1)->getSwapchain()->swapchain,
+            _windowController.get().getWindow(1)->vkWindow()->swapchain()->swapchain,
             UINT64_MAX,
             _vkEngine.get().syncObjectsManager->getImageAvailableSemaphores("secondary")[_currentFrame],
             VK_NULL_HANDLE,
@@ -361,4 +361,34 @@ void Renderer::_resizeSecondary() {
     vkDeviceWaitIdle(_vkEngine.get().device->vkDevice());
     _getSwapchain(1)->recreate();
     _wasResized = true;
+}
+
+vax::rhi::Swapchain* Renderer::_getSwapchain(size_t index) {
+    if (index >= editor::WindowController::maxWindows) {
+        _logger.error("Invalid window index");
+        return nullptr;
+    }
+    return _windowController.get().getWindow(index)->vkWindow()->swapchain();
+}
+
+Renderer::SwapchainResult Renderer::_acquireSwapchainImage(size_t windowIndex, std::string semaphoreName) {
+    uint32_t imageIndex = UINT32_MAX;
+    bool hasError = false;
+    bool shouldRecreateSwapchain = false;
+    VkResult result = vkAcquireNextImageKHR(
+        _vkEngine.get().device->vkDevice(),
+        _windowController.get().getWindow(windowIndex)->vkWindow()->swapchain()->swapchain,
+        UINT64_MAX,
+        _vkEngine.get().syncObjectsManager->getImageAvailableSemaphores(semaphoreName)[_currentFrame],
+        VK_NULL_HANDLE,
+        &imageIndex
+    );
+    if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+        _logger.warning("Failed to acquire swap chain image");
+        hasError = true;
+    }
+    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+        shouldRecreateSwapchain = true;
+    }
+    return Renderer::SwapchainResult{.imageIndex = imageIndex, .shouldRecreateSwapchain = false, .hasError = false};
 }

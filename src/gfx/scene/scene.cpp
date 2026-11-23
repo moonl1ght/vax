@@ -55,7 +55,7 @@ void Scene::load(const vax::gfx::SceneDescriptor& descriptor) {
 
     auto sunCamera = Camera();
     sunCamera.setPosition(glm::vec3(1.0f, 5.0f, 3.0f));
-    auto swapchainExtent = _vkEngine.get().getWindowController().getWindow(0)->getSwapchain()->swapchainExtent;
+    auto swapchainExtent = _windowController.get().getWindow(0)->vkWindow()->swapchain()->swapchainExtent;
     sunCamera.setViewPortSize(vax::math::SizeUI(swapchainExtent));
     sunCamera.setProjection(Camera::Projection::orthographic);
     sunCamera.setViewSize(10.0f);
@@ -139,7 +139,7 @@ void Scene::update(gfx::SceneUpdateContext sceneUpdateContext) {
 }
 
 void Scene::resize() {
-    auto swapchainExtent = _vkEngine.get().getWindowController().getWindow(0)->getSwapchain()->swapchainExtent;
+    auto swapchainExtent = _windowController.get().getWindow(0)->vkWindow()->swapchain()->swapchainExtent;
     _mainCamera.setViewPortSize(vax::math::SizeUI(swapchainExtent));
     _sunLight.camera().setViewPortSize(vax::math::SizeUI(swapchainExtent));
 }

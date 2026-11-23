@@ -26,11 +26,13 @@ void App::setup() noexcept {
         return;
     }
 
-    // _renderEngine = std::make_unique<gfx::RenderEngine>();
-    // if (!_renderEngine->setup(*_windowController, _editor->uiEngine())) {
-    //     _logger.failure("Failed to setup rendering engine!");
-    //     return;
-    // }
+    _renderEngine = std::make_unique<gfx::RenderEngine>();
+    if (!_renderEngine->setup(_editor.get())) {
+        _logger.failure("Failed to setup rendering engine!");
+        return;
+    }
+
+    _editor->loadMainView(*_renderEngine);
 
     _simulationEngine = std::make_unique<sim::SimulationEngine>();
     _simulationEngine->setup(sim::SimulationConfig::defaultConfig());

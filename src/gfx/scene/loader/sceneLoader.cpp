@@ -184,6 +184,7 @@ std::unique_ptr<Scene> SceneLoader::_initScene(ecs::World& world, const SceneDes
 
     return std::make_unique<Scene>(
         _vkEngine.get(),
+        _windowController.get(),
         std::move(gizmoWorld),
         std::move(backgroundWorld),
         std::move(environmentMap),

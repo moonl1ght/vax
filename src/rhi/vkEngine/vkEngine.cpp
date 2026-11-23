@@ -36,7 +36,7 @@ void validationLayersDestroyDebugUtilsMessengerEXT(
     }
 }
 
-bool vax::rhi::VulkanEngine::setup() {
+bool vax::rhi::VulkanEngine::createInstance() noexcept {
     std::optional<VkInstance> instanceOptional =
         VkInstanceBuilder(deletionQueue, enableValidationLayers, validationLayers, vulkanApiVersion).build();
     if (instanceOptional.has_value()) {
@@ -56,13 +56,12 @@ bool vax::rhi::VulkanEngine::setup() {
         _logger.error("Failed to setup debug messenger!");
         return false;
     }
+    return true;
+}
 
-    _windowController.get().getWindow(0)->createSurface(instance);
-    deletionQueue.push_function([&]() { _windowController.get().getWindow(0)->destroySurface(); });
-
+bool vax::rhi::VulkanEngine::setup(VkSurfaceKHR mainWindowSurface) noexcept {
     device = std::make_unique<Device>();
-    auto deviceLoadResult =
-        device->load(instance, _windowController.get().getWindow(0)->surface, enableValidationLayers, vulkanApiVersion);
+    auto deviceLoadResult = device->load(instance, mainWindowSurface, enableValidationLayers, vulkanApiVersion);
     if (!deviceLoadResult) {
         _logger.error("Failed to load device!");
         return false;
@@ -92,12 +91,6 @@ bool vax::rhi::VulkanEngine::setup() {
     }
     deletionQueue.push_function([&]() { syncObjectsManager->cleanup(); });
 
-    if (!_windowController.get().getWindow(0)->createSwapchain(*device, VK_PRESENT_MODE_FIFO_KHR)) {
-        _logger.error("Failed to create swapchain!");
-        return false;
-    }
-    deletionQueue.push_function([&]() { _windowController.get().getWindow(0)->cleanupSwapchain(); });
-
     pipelineManager = std::make_unique<PipelineManager>(*device);
     if (!pipelineManager->setup()) {
         _logger.error("Failed to setup pipeline manager!");
@@ -119,15 +112,15 @@ void vax::rhi::VulkanEngine::cleanup() {
 
 void vax::rhi::VulkanEngine::resize() {
     _logger.debug("Resizing engine...");
-    int width = 0, height = 0;
-    SDL_GetWindowSizeInPixels(_windowController.get().getWindow(0)->window, &width, &height);
-    while (width == 0 || height == 0) {
-        SDL_GetWindowSizeInPixels(_windowController.get().getWindow(0)->window, &width, &height);
-        SDL_Delay(100);
-    }
-    vkDeviceWaitIdle(device->vkDevice());
+    // int width = 0, height = 0;
+    // SDL_GetWindowSizeInPixels(_windowController.get().getWindow(0)->window, &width, &height);
+    // while (width == 0 || height == 0) {
+    //     SDL_GetWindowSizeInPixels(_windowController.get().getWindow(0)->window, &width, &height);
+    //     SDL_Delay(100);
+    // }
+    // vkDeviceWaitIdle(device->vkDevice());
 
-    _windowController.get().getWindow(0)->getSwapchain()->recreate();
+    // _windowController.get().getWindow(0)->getSwapchain()->recreate();
 }
 
 bool vax::rhi::VulkanEngine::setupDebugMessenger() {

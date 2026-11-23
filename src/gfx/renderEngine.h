@@ -1,11 +1,10 @@
 #pragma once
 
+#include "editor.h"
 #include "logger.h"
 #include "renderer.h"
 #include "resourceManager.h"
-#include "uiEngine.h"
 #include "vkEngine.h"
-#include "windowController.h"
 
 namespace vax::gfx {
 
@@ -20,7 +19,7 @@ class RenderEngine final {
     RenderEngine(RenderEngine&& other) noexcept = delete;
     RenderEngine& operator=(RenderEngine&& other) noexcept = delete;
 
-    bool setup(editor::WindowController& windowController, editor::UIEngine& uiEngine) noexcept;
+    bool setup(editor::Editor* editor) noexcept;
 
     void waitIdle() noexcept;
 

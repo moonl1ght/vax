@@ -42,8 +42,7 @@ class VulkanEngine final {
     std::unique_ptr<vax::rhi::CommandManager> commandManager;
     std::unique_ptr<vax::rhi::SyncObjectsManager> syncObjectsManager;
 
-    explicit VulkanEngine(editor::WindowController& windowController)
-        : _windowController(windowController) {};
+    explicit VulkanEngine() noexcept = default;
 
     ~VulkanEngine() {};
 
@@ -52,18 +51,16 @@ class VulkanEngine final {
     VulkanEngine(VulkanEngine&& other) noexcept = delete;
     VulkanEngine& operator=(VulkanEngine&& other) noexcept = delete;
 
-    bool setup();
+    bool createInstance() noexcept;
+
+    bool setup(VkSurfaceKHR mainWindowSurface) noexcept;
+
     void cleanup();
+
     void resize();
-
-    editor::WindowController& getWindowController() { return _windowController.get(); }
-
-    const editor::WindowController& getWindowController() const { return _windowController.get(); }
 
   private:
     dev::Logger _logger = dev::Logger("VulkanEngine");
-
-    std::reference_wrapper<editor::WindowController> _windowController;
 
     bool setupDebugMessenger();
 };

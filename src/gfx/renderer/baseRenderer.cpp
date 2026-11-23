@@ -26,33 +26,3 @@ void BaseRenderer::_waitForFence() {
         UINT64_MAX
     );
 }
-
-vax::rhi::Swapchain* BaseRenderer::_getSwapchain(size_t index) {
-    if (index >= editor::WindowController::maxWindows) {
-        _logger.error("Invalid window index");
-        return nullptr;
-    }
-    return _vkEngine.get().getWindowController().getWindow(index)->getSwapchain();
-}
-
-BaseRenderer::SwapchainResult BaseRenderer::_acquireSwapchainImage(size_t windowIndex, std::string semaphoreName) {
-    uint32_t imageIndex = UINT32_MAX;
-    bool hasError = false;
-    bool shouldRecreateSwapchain = false;
-    VkResult result = vkAcquireNextImageKHR(
-        _vkEngine.get().device->vkDevice(),
-        _vkEngine.get().getWindowController().getWindow(windowIndex)->getSwapchain()->swapchain,
-        UINT64_MAX,
-        _vkEngine.get().syncObjectsManager->getImageAvailableSemaphores(semaphoreName)[_currentFrame],
-        VK_NULL_HANDLE,
-        &imageIndex
-    );
-    if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-        _logger.warning("Failed to acquire swap chain image");
-        hasError = true;
-    }
-    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-        shouldRecreateSwapchain = true;
-    }
-    return BaseRenderer::SwapchainResult{.imageIndex = imageIndex, .shouldRecreateSwapchain = false, .hasError = false};
-}

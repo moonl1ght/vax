@@ -2,6 +2,7 @@
 #include "paths.h"
 #include "sceneLoader.h"
 #include "viewManager.h"
+#include "renderEngine.h"
 
 using namespace vax::editor;
 
@@ -9,9 +10,10 @@ void PhysicsDemoView::updateUI(const vax::gfx::FrameTime& frameTime) { SceneView
 
 bool PhysicsDemoView::_load() {
     auto sceneLoader = vax::gfx::SceneLoader(
-        _renderEngine.get().vkEngine(),
-        *_renderEngine.get().vkEngine().pipelineManager,
-        _renderEngine.get().resourceManager()
+        _rendererEngine.get().vkEngine(),
+        *_rendererEngine.get().vkEngine().pipelineManager,
+        _rendererEngine.get().resourceManager(),
+        _windowController.get()
     );
 
     auto sceneWorldPair = sceneLoader.load(RES_PATH("scenes/physics_demo_scene.json"));

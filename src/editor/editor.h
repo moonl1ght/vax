@@ -8,6 +8,10 @@
 #include "windowController.h"
 #include <memory>
 
+namespace vax::gfx {
+class RenderEngine;
+} // namespace vax::gfx
+
 namespace vax::editor {
 
 class Editor {
@@ -25,6 +29,8 @@ class Editor {
     bool setup() noexcept;
 
     void cleanup() noexcept;
+
+    void loadMainView(gfx::RenderEngine& renderEngine) noexcept;
 
     UIEngine& uiEngine() noexcept { return *_uiEngine; }
 

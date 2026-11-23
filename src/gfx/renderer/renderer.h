@@ -21,8 +21,9 @@ class Renderer final : public BaseRenderer {
     state_tracker<RenderPassGraphMode> renderPassGraphMode =
         state_tracker<RenderPassGraphMode>(RenderPassGraphMode::UNKNOWN);
 
-    Renderer(rhi::VulkanEngine& vkEngine, editor::UIEngine& uiEngine)
-        : BaseRenderer(vkEngine, uiEngine) {};
+    Renderer(rhi::VulkanEngine& vkEngine, editor::UIEngine& uiEngine, editor::WindowController& windowController)
+        : BaseRenderer(vkEngine, uiEngine)
+        , _windowController(windowController) {};
 
     ~Renderer() {};
 
@@ -50,6 +51,12 @@ class Renderer final : public BaseRenderer {
     RenderPassGraphManager* renderPassGraphManager() { return _renderPassGraphManager.get(); }
 
   private:
+    struct SwapchainResult {
+        uint32_t imageIndex;
+        bool shouldRecreateSwapchain;
+        bool hasError;
+    };
+
     struct RenderPassInfo {
         vax::rhi::CommandBuffer* commandBuffer;
         vax::rhi::RenderPassDescriptor* renderPassDescriptor;
@@ -59,6 +66,8 @@ class Renderer final : public BaseRenderer {
     };
 
     dev::Logger _logger = dev::Logger("Renderer");
+
+    std::reference_wrapper<editor::WindowController> _windowController;
 
     dev::FrameProfiler* _frameProfiler = nullptr;
 
@@ -86,5 +95,9 @@ class Renderer final : public BaseRenderer {
     void _resizeSecondary();
 
     void _prepareForRender(Scene* scene);
+
+    SwapchainResult _acquireSwapchainImage(size_t windowIndex, std::string semaphoreName);
+
+    rhi::Swapchain* _getSwapchain(size_t index);
 };
 } // namespace vax::gfx

@@ -4,6 +4,7 @@
 #include "vulkanCommon.h"
 #include "window.h"
 #include <SDL3/SDL.h>
+#include <functional>
 #undef Status
 #include "imgui.h"
 #include <optional>

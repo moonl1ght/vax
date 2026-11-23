@@ -21,11 +21,6 @@ class BaseRenderer {
     BaseRenderer& operator=(BaseRenderer&& other) noexcept = delete;
 
   protected:
-    struct SwapchainResult {
-        uint32_t imageIndex;
-        bool shouldRecreateSwapchain;
-        bool hasError;
-    };
     dev::Logger _logger = dev::Logger("BaseRenderer");
 
     std::reference_wrapper<rhi::VulkanEngine> _vkEngine;
@@ -38,9 +33,5 @@ class BaseRenderer {
     void _setViewportAndScissor(vax::rhi::CommandBuffer& commandBuffer, VkExtent2D extent);
 
     void _waitForFence();
-
-    SwapchainResult _acquireSwapchainImage(size_t windowIndex, std::string semaphoreName);
-
-    rhi::Swapchain* _getSwapchain(size_t index);
 };
 } // namespace vax::gfx

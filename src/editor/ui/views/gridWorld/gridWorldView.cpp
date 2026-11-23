@@ -6,6 +6,7 @@
 #include "qlConfig.h"
 #include "sceneLoader.h"
 #include "viewManager.h"
+#include "renderEngine.h"
 
 using namespace vax::editor;
 using namespace vax::rl;
@@ -16,9 +17,7 @@ GridWorldView::~GridWorldView() {
     if (auto* agentCameraWindow = _windowController.get().getWindow(1)) {
         agentCameraWindow->setWindowWillHideCallback(nullptr);
         agentCameraWindow->hide();
-        agentCameraWindow->cleanupSwapchain();
-        agentCameraWindow->destroySurface();
-        _windowController.get().destroyWindow(1);
+        agentCameraWindow->destroy();
     }
 }
 
@@ -83,9 +82,10 @@ bool GridWorldView::_load() {
     _gridWorld->createRandomGrid();
 
     auto sceneLoader = vax::gfx::SceneLoader(
-        _renderEngine.get().vkEngine(),
-        *_renderEngine.get().vkEngine().pipelineManager,
-        _renderEngine.get().resourceManager()
+        _rendererEngine.get().vkEngine(),
+        *_rendererEngine.get().vkEngine().pipelineManager,
+        _rendererEngine.get().resourceManager(),
+        _windowController.get()
     );
     auto gridWorldSceneDescriptor = GridWorldSceneBuilder().buildScene(
         _gridWorld->getGrid(), _gridWorld->getDrawableWorldPosition(), _gridWorld->getAgent()
@@ -169,11 +169,11 @@ void GridWorldView::_showAgentCamera() {
         _windowController.get().getWindow(1)->show();
     } else {
         _windowController.get().setupWindow(1, vax::math::SizeUI{640, 480}, "Agent camera");
-        _windowController.get().getWindow(1)->load(true, false);
-        _windowController.get().getWindow(1)->createSurface(_renderEngine.get().vkEngine().instance);
-        _windowController.get().getWindow(1)->createSwapchain(
-            *_renderEngine.get().vkEngine().device, VK_PRESENT_MODE_MAILBOX_KHR
-        );
+        _windowController.get().getWindow(1)->setup(true, false);
+        // _windowController.get().getWindow(1)->createSurface(_renderEngine.get().vkEngine().instance);
+        // _windowController.get().getWindow(1)->createSwapchain(
+        //     *_renderEngine.get().vkEngine().device, VK_PRESENT_MODE_MAILBOX_KHR
+        // );
     }
     _windowController.get().getWindow(1)->setWindowWillHideCallback([this]() {
         _isAgentCameraShown = false;

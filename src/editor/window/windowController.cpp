@@ -24,7 +24,7 @@ void WindowController::destroyWindow(uint32_t index) {
         _logger.error("Window not setup");
         return;
     }
-    _windows[index]->destroyWindow();
+    _windows[index]->destroy();
     _windows[index] = nullptr;
 }
 

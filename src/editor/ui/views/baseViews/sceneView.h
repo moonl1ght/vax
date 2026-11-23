@@ -11,11 +11,10 @@ namespace vax::editor {
 
 template <typename ControllerType> class SceneView : public DebugView {
   public:
-    SceneView(vax::gfx::RenderEngine& renderEngine, app::InputController& inputController)
-        : DebugView(renderEngine)
-        , _inputController(inputController)
-        , _renderEngine(renderEngine) {
-        _loadingView = std::make_unique<LoadingView>(renderEngine.renderer());
+    SceneView(vax::gfx::Renderer& renderer, app::InputController& inputController)
+        : DebugView(renderer)
+        , _inputController(inputController) {
+        _loadingView = std::make_unique<LoadingView>(renderer);
     }
 
     void updateUI(const vax::gfx::FrameTime& frameTime) override {
@@ -61,7 +60,6 @@ template <typename ControllerType> class SceneView : public DebugView {
     dev::Logger _logger = dev::Logger("SceneView");
 
     std::reference_wrapper<app::InputController> _inputController;
-    std::reference_wrapper<vax::gfx::RenderEngine> _renderEngine;
 
     std::unique_ptr<LoadingView> _loadingView;
     std::unique_ptr<ControllerType> _controller;

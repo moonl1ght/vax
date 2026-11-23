@@ -5,8 +5,8 @@
 namespace vax::editor {
 class PhysicsDemoMenuView final : public DebugView {
   public:
-    PhysicsDemoMenuView(vax::gfx::RenderEngine& renderEngine)
-        : DebugView(renderEngine) {}
+    PhysicsDemoMenuView(vax::gfx::Renderer& renderer)
+        : DebugView(renderer) {}
 
     ~PhysicsDemoMenuView() override = default;
 
