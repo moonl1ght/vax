@@ -22,6 +22,7 @@ class DebugView : public View {
 
     void updateUI(const vax::gfx::FrameTime& frameTime) override {
         _showMenuBar();
+        _showDockSpace();
         _statsView->updateUI(frameTime);
     }
 
@@ -45,7 +46,26 @@ class DebugView : public View {
     virtual void _onClose();
 
   private:
+    static constexpr float DOCK_RIGHT_RATIO = 0.28f;
+
     float _menuBarRightBlockWidth = 0.0f;
+
+
+    void _showDockSpace() {
+        const ImGuiViewport* viewport = ImGui::GetMainViewport();
+        const ImGuiID dockSpaceId = ImGui::GetID("EditorDockSpace");
+        constexpr ImGuiDockNodeFlags flags =
+            ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_NoDockingOverCentralNode;
+
+        if (ImGui::DockBuilderGetNode(dockSpaceId) == nullptr) {
+            ImGui::DockBuilderAddNode(dockSpaceId, flags | ImGuiDockNodeFlags_DockSpace);
+            ImGui::DockBuilderSetNodeSize(dockSpaceId, viewport->WorkSize);
+
+            ImGui::DockBuilderFinish(dockSpaceId);
+        }
+
+        ImGui::DockSpaceOverViewport(dockSpaceId, viewport, flags);
+    }
 
     void _showMenuBar() {
         if (!ImGui::BeginMainMenuBar()) {
@@ -56,7 +76,7 @@ class DebugView : public View {
         const float rightBlockX = ImGui::GetWindowWidth() - _menuBarRightBlockWidth - ImGui::GetStyle().ItemSpacing.x;
         ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), rightBlockX));
         const float rightBlockStartX = ImGui::GetCursorScreenPos().x;
-        if (ImGui::MenuItem("Info", nullptr, _statsView->isShown())) {
+        if (ImGui::MenuItem("Stats", nullptr, _statsView->isShown())) {
             _statsView->setShown(!_statsView->isShown());
         }
         ImGui::Separator();

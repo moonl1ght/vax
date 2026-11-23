@@ -8,7 +8,7 @@
 #include <memory>
 #include <string>
 
-namespace vax::rhi {
+namespace vax::editor {
 class Window final {
   public:
     uint32_t width = 1920;
@@ -66,4 +66,4 @@ class Window final {
 
     bool _visible = false;
 };
-}; // namespace vax::rhi
+}; // namespace vax::editor

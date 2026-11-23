@@ -10,6 +10,11 @@ namespace vax::sim {
 
 class SimulationEngine {
   public:
+    enum class State {
+        RUNNING,
+        PAUSED,
+    };
+
     explicit SimulationEngine() noexcept {};
 
     ~SimulationEngine() = default;

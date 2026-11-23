@@ -11,7 +11,7 @@ void WindowController::setupWindow(uint32_t index, math::SizeUI size, const std:
         _logger.error("Window already setup");
         return;
     }
-    _windows[index] = std::make_unique<rhi::Window>(size.width, size.height);
+    _windows[index] = std::make_unique<Window>(size.width, size.height);
     _windows[index]->setWindowName(name);
 }
 

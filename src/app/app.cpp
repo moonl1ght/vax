@@ -11,7 +11,6 @@ using namespace vax;
 using namespace vax::app;
 
 void App::setup() noexcept {
-    SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11,wayland,windows,cocoa");
     if (!SDL_Vulkan_LoadLibrary(NULL)) {
         _logger.failure("Failed to load Vulkan library: {}", SDL_GetError());
         return;

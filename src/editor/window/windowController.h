@@ -19,9 +19,9 @@ class WindowController final {
 
     void setupWindow(uint32_t index, math::SizeUI size, const std::string& name);
 
-    const rhi::Window* getWindow(uint32_t index) const { return _windows[index].get(); }
+    const Window* getWindow(uint32_t index) const { return _windows[index].get(); }
 
-    rhi::Window* getWindow(uint32_t index) { return _windows[index].get(); }
+    Window* getWindow(uint32_t index) { return _windows[index].get(); }
 
     void destroyWindow(uint32_t index);
 
@@ -30,6 +30,6 @@ class WindowController final {
   private:
     dev::Logger _logger = dev::Logger("WindowController");
 
-    std::array<std::unique_ptr<rhi::Window>, maxWindows> _windows;
+    std::array<std::unique_ptr<Window>, maxWindows> _windows;
 };
 } // namespace vax::editor

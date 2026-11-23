@@ -12,7 +12,7 @@
 namespace vax::editor {
 class UIEngine final {
   public:
-    UIEngine(vax::rhi::VulkanEngine& vkEngine, vax::rhi::Window& window)
+    UIEngine(vax::rhi::VulkanEngine& vkEngine, vax::editor::Window& window)
         : _vkEngine(vkEngine)
         , _window(window) {}
 
@@ -51,7 +51,7 @@ class UIEngine final {
     ImDrawData* _imguiDrawData = nullptr;
     VkDescriptorPool _imguiDescriptorPool = VK_NULL_HANDLE;
 
-    std::reference_wrapper<vax::rhi::Window> _window;
+    std::reference_wrapper<vax::editor::Window> _window;
     std::reference_wrapper<vax::rhi::VulkanEngine> _vkEngine;
 };
 } // namespace vax::editor

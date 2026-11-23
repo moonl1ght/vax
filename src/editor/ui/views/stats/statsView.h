@@ -29,6 +29,7 @@ class StatsView final : public View {
 
   private:
     bool _isShown = false;
+    bool _isDetached = false;
     dev::SystemInfo _systemInfo;
     dev::FrameProfiler* _frameProfiler = nullptr;
     vax::core::Debouncer _debouncer;

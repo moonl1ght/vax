@@ -9,18 +9,41 @@ void StatsView::updateUI(const vax::gfx::FrameTime& frameTime) {
     if (!_isShown) {
         return;
     }
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    const ImGuiViewport* mainViewport = ImGui::GetMainViewport();
 
-    ImVec2 top_right = ImVec2(viewport->WorkPos.x + viewport->WorkSize.x - 10.0f, viewport->WorkPos.y + 10.0f);
+    ImGui::SetNextWindowPos(
+        ImVec2(mainViewport->WorkPos.x + mainViewport->WorkSize.x - 10.0f, mainViewport->WorkPos.y + 10.0f),
+        ImGuiCond_FirstUseEver,
+        ImVec2(1.0f, 0.0f)
+    );
+    ImGui::SetNextWindowSize(ImVec2(420, 190), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowBgAlpha(_isDetached ? 1.0f : 0.35f);
 
-    ImGui::SetNextWindowPos(top_right, ImGuiCond_FirstUseEver, ImVec2(1.0f, 0.0f));
-    ImGui::SetNextWindowSize(ImVec2(480, 250), ImGuiCond_FirstUseEver);
-    ImGuiWindowClass windowClass;
-    windowClass.ViewportFlagsOverrideSet = ImGuiViewportFlags_NoAutoMerge;
-    ImGui::SetNextWindowClass(&windowClass);
-    if (!ImGui::Begin("Stats", &_isShown, ImGuiWindowFlags_NoDocking)) {
+    constexpr ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar |
+                                       ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking |
+                                       ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 2.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6.0f);
+    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.33f, 0.55f, 0.95f, 1.00f));
+    const bool isOpen = ImGui::Begin("Stats", &_isShown, flags);
+    ImGui::PopStyleColor();
+    ImGui::PopStyleVar(2);
+    if (!isOpen) {
         ImGui::End();
         return;
+    }
+    _isDetached = ImGui::GetWindowViewport() != mainViewport;
+
+    if (!_isDetached) {
+        const ImGuiStyle& style = ImGui::GetStyle();
+        const ImVec2 windowPos = ImGui::GetWindowPos();
+        const ImVec2 buttonPos = ImVec2(
+            windowPos.x + ImGui::GetWindowWidth() - ImGui::GetFontSize() - style.WindowPadding.x * 0.5f,
+            windowPos.y + style.WindowPadding.y * 0.5f
+        );
+        if (ImGui::CloseButton(ImGui::GetID("##close"), buttonPos)) {
+            _isShown = false;
+        }
     }
 
     _updateStats();

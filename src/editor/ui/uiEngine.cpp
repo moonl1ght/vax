@@ -13,7 +13,7 @@ using namespace vax::editor;
 
 void UIEngine::setup(VkRenderPass renderPass) {
     ImGui::CreateContext();
-    ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+    ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable | ImGuiConfigFlags_DockingEnable;
 
     VkDescriptorPoolSize pool_size = {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1};
     VkDescriptorPoolCreateInfo pool_info = {
@@ -42,6 +42,7 @@ void UIEngine::setup(VkRenderPass renderPass) {
 
     ImGuiIO& io = ImGui::GetIO();
     io.IniFilename = nullptr;
+    io.ConfigViewportsNoDecoration = false;
 
     _setupFonts();
     _applyTheme();
