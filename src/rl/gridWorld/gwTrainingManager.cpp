@@ -6,13 +6,14 @@
 #include "timeManager.h"
 #include <filesystem>
 #include <fstream>
+#include <filesystem>
 
 using namespace vax;
 using namespace vax::rl;
 using namespace vax::core;
 
 GWTrainingManager::GWTrainingManager() {
-    _trainDirectory = RELATIVE_PATH("output/qlearning/train_" + core::TimeManager::getCurrentDatetimeString());
+    _trainDirectory = RELATIVE_PATH("output/qlearning/train_" + time::TimeManager::getCurrentDatetimeString());
     std::filesystem::create_directories(_trainDirectory);
     _fsLogger = std::make_shared<dev::FsLogger>(_trainDirectory + "/training.log");
     _logger.setFsLogger(_fsLogger);

@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-using namespace vax::core;
+using namespace vax::time;
 
 std::string TimeManager::getCurrentDatetimeString() {
     auto now = std::chrono::system_clock::now();

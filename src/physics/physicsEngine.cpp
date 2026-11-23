@@ -3,6 +3,8 @@
 
 using namespace vax::physics;
 
+bool PhysicsEngine::setup(const PhysicsConfig& config) noexcept { return true; }
+
 void PhysicsEngine::loadWorld(std::shared_ptr<vax::ecs::World> world) noexcept {
     _world = std::move(world);
     _loadPhysics();

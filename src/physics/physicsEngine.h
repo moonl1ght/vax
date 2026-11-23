@@ -4,6 +4,7 @@
 #include "frameTime.h"
 #include "kinematicsSystem.h"
 #include "logger.h"
+#include "physicsConfig.h"
 #include "world.h"
 #include "worldUpdater.h"
 #include "xpbdSolver.h"
@@ -26,6 +27,8 @@ class PhysicsEngine {
     PhysicsEngine& operator=(const PhysicsEngine& other) = delete;
     PhysicsEngine(PhysicsEngine&& other) noexcept = delete;
     PhysicsEngine& operator=(PhysicsEngine&& other) noexcept = delete;
+
+    bool setup(const PhysicsConfig& config) noexcept;
 
     void step(const vax::gfx::FrameTime& frameTime) noexcept;
 

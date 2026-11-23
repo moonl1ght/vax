@@ -5,6 +5,7 @@
 #include "inputController.h"
 #include "logger.h"
 #include "renderEngine.h"
+#include "simulationEngine.h"
 #include "viewBuilder.h"
 #include "viewManager.h"
 #include "windowController.h"
@@ -34,6 +35,7 @@ class App final {
     std::unique_ptr<app::ViewBuilder> _viewBuilder;
     std::unique_ptr<app::ViewManager> _viewManager;
     std::unique_ptr<gfx::RenderEngine> _renderEngine;
+    std::unique_ptr<sim::SimulationEngine> _simulationEngine;
 
     void _mainLoop();
     void _loopUpdate();

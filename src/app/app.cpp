@@ -34,6 +34,10 @@ void App::setup() noexcept {
     _viewBuilder = std::make_unique<app::ViewBuilder>(*_windowController, _inputController, *_renderEngine);
     _viewManager = std::make_unique<app::ViewManager>(_renderEngine->uiEngine(), *_viewBuilder);
     _viewManager->setRootView(_viewBuilder->buildStartingView());
+
+    _simulationEngine = std::make_unique<sim::SimulationEngine>();
+    _simulationEngine->setup(sim::SimulationConfig::defaultConfig());
+
     _logger.success("App setup complete!");
 }
 

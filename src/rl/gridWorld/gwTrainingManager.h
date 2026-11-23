@@ -1,10 +1,10 @@
 #pragma once
 
 #include "gridWorld.h"
+#include "qlConfig.h"
 #include "threadRunner.h"
 #include "trainingEngine.h"
 #include <thread>
-#include "qlConfig.h"
 
 namespace vax::rl {
 struct TrainingStatus {
@@ -45,4 +45,4 @@ class GWTrainingManager final {
     void _train(vax::core::ThreadRunner& threadRunner, std::function<TrainingCallback>& callback);
     void _saveTrainingData();
 };
-} // namespace vax::rl::gw
+} // namespace vax::rl
