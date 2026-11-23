@@ -36,7 +36,7 @@ void validationLayersDestroyDebugUtilsMessengerEXT(
     }
 }
 
-bool vax::rhi::Engine::setup() {
+bool vax::rhi::VulkanEngine::setup() {
     std::optional<VkInstance> instanceOptional =
         VkInstanceBuilder(deletionQueue, enableValidationLayers, validationLayers, vulkanApiVersion).build();
     if (instanceOptional.has_value()) {
@@ -112,12 +112,12 @@ bool vax::rhi::Engine::setup() {
     return true;
 }
 
-void vax::rhi::Engine::cleanup() {
+void vax::rhi::VulkanEngine::cleanup() {
     deletionQueue.flush();
-    _logger.success("Engine cleanup complete!");
+    _logger.success("Vulkan engine cleanup complete!");
 }
 
-void vax::rhi::Engine::resize() {
+void vax::rhi::VulkanEngine::resize() {
     _logger.debug("Resizing engine...");
     int width = 0, height = 0;
     SDL_GetWindowSizeInPixels(_windowController.get().getWindow(0)->window, &width, &height);
@@ -130,7 +130,7 @@ void vax::rhi::Engine::resize() {
     _windowController.get().getWindow(0)->getSwapchain()->recreate();
 }
 
-bool vax::rhi::Engine::setupDebugMessenger() {
+bool vax::rhi::VulkanEngine::setupDebugMessenger() {
     if (!enableValidationLayers)
         return false;
 

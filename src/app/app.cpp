@@ -19,21 +19,18 @@ void App::setup() noexcept {
     dev::RenderDoc::init();
 
     app::NotificationCenter::getInstance().setup();
-    _windowController = std::make_unique<WindowController>();
-    _windowController->setupWindow(0, vax::math::SizeUI{1920, 1080}, "VAX");
-    if (!_windowController->getWindow(0)->load(true, true)) {
-        _logger.failure("Failed to load window!");
-        return;
-    }
-    _renderEngine = std::make_unique<gfx::RenderEngine>();
-    if (!_renderEngine->setup(*_windowController)) {
-        _logger.failure("Failed to setup rendering engine!");
+
+    _editor = std::make_unique<editor::Editor>(_inputController);
+    if (!_editor->setup()) {
+        _logger.failure("Failed to setup editor!");
         return;
     }
 
-    _viewBuilder = std::make_unique<app::ViewBuilder>(*_windowController, _inputController, *_renderEngine);
-    _viewManager = std::make_unique<app::ViewManager>(_renderEngine->uiEngine(), *_viewBuilder);
-    _viewManager->setRootView(_viewBuilder->buildStartingView());
+    // _renderEngine = std::make_unique<gfx::RenderEngine>();
+    // if (!_renderEngine->setup(*_windowController, _editor->uiEngine())) {
+    //     _logger.failure("Failed to setup rendering engine!");
+    //     return;
+    // }
 
     _simulationEngine = std::make_unique<sim::SimulationEngine>();
     _simulationEngine->setup(sim::SimulationConfig::defaultConfig());
@@ -51,36 +48,34 @@ void App::_cleanup() {
 
     _renderEngine->waitIdle();
 
-    _viewManager = nullptr;
-    _viewBuilder = nullptr;
+    _editor->cleanup();
 
     _renderEngine->cleanup();
 
-    _windowController->destroyAllWindows();
     SDL_Quit();
     _logger.success("App cleanup complete!");
 }
 
 void App::_mainLoop() {
     _logger.debug("Starting main loop...");
-    if (_windowController->getWindow(0) == nullptr) {
+    if (_editor->windowController().getWindow(0) == nullptr) {
         _logger.failure("Window not initialized");
         return;
     }
     static bool running = true;
     int i = 0;
-    SDL_WindowID primaryWindowID = _windowController->getWindow(0)->getWindowID();
+    SDL_WindowID primaryWindowID = _editor->windowController().getWindow(0)->getWindowID();
 
     while (running) {
         SDL_Event event;
         auto processEvent = [&](SDL_Event& event) {
             bool isSecondaryMouseInput = (event.type == SDL_EVENT_MOUSE_MOTION || event.type == SDL_EVENT_MOUSE_WHEEL ||
                                           event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) &&
-                                         _renderEngine->uiEngine().isSecondaryViewportEvent(event);
+                                         _editor->uiEngine().isSecondaryViewportEvent(event);
             if (!isSecondaryMouseInput) {
                 _inputController.handleEvent(event);
             }
-            _renderEngine->uiEngine().processEvents(event);
+            _editor->uiEngine().processEvents(event);
             if (event.type == SDL_EVENT_QUIT) {
                 _logger.debug("Quitting app...");
                 running = false;
@@ -90,9 +85,9 @@ void App::_mainLoop() {
                     _logger.debug("Window close requested...");
                     running = false;
                     return false;
-                } else if (_windowController->getWindow(1) != nullptr) {
-                    if (event.window.windowID == _windowController->getWindow(1)->getWindowID()) {
-                        _windowController->getWindow(1)->hide();
+                } else if (_editor->windowController().getWindow(1) != nullptr) {
+                    if (event.window.windowID == _editor->windowController().getWindow(1)->getWindowID()) {
+                        _editor->windowController().getWindow(1)->hide();
                         return true;
                     }
                 }
@@ -100,7 +95,7 @@ void App::_mainLoop() {
             return true;
         };
 
-        _appMode = _viewManager->getAppMode();
+        _appMode = _editor->viewManager().getAppMode();
         if (_appMode == AppMode::Continous) {
             while (SDL_PollEvent(&event)) {
                 if (!processEvent(event)) {
@@ -137,7 +132,7 @@ void App::_loopUpdate() {
 
     _updateTimestamp();
 
-    auto cycleResult = _viewManager->runCycle(_frameTime);
+    auto cycleResult = _editor->viewManager().runCycle(_frameTime);
     if (!cycleResult) {
         _logger.error("Failed to run app cycle!");
     }

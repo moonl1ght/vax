@@ -49,7 +49,7 @@ class Scene final : public app::InputController::Observer {
     friend class SceneLoader;
 
     explicit Scene(
-        vax::rhi::Engine& vkEngine,
+        vax::rhi::VulkanEngine& vkEngine,
         std::unique_ptr<vax::ecs::World> gizmoWorld,
         std::unique_ptr<vax::ecs::World> backgroundWorld,
         std::unique_ptr<vax::gfx::EnvironmentMap> environmentMap,
@@ -129,7 +129,7 @@ class Scene final : public app::InputController::Observer {
     dev::Logger _logger = dev::Logger("DrawableScene");
 
     std::reference_wrapper<vax::rhi::ResourceManager> _resourceManager;
-    std::reference_wrapper<vax::rhi::Engine> _vkEngine;
+    std::reference_wrapper<vax::rhi::VulkanEngine> _vkEngine;
 
     std::unique_ptr<IndirectDrawController> _indirectDrawController;
     std::unique_ptr<vax::gfx::EnvironmentMap> _environmentMap;

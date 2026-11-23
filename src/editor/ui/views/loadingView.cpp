@@ -3,7 +3,7 @@
 #include <cmath>
 #include <imgui.h>
 
-using namespace vax::app;
+using namespace vax::editor;
 
 void LoadingView::updateUI(const vax::gfx::FrameTime& frameTime) {
     if (!_isShown) {

@@ -4,7 +4,7 @@
 #include "size.h"
 #include "window.h"
 
-namespace vax::app {
+namespace vax::editor {
 class WindowController final {
   public:
     static constexpr uint32_t maxWindows = 3;
@@ -32,4 +32,4 @@ class WindowController final {
 
     std::array<std::unique_ptr<rhi::Window>, maxWindows> _windows;
 };
-} // namespace vax::app
+} // namespace vax::editor

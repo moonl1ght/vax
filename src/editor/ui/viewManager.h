@@ -7,10 +7,10 @@
 #include "viewBuilder.h"
 #include "viewNode.h"
 
-namespace vax::app {
+namespace vax::editor {
 class ViewManager final {
   public:
-    ViewManager(gfx::UIEngine& uiEngine, ViewBuilder& viewBuilder)
+    ViewManager(UIEngine& uiEngine, ViewBuilder& viewBuilder)
         : _uiEngine(uiEngine)
         , _viewBuilder(viewBuilder) {}
 
@@ -29,14 +29,14 @@ class ViewManager final {
 
     void popView();
 
-    AppMode getAppMode() const;
+    app::AppMode getAppMode() const;
 
     ViewBuilder& viewBuilder() { return _viewBuilder.get(); }
 
   private:
     dev::Logger _logger = dev::Logger("ViewManager");
 
-    std::reference_wrapper<gfx::UIEngine> _uiEngine;
+    std::reference_wrapper<UIEngine> _uiEngine;
     std::reference_wrapper<ViewBuilder> _viewBuilder;
 
     std::unique_ptr<ViewNode> _rootNode = nullptr;
@@ -53,4 +53,4 @@ class ViewManager final {
 
     void _pushPendingViewNode(std::unique_ptr<ViewNode> viewNode);
 };
-} // namespace vax::app
+} // namespace vax::editor

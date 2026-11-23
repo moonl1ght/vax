@@ -8,10 +8,10 @@
 #include "imgui.h"
 #include <optional>
 
-namespace vax::gfx {
+namespace vax::editor {
 class UIEngine final {
   public:
-    UIEngine(vax::rhi::Engine& vkEngine, vax::rhi::Window& window)
+    UIEngine(vax::rhi::VulkanEngine& vkEngine, vax::rhi::Window& window)
         : _vkEngine(vkEngine)
         , _window(window) {}
 
@@ -33,15 +33,24 @@ class UIEngine final {
 
     bool isSecondaryViewportEvent(const SDL_Event& event) const;
 
-    vax::rhi::Engine& engine() { return _vkEngine.get(); }
+    vax::rhi::VulkanEngine& engine() { return _vkEngine.get(); }
 
-    const vax::rhi::Engine& engine() const { return _vkEngine.get(); }
+    const vax::rhi::VulkanEngine& engine() const { return _vkEngine.get(); }
+
+    ImFont* monoFont() const { return _monoFont; }
 
   private:
+    static constexpr float UI_FONT_SIZE = 17.0f;
+    static constexpr float MONO_FONT_SIZE = 16.0f;
+
+    void _setupFonts();
+    void _applyTheme();
+
+    ImFont* _monoFont = nullptr;
     ImDrawData* _imguiDrawData = nullptr;
     VkDescriptorPool _imguiDescriptorPool = VK_NULL_HANDLE;
 
     std::reference_wrapper<vax::rhi::Window> _window;
-    std::reference_wrapper<vax::rhi::Engine> _vkEngine;
+    std::reference_wrapper<vax::rhi::VulkanEngine> _vkEngine;
 };
-} // namespace vax::gfx
+} // namespace vax::editor

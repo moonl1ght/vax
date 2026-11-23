@@ -5,8 +5,8 @@
 #include "sceneView.h"
 #include "vkEngine.h"
 
-namespace vax::app {
-class PhysicsDemoView final : public SceneView<MainSceneController> {
+namespace vax::editor {
+class PhysicsDemoView final : public SceneView<app::MainSceneController> {
   public:
     PhysicsDemoView(vax::gfx::RenderEngine& renderEngine, app::InputController& inputController)
         : SceneView(renderEngine, inputController) {}
@@ -20,11 +20,11 @@ class PhysicsDemoView final : public SceneView<MainSceneController> {
 
     void updateUI(const vax::gfx::FrameTime& frameTime) override;
 
-    AppMode getAppMode() override { return AppMode::Continous; }
+    app::AppMode getAppMode() override { return app::AppMode::Continous; }
 
   protected:
     bool _load() override;
 
     const char* _loadingMessage() const override { return "Loading physics demo"; }
 };
-} // namespace vax::app
+} // namespace vax::editor

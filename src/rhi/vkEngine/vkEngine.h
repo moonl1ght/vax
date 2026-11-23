@@ -19,7 +19,7 @@ class QueueManager;
 } // namespace vax::rhi
 
 namespace vax::rhi {
-class Engine final {
+class VulkanEngine final {
   public:
     const uint32_t vulkanApiVersion = VK_API_VERSION_1_4;
 
@@ -42,28 +42,28 @@ class Engine final {
     std::unique_ptr<vax::rhi::CommandManager> commandManager;
     std::unique_ptr<vax::rhi::SyncObjectsManager> syncObjectsManager;
 
-    explicit Engine(app::WindowController& windowController)
+    explicit VulkanEngine(editor::WindowController& windowController)
         : _windowController(windowController) {};
 
-    ~Engine() {};
+    ~VulkanEngine() {};
 
-    Engine(const Engine& other) = delete;
-    Engine& operator=(const Engine& other) = delete;
-    Engine(Engine&& other) noexcept = delete;
-    Engine& operator=(Engine&& other) noexcept = delete;
+    VulkanEngine(const VulkanEngine& other) = delete;
+    VulkanEngine& operator=(const VulkanEngine& other) = delete;
+    VulkanEngine(VulkanEngine&& other) noexcept = delete;
+    VulkanEngine& operator=(VulkanEngine&& other) noexcept = delete;
 
     bool setup();
     void cleanup();
     void resize();
 
-    app::WindowController& getWindowController() { return _windowController.get(); }
+    editor::WindowController& getWindowController() { return _windowController.get(); }
 
-    const app::WindowController& getWindowController() const { return _windowController.get(); }
+    const editor::WindowController& getWindowController() const { return _windowController.get(); }
 
   private:
-    dev::Logger _logger = dev::Logger("Engine");
+    dev::Logger _logger = dev::Logger("VulkanEngine");
 
-    std::reference_wrapper<app::WindowController> _windowController;
+    std::reference_wrapper<editor::WindowController> _windowController;
 
     bool setupDebugMessenger();
 };

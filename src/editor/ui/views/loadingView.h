@@ -4,7 +4,7 @@
 #include <optional>
 #include <string>
 
-namespace vax::app {
+namespace vax::editor {
 class LoadingView final : public View {
   public:
     LoadingView(vax::gfx::Renderer& renderer)
@@ -33,4 +33,4 @@ class LoadingView final : public View {
 
     void _showProgress() const;
 };
-} // namespace vax::app
+} // namespace vax::editor

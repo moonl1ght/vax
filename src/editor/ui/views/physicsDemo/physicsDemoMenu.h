@@ -2,7 +2,7 @@
 
 #include "debugView.h"
 
-namespace vax::app {
+namespace vax::editor {
 class PhysicsDemoMenuView final : public DebugView {
   public:
     PhysicsDemoMenuView(vax::gfx::RenderEngine& renderEngine)
@@ -20,4 +20,4 @@ class PhysicsDemoMenuView final : public DebugView {
   private:
     void _showSimpleDemo();
 };
-} // namespace vax::app
+} // namespace vax::editor

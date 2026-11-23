@@ -9,9 +9,9 @@ class RenderPassGraphBuilder final {
   public:
     RenderPassGraphBuilder(
         vax::rhi::Device& device,
-        app::WindowController& windowController,
+        editor::WindowController& windowController,
         vax::rhi::PipelineManager& pipelineManager,
-        gfx::UIEngine& uiEngine,
+        editor::UIEngine& uiEngine,
         vax::rhi::ResourceManager& resourceManager
     )
         : _device(device)
@@ -40,9 +40,9 @@ class RenderPassGraphBuilder final {
 
   private:
     std::reference_wrapper<vax::rhi::Device> _device;
-    std::reference_wrapper<app::WindowController> _windowController;
+    std::reference_wrapper<editor::WindowController> _windowController;
     std::reference_wrapper<vax::rhi::PipelineManager> _pipelineManager;
-    std::reference_wrapper<gfx::UIEngine> _uiEngine;
+    std::reference_wrapper<editor::UIEngine> _uiEngine;
     std::reference_wrapper<vax::rhi::ResourceManager> _resourceManager;
 };
 } // namespace vax::gfx

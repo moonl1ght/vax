@@ -6,7 +6,7 @@
 #include "systemInfo.h"
 #include "view.h"
 
-namespace vax::app {
+namespace vax::editor {
 class StatsView final : public View {
   public:
     StatsView(vax::gfx::RenderEngine& renderEngine)
@@ -48,4 +48,4 @@ class StatsView final : public View {
 
     void _updateStats();
 };
-} // namespace vax::app
+} // namespace vax::editor

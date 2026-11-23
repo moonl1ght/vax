@@ -2,7 +2,7 @@
 
 #include <view.h>
 
-namespace vax::app {
+namespace vax::editor {
 class ViewNode {
   public:
     ViewNode(std::unique_ptr<View> view)
@@ -15,4 +15,4 @@ class ViewNode {
 
     ViewNode* parent = nullptr;
 };
-} // namespace vax::app
+} // namespace vax::editor

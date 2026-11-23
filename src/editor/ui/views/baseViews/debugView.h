@@ -1,14 +1,14 @@
 #pragma once
 
 #include "frameProfiler.h"
+#include "renderEngine.h"
 #include "statsView.h"
 #include "view.h"
 #include <algorithm>
 #include <imgui.h>
 #include <imgui_internal.h>
-#include "renderEngine.h"
 
-namespace vax::app {
+namespace vax::editor {
 class DebugView : public View {
   public:
     DebugView(vax::gfx::RenderEngine& renderEngine)
@@ -73,4 +73,4 @@ class DebugView : public View {
         ImGui::EndMainMenuBar();
     }
 };
-} // namespace vax::app
+} // namespace vax::editor

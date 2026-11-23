@@ -3,7 +3,7 @@
 #include "sceneLoader.h"
 #include "viewManager.h"
 
-using namespace vax::app;
+using namespace vax::editor;
 
 void PhysicsDemoView::updateUI(const vax::gfx::FrameTime& frameTime) { SceneView::updateUI(frameTime); }
 

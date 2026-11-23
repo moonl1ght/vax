@@ -1,6 +1,6 @@
 #include "viewManager.h"
 
-using namespace vax::app;
+using namespace vax::editor;
 
 void ViewManager::setRootView(std::unique_ptr<View> view) {
     if (_isUpdating) {
@@ -57,7 +57,6 @@ bool ViewManager::runCycle(const vax::gfx::FrameTime& frameTime) {
     _topViewNode->view->updateUI(frameTime);
 
     _uiEngine.get().updateUiEnd();
-
     _topViewNode->view->update(frameTime);
 
     auto drawResult = _topViewNode->view->draw(frameTime);
@@ -75,10 +74,10 @@ bool ViewManager::runCycle(const vax::gfx::FrameTime& frameTime) {
     return drawResult;
 }
 
-AppMode ViewManager::getAppMode() const {
+vax::app::AppMode ViewManager::getAppMode() const {
     if (_topViewNode == nullptr) {
         _logger.error("No top view set!");
-        return AppMode::EventDriven;
+        return app::AppMode::EventDriven;
     }
     return _topViewNode->view.get()->getAppMode();
 }

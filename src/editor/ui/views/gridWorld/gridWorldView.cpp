@@ -7,7 +7,7 @@
 #include "sceneLoader.h"
 #include "viewManager.h"
 
-using namespace vax::app;
+using namespace vax::editor;
 using namespace vax::rl;
 using namespace vax::rhi;
 using namespace vax;

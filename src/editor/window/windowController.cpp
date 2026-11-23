@@ -1,6 +1,6 @@
 #include "windowController.h"
 
-using namespace vax::app;
+using namespace vax::editor;
 
 void WindowController::setupWindow(uint32_t index, math::SizeUI size, const std::string& name) {
     if (index >= maxWindows) {

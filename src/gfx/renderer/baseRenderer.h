@@ -9,7 +9,7 @@
 namespace vax::gfx {
 class BaseRenderer {
   public:
-    BaseRenderer(rhi::Engine& vkEngine, gfx::UIEngine& uiEngine)
+    BaseRenderer(rhi::VulkanEngine& vkEngine, editor::UIEngine& uiEngine)
         : _vkEngine(vkEngine)
         , _uiEngine(uiEngine) {};
 
@@ -28,8 +28,8 @@ class BaseRenderer {
     };
     dev::Logger _logger = dev::Logger("BaseRenderer");
 
-    std::reference_wrapper<rhi::Engine> _vkEngine;
-    std::reference_wrapper<gfx::UIEngine> _uiEngine;
+    std::reference_wrapper<rhi::VulkanEngine> _vkEngine;
+    std::reference_wrapper<editor::UIEngine> _uiEngine;
 
     std::vector<uint32_t> _outputImageIndices;
 

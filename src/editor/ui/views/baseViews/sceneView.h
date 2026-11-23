@@ -7,7 +7,7 @@
 #include "scene.h"
 #include "vkEngine.h"
 
-namespace vax::app {
+namespace vax::editor {
 
 template <typename ControllerType> class SceneView : public DebugView {
   public:
@@ -106,4 +106,4 @@ template <typename ControllerType> class SceneView : public DebugView {
     }
 };
 
-} // namespace vax::app
+} // namespace vax::editor

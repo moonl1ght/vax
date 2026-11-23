@@ -20,26 +20,23 @@ class RenderEngine final {
     RenderEngine(RenderEngine&& other) noexcept = delete;
     RenderEngine& operator=(RenderEngine&& other) noexcept = delete;
 
-    bool setup(app::WindowController& windowController) noexcept;
+    bool setup(editor::WindowController& windowController, editor::UIEngine& uiEngine) noexcept;
 
     void waitIdle() noexcept;
 
     void cleanup() noexcept;
 
-    rhi::Engine& vkEngine() noexcept { return *_vkEngine; }
+    rhi::VulkanEngine& vkEngine() noexcept { return *_vkEngine; }
 
     rhi::ResourceManager& resourceManager() noexcept { return *_resourceManager; }
 
     gfx::Renderer& renderer() noexcept { return *_renderer; }
 
-    gfx::UIEngine& uiEngine() noexcept { return *_uiEngine; }
-
   private:
     dev::Logger _logger = dev::Logger("RenderEngine");
 
-    std::unique_ptr<rhi::Engine> _vkEngine;
+    std::unique_ptr<rhi::VulkanEngine> _vkEngine;
     std::unique_ptr<gfx::Renderer> _renderer;
-    std::unique_ptr<gfx::UIEngine> _uiEngine;
     std::unique_ptr<rhi::ResourceManager> _resourceManager;
 };
 
