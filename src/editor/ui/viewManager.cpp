@@ -57,7 +57,6 @@ bool ViewManager::runCycle(const vax::time::FrameTime& frameTime) {
     _topViewNode->view->updateUI(frameTime);
 
     _uiEngine.get().updateUiEnd();
-    _topViewNode->view->update(frameTime);
 
     auto drawResult = _topViewNode->view->draw(frameTime);
 

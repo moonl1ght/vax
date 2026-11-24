@@ -17,8 +17,6 @@ class SimulationView final : public View {
 
     ~SimulationView() override = default;
 
-    void update(const vax::time::FrameTime& frameTime) override {}
-
     void updateUI(const vax::time::FrameTime& frameTime) override;
 
     bool isShown() const noexcept { return _isShown; }

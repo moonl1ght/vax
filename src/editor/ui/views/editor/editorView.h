@@ -17,6 +17,12 @@ class EditorView final : public DebugView {
     EditorView(EditorView&& other) noexcept = delete;
     EditorView& operator=(EditorView&& other) noexcept = delete;
 
+    void updateUI(const vax::time::FrameTime& frameTime) override;
+
+    void viewWillShow() override;
+
+    bool draw(const vax::time::FrameTime& frameTime) override;
+
   private:
     std::unique_ptr<EditorController> _editorController;
 };

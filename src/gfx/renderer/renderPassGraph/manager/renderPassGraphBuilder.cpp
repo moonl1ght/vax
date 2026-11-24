@@ -23,8 +23,8 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildUIOnlyGraph(
     );
     uiPass->setRenderToSwapchain(true);
     uiPass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = swapchain->swapchainExtent});
-    uiPass->setOutsideRenderPass(true);
-    uiPass->setOutsideDrawWork([&uiEngine = _uiEngine.get()](RenderPass::RunPassInfo& runPassInfo) {
+    // uiPass->setOutsideRenderPass(true);
+    uiPass->setDrawWork([&uiEngine = _uiEngine.get()](RenderPass::RunPassInfo& runPassInfo, DrawContext& drawContext) {
         uiEngine.render(runPassInfo.commandBuffer.vkCommandBuffer);
     });
     return std::make_unique<RenderPassGraph>(uiPass, _uiEngine.get());

@@ -3,15 +3,13 @@
 #include "commandBuffer.h"
 #include "logger.h"
 #include "swapchain.h"
-#include "uiEngine.h"
 #include "vkEngine.h"
 
 namespace vax::gfx {
 class BaseRenderer {
   public:
-    BaseRenderer(rhi::VulkanEngine& vkEngine, editor::UIEngine& uiEngine)
-        : _vkEngine(vkEngine)
-        , _uiEngine(uiEngine) {};
+    BaseRenderer(rhi::VulkanEngine& vkEngine)
+        : _vkEngine(vkEngine) {};
 
     virtual ~BaseRenderer() {};
 
@@ -24,7 +22,6 @@ class BaseRenderer {
     dev::Logger _logger = dev::Logger("BaseRenderer");
 
     std::reference_wrapper<rhi::VulkanEngine> _vkEngine;
-    std::reference_wrapper<editor::UIEngine> _uiEngine;
 
     std::vector<uint32_t> _outputImageIndices;
 

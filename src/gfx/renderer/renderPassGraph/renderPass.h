@@ -48,11 +48,7 @@ class RenderPass : public RenderPassNode {
 
     void setDrawWork(std::function<void(RunPassInfo&, DrawContext&)> drawWork) { _drawWork = drawWork; }
 
-    void setOutsideDrawWork(std::function<void(RunPassInfo&)> outsideDrawWork) { _outsideDrawWork = outsideDrawWork; }
-
     void setRenderToSwapchain(bool renderToSwapchain) { _renderToSwapchain = renderToSwapchain; }
-
-    void setOutsideRenderPass(bool outsideRenderPass) { _outsideRenderPass = outsideRenderPass; }
 
     void setRenderOffset(vax::math::Position2DFloat offset) { _offset = offset; }
 
@@ -73,11 +69,9 @@ class RenderPass : public RenderPassNode {
     std::string _debugName;
     std::vector<VkClearValue> _clearValues;
     std::function<void(RunPassInfo&, DrawContext&)> _drawWork;
-    std::function<void(RunPassInfo&)> _outsideDrawWork;
     VkRect2D _renderArea{};
-    std::string _pipelineName;
+    std::optional<std::string> _pipelineName;
     bool _renderToSwapchain = false;
-    bool _outsideRenderPass = false;
     vax::math::Position2DFloat _offset = {0.0f, 0.0f};
     size_t _outputImageIndex = 0;
 

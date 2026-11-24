@@ -1,6 +1,7 @@
 #pragma once
 
 #include "appMode.h"
+#include "editorRenderer.h"
 #include "editorRenderer_old.h"
 #include "frameTime.h"
 #undef Status
@@ -13,16 +14,19 @@ class ViewManager;
 
 class View {
   public:
-    View(vax::gfx::EditorRenderer_old& editorRenderer)
+    View(vax::gfx::EditorRenderer_old& editorRenderer, vax::gfx::EditorRenderer* editorRenderer_new = nullptr)
         : _editorRenderer(editorRenderer) {};
 
     virtual ~View() = default;
 
     virtual void updateUI(const vax::time::FrameTime& frameTime) = 0;
 
-    virtual void update(const vax::time::FrameTime& frameTime) = 0;
-
-    virtual bool draw(const vax::time::FrameTime& frameTime) { return _editorRenderer.get().render(nullptr, frameTime); }
+    virtual bool draw(const vax::time::FrameTime& frameTime) {
+        if (_editorRenderer_new) {
+            return _editorRenderer_new->render(nullptr, frameTime);
+        }
+        return _editorRenderer.get().render(nullptr, frameTime);
+    }
 
     virtual void viewWillShow() { _editorRenderer.get().renderPassGraphMode.set(gfx::RenderPassGraphMode::UI_ONLY); }
 
@@ -32,6 +36,7 @@ class View {
 
   protected:
     std::reference_wrapper<vax::gfx::EditorRenderer_old> _editorRenderer;
+    vax::gfx::EditorRenderer* _editorRenderer_new = nullptr;
     ViewManager* _viewManager = nullptr;
 
     bool _beginInMainWindow(const char* name, ImGuiWindowFlags flags = 0) {

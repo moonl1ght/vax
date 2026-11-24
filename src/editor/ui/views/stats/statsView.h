@@ -19,8 +19,6 @@ class StatsView final : public View {
 
     ~StatsView() = default;
 
-    void update(const vax::time::FrameTime& frameTime) override {};
-
     void updateUI(const vax::time::FrameTime& frameTime) override;
 
     void linkFrameProfiler(dev::FrameProfiler* frameProfiler) noexcept { _frameProfiler = frameProfiler; }

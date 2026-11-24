@@ -2,6 +2,7 @@
 
 #include "editorScene.h"
 #include "inputController.h"
+#include "simulationEngine.h"
 
 namespace vax::editor {
 class EditorController final : public app::InputController::Observer {
@@ -21,7 +22,11 @@ class EditorController final : public app::InputController::Observer {
 
     void onKeyEvent(const app::KeyEvent& keyEvent);
 
+    void draw();
+
   private:
     std::unique_ptr<scene::EditorScene> _editorScene;
+
+    std::unique_ptr<sim::SimulationEngine> _simulationEngine;
 };
 } // namespace vax::editor

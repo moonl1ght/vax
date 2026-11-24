@@ -17,8 +17,6 @@ class SettingsView final : public View {
     SettingsView& operator=(const SettingsView& other) = delete;
     SettingsView& operator=(SettingsView&& other) noexcept = delete;
 
-    void update(const vax::time::FrameTime& frameTime) override {}
-
     void updateUI(const vax::time::FrameTime& frameTime) override;
 
     bool isShown() const noexcept { return _isShown; }

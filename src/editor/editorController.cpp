@@ -8,3 +8,5 @@ void EditorController::onMouseMove(const app::MouseMoveValue& value) {}
 void EditorController::onMouseWheel(float delta) {}
 
 void EditorController::onKeyEvent(const app::KeyEvent& keyEvent) {}
+
+void EditorController::draw() {}

@@ -4,15 +4,9 @@ using namespace vax::gfx;
 
 void RenderPass::runPass(RunPassInfo& runPassInfo) {
     _setViewportAndScissor(runPassInfo.commandBuffer, _renderArea.extent);
-    if (_outsideRenderPass) {
-        _pass(runPassInfo, [&]() {
-            if (_outsideDrawWork) {
-                _outsideDrawWork(runPassInfo);
-            }
-        });
-    } else {
-        _pass(runPassInfo, [&]() {
-            auto pipeline = _pipelineManager.get().getPipeline(_pipelineName);
+    _pass(runPassInfo, [&]() {
+        if (_pipelineName) {
+            auto pipeline = _pipelineManager.get().getPipeline(_pipelineName.value());
             if (!pipeline) {
                 _logger.error("Failed to get pipeline!");
                 return;
@@ -20,18 +14,18 @@ void RenderPass::runPass(RunPassInfo& runPassInfo) {
 
             if (!runPassInfo.commandBuffer.bindPipeline(&pipeline.value(), VK_PIPELINE_BIND_POINT_GRAPHICS))
                 return;
-            DrawContext drawContext{
-                .commandBuffer = runPassInfo.commandBuffer,
-                .currentFrame = runPassInfo.frameIndex,
-            };
-            if (_drawWork) {
-                _drawWork(runPassInfo, drawContext);
-            }
-            for (const auto& subpass : _subpasses) {
-                subpass->run(runPassInfo, drawContext);
-            }
-        });
-    }
+        }
+        DrawContext drawContext{
+            .commandBuffer = runPassInfo.commandBuffer,
+            .currentFrame = runPassInfo.frameIndex,
+        };
+        if (_drawWork) {
+            _drawWork(runPassInfo, drawContext);
+        }
+        for (const auto& subpass : _subpasses) {
+            subpass->run(runPassInfo, drawContext);
+        }
+    });
 }
 
 void RenderPass::_setViewportAndScissor(vax::rhi::CommandBuffer& commandBuffer, VkExtent2D extent) {

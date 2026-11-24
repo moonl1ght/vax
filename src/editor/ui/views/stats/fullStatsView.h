@@ -16,8 +16,6 @@ class FullStatsView final : public View {
     FullStatsView& operator=(const FullStatsView& other) = delete;
     FullStatsView& operator=(FullStatsView&& other) noexcept = delete;
 
-    void update(const vax::time::FrameTime& frameTime) override {}
-
     void updateUI(const vax::time::FrameTime& frameTime) override;
 
     bool isShown() const noexcept { return _isShown; }

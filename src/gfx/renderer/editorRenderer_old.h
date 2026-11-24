@@ -21,8 +21,11 @@ class EditorRenderer_old final : public BaseRenderer {
     state_tracker<RenderPassGraphMode> renderPassGraphMode =
         state_tracker<RenderPassGraphMode>(RenderPassGraphMode::UNKNOWN);
 
-    EditorRenderer_old(rhi::VulkanEngine& vkEngine, editor::UIEngine& uiEngine, editor::WindowController& windowController)
-        : BaseRenderer(vkEngine, uiEngine)
+    EditorRenderer_old(
+        rhi::VulkanEngine& vkEngine, editor::UIEngine& uiEngine, editor::WindowController& windowController
+    )
+        : BaseRenderer(vkEngine)
+        , _uiEngine(uiEngine)
         , _windowController(windowController) {};
 
     ~EditorRenderer_old() {};
@@ -69,6 +72,8 @@ class EditorRenderer_old final : public BaseRenderer {
 
     std::reference_wrapper<editor::WindowController> _windowController;
 
+    std::reference_wrapper<editor::UIEngine> _uiEngine;
+
     dev::FrameProfiler* _frameProfiler = nullptr;
 
     std::unique_ptr<vax::gfx::RenderPassGraphManager> _renderPassGraphManager;
@@ -95,8 +100,6 @@ class EditorRenderer_old final : public BaseRenderer {
     void _resizeSecondary();
 
     void _prepareForRender(Scene* scene);
-
-    SwapchainResult _acquireSwapchainImage(size_t windowIndex, std::string semaphoreName);
 
     rhi::Swapchain* _getSwapchain(size_t index);
 };

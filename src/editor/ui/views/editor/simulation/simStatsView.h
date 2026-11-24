@@ -16,8 +16,6 @@ class SimStatsView final : public View {
     SimStatsView& operator=(const SimStatsView& other) = delete;
     SimStatsView& operator=(SimStatsView&& other) noexcept = delete;
 
-    void update(const vax::time::FrameTime& frameTime) override {}
-
     void updateUI(const vax::time::FrameTime& frameTime) override;
 
     bool isShown() const noexcept { return _isShown; }

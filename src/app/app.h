@@ -19,8 +19,6 @@ class App final {
 
     void run() noexcept;
 
-    gfx::RenderEngine* getRenderEngine() const { return _renderEngine.get(); }
-
   private:
     dev::Logger _logger = dev::Logger("App");
 

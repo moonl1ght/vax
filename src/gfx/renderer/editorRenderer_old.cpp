@@ -370,27 +370,3 @@ vax::rhi::Swapchain* EditorRenderer_old::_getSwapchain(size_t index) {
     }
     return _windowController.get().getWindow(index)->vkWindow()->swapchain();
 }
-
-EditorRenderer_old::SwapchainResult EditorRenderer_old::_acquireSwapchainImage(size_t windowIndex, std::string semaphoreName) {
-    uint32_t imageIndex = UINT32_MAX;
-    bool hasError = false;
-    bool shouldRecreateSwapchain = false;
-    VkResult result = vkAcquireNextImageKHR(
-        _vkEngine.get().device->vkDevice(),
-        _windowController.get().getWindow(windowIndex)->vkWindow()->swapchain()->swapchain,
-        UINT64_MAX,
-        _vkEngine.get().syncObjectsManager->getImageAvailableSemaphores(semaphoreName)[_currentFrame],
-        VK_NULL_HANDLE,
-        &imageIndex
-    );
-    if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-        _logger.warning("Failed to acquire swap chain image");
-        hasError = true;
-    }
-    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-        shouldRecreateSwapchain = true;
-    }
-    return EditorRenderer_old::SwapchainResult{
-        .imageIndex = imageIndex, .shouldRecreateSwapchain = false, .hasError = false
-    };
-}

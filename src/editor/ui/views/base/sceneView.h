@@ -22,7 +22,7 @@ template <typename ControllerType> class SceneView : public DebugView {
         _loadingView->updateUI(frameTime);
     }
 
-    void update(const vax::time::FrameTime& frameTime) override {
+    bool draw(const vax::time::FrameTime& frameTime) override {
         _frameProfiler->beginFrameZone("frame");
         _frameProfiler->beginFrameZone("frame_update");
         _updateLoading();
@@ -31,10 +31,7 @@ template <typename ControllerType> class SceneView : public DebugView {
             _controller->update(sceneUpdateContext);
         }
         _frameProfiler->endFrameZone("frame_update");
-        DebugView::update(frameTime);
-    }
 
-    bool draw(const vax::time::FrameTime& frameTime) override {
         _frameProfiler->beginFrameZone("draw");
         vax::gfx::Scene* scene = _loadState == LoadState::LOADED ? &_controller->getScene() : nullptr;
         bool renderResult = _editorRenderer.get().render(scene, frameTime);

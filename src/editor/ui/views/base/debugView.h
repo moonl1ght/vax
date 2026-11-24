@@ -35,11 +35,6 @@ class DebugView : public View {
         _settingsView->updateUI(frameTime);
     }
 
-    void update(const vax::time::FrameTime& frameTime) override {
-        _statsView->update(frameTime);
-        _simulationView->update(frameTime);
-    }
-
     void viewWillShow() override {
         _editorRenderer.get().linkFrameProfiler(_frameProfiler.get());
         View::viewWillShow();

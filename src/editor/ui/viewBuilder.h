@@ -11,6 +11,7 @@
 namespace vax::gfx {
 class RenderEngine;
 class EditorRenderer_old;
+class EditorRenderer;
 } // namespace vax::gfx
 
 namespace vax::editor {
@@ -21,11 +22,13 @@ class ViewBuilder {
     ViewBuilder(
         WindowController& windowController,
         app::InputController& inputController,
-        gfx::EditorRenderer_old& editorRenderer,
+        gfx::EditorRenderer_old& editorRenderer_old,
+        gfx::EditorRenderer& editorRenderer,
         gfx::RenderEngine& renderEngine
     )
         : _windowController(windowController)
         , _inputController(inputController)
+        , _editorRenderer_old(editorRenderer_old)
         , _editorRenderer(editorRenderer)
         , _renderEngine(renderEngine) {}
 
@@ -44,7 +47,8 @@ class ViewBuilder {
   private:
     std::reference_wrapper<WindowController> _windowController;
     std::reference_wrapper<app::InputController> _inputController;
-    std::reference_wrapper<gfx::EditorRenderer_old> _editorRenderer;
+    std::reference_wrapper<gfx::EditorRenderer_old> _editorRenderer_old;
+    std::reference_wrapper<gfx::EditorRenderer> _editorRenderer;
     std::reference_wrapper<gfx::RenderEngine> _renderEngine;
 };
 
