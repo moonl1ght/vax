@@ -1,8 +1,8 @@
-#include "prefabDescriptor.h"
+#include "prefabConfig.h"
 
-using namespace vax::gfx;
+using namespace vax::scene;
 
-PrefabDescriptor::AssetExtension PrefabDescriptor::AssetDescriptor::getAssetExtension() const {
+PrefabConfig::AssetExtension PrefabConfig::AssetDescriptor::getAssetExtension() const {
     auto dot = path.rfind('.');
     if (dot == std::string::npos)
         return AssetExtension::UNKNOWN;
@@ -18,7 +18,7 @@ PrefabDescriptor::AssetExtension PrefabDescriptor::AssetDescriptor::getAssetExte
     return AssetExtension::UNKNOWN;
 }
 
-const std::string_view PrefabDescriptor::AssetDescriptor::getMainPath() const {
+const std::string_view PrefabConfig::AssetDescriptor::getMainPath() const {
     auto dot = path.rfind('/');
     if (dot == std::string::npos)
         return std::string_view("");

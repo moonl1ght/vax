@@ -2,7 +2,7 @@
 
 #include "modelLoader.h"
 #include "prefab.h"
-#include "prefabDescriptor.h"
+#include "prefabConfig.h"
 #include "primitivesBuilder.h"
 #include "resourceManager.h"
 
@@ -30,7 +30,7 @@ class PrefabLoader {
     PrefabLoader(PrefabLoader&& other) noexcept = delete;
     PrefabLoader& operator=(PrefabLoader&& other) noexcept = delete;
 
-    std::optional<std::pair<Prefab, std::vector<DrawableModel>>> loadPrefab(const PrefabDescriptor& descriptor);
+    std::optional<std::pair<Prefab, std::vector<DrawableModel>>> loadPrefab(const scene::PrefabConfig& config);
 
   private:
     dev::Logger _logger = dev::Logger("PrefabLoader");
@@ -42,13 +42,16 @@ class PrefabLoader {
     std::unique_ptr<vax::rhi::TextureLoader> _textureLoader;
     std::unique_ptr<vax::gfx::PrimitivesBuilder> _primitivesBuilder;
 
-    std::optional<std::pair<Prefab, std::vector<DrawableModel>>> _loadURDFPrefab(const PrefabDescriptor& descriptor);
-
-    std::optional<std::pair<Prefab, std::vector<DrawableModel>>> _loadGLBPrefab(const PrefabDescriptor& descriptor);
+    std::optional<std::pair<Prefab, std::vector<DrawableModel>>>
+    _loadURDFPrefab(const scene::PrefabConfig& config);
 
     std::optional<std::pair<Prefab, std::vector<DrawableModel>>>
-    _loadPrimitivePrefab(const PrefabDescriptor& descriptor);
+    _loadGLBPrefab(const scene::PrefabConfig& config);
 
-    std::optional<std::pair<Prefab, std::vector<DrawableModel>>> _loadAssetPrefab(const PrefabDescriptor& descriptor);
+    std::optional<std::pair<Prefab, std::vector<DrawableModel>>>
+    _loadPrimitivePrefab(const scene::PrefabConfig& config);
+
+    std::optional<std::pair<Prefab, std::vector<DrawableModel>>>
+    _loadAssetPrefab(const scene::PrefabConfig& config);
 };
 } // namespace vax::gfx

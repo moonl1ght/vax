@@ -1,28 +1,26 @@
 #pragma once
 
+#include "editorScene.h"
 #include "logger.h"
+#include "pipelineManager.h"
 #include "resourceManager.h"
-#include "scene.h"
-#include "sceneDescriptor.h"
+#include "sceneConfig.h"
 #include "textureGpuUploader.h"
+#include "vkEngine.h"
 #include "world.h"
 
-namespace vax::gfx {
+namespace vax::scene {
 
 class SceneLoader {
   public:
-    typedef std::pair<std::unique_ptr<Scene>, std::shared_ptr<ecs::World>> SceneWorldPair;
-
     SceneLoader(
         vax::rhi::VulkanEngine& vkEngine,
         vax::rhi::PipelineManager& pipelineManager,
-        vax::rhi::ResourceManager& resourceManager,
-        editor::WindowController& windowController
+        vax::rhi::ResourceManager& resourceManager
     )
         : _vkEngine(vkEngine)
         , _pipelineManager(pipelineManager)
-        , _resourceManager(resourceManager)
-        , _windowController(windowController) {
+        , _resourceManager(resourceManager) {
         _textureGpuUploader = std::make_unique<vax::rhi::TextureGpuUploader>();
     }
 
@@ -33,9 +31,9 @@ class SceneLoader {
     SceneLoader(SceneLoader&& other) noexcept = default;
     SceneLoader& operator=(SceneLoader&& other) noexcept = default;
 
-    std::optional<SceneWorldPair> load(const std::string& path);
+    std::unique_ptr<EditorScene> loadEditorScene(const std::string& path);
 
-    SceneWorldPair load(SceneDescriptor& descriptor);
+    std::unique_ptr<EditorScene> loadEditorScene(scene::SceneConfig& config);
 
   private:
     dev::Logger _logger = dev::Logger("SceneLoader");
@@ -43,15 +41,10 @@ class SceneLoader {
     std::reference_wrapper<vax::rhi::VulkanEngine> _vkEngine;
     std::reference_wrapper<vax::rhi::PipelineManager> _pipelineManager;
     std::reference_wrapper<vax::rhi::ResourceManager> _resourceManager;
-    std::reference_wrapper<editor::WindowController> _windowController;
 
     std::unique_ptr<vax::rhi::TextureGpuUploader> _textureGpuUploader;
 
-    std::string _name;
-
-    std::unique_ptr<Scene> _initScene(ecs::World& world, const SceneDescriptor& descriptor);
-
-    std::optional<SceneDescriptor> _loadSceneDescriptor(const std::string& path);
+    std::optional<scene::SceneConfig> _loadSceneConfig(const std::string& path);
 };
 
-} // namespace vax::gfx
+} // namespace vax::scene

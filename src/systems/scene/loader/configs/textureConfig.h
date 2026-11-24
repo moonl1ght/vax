@@ -5,34 +5,34 @@
 #include <string>
 #include <variant>
 
-namespace vax::gfx {
+namespace vax::scene {
 
-struct CheckerboardTextureDescriptor final {
+struct CheckerboardTextureConfig final {
     int width = 512;
     int height = 512;
     int cellSize = 64;
 };
 
-using GeneratedTextureDescriptor = std::variant<CheckerboardTextureDescriptor>;
+using GeneratedTextureConfig = std::variant<CheckerboardTextureConfig>;
 
-struct TextureDescriptor final {
+struct TextureConfig final {
     std::string name;
     std::string path;
-    std::optional<GeneratedTextureDescriptor> generatedTextureDescriptor;
+    std::optional<GeneratedTextureConfig> generatedTextureConfig;
 
-    bool isGenerated() const noexcept { return generatedTextureDescriptor.has_value(); }
+    bool isGenerated() const noexcept { return generatedTextureConfig.has_value(); }
 
     bool isValid() const noexcept { return isGenerated() || !path.empty(); }
 };
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(CheckerboardTextureDescriptor, width, height, cellSize)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(CheckerboardTextureConfig, width, height, cellSize)
 
-inline void to_json(nlohmann::json& json, const GeneratedTextureDescriptor& descriptor) {
+inline void to_json(nlohmann::json& json, const GeneratedTextureConfig& descriptor) {
     std::visit(
         [&json](const auto& value) {
             using T = std::decay_t<decltype(value)>;
             json = value;
-            if constexpr (std::is_same_v<T, CheckerboardTextureDescriptor>) {
+            if constexpr (std::is_same_v<T, CheckerboardTextureConfig>) {
                 json["type"] = "checkerboard";
             }
         },
@@ -59,14 +59,14 @@ template <typename T> T valueOr(const nlohmann::json& json, const char* key, T f
 }
 } // namespace detail
 
-inline std::optional<GeneratedTextureDescriptor> parseGeneratedTextureDescriptor(const nlohmann::json& json) noexcept {
+inline std::optional<GeneratedTextureConfig> parseGeneratedTextureConfig(const nlohmann::json& json) noexcept {
     if (!json.is_object()) {
         return std::nullopt;
     }
     const std::string type = detail::valueOr(json, "type", std::string{});
     if (type == "checkerboard") {
-        CheckerboardTextureDescriptor defaults;
-        return CheckerboardTextureDescriptor{
+        CheckerboardTextureConfig defaults;
+        return CheckerboardTextureConfig{
             .width = detail::valueOr(json, "width", defaults.width),
             .height = detail::valueOr(json, "height", defaults.height),
             .cellSize = detail::valueOr(json, "cellSize", defaults.cellSize),
@@ -75,27 +75,27 @@ inline std::optional<GeneratedTextureDescriptor> parseGeneratedTextureDescriptor
     return std::nullopt;
 }
 
-inline void to_json(nlohmann::json& json, const TextureDescriptor& descriptor) {
+inline void to_json(nlohmann::json& json, const TextureConfig& descriptor) {
     json = {{"name", descriptor.name}};
-    if (descriptor.generatedTextureDescriptor) {
-        json["generatedTextureDescriptor"] = *descriptor.generatedTextureDescriptor;
+    if (descriptor.generatedTextureConfig) {
+        json["generatedTextureConfig"] = *descriptor.generatedTextureConfig;
     } else {
         json["path"] = descriptor.path;
     }
 }
 
-inline void from_json(const nlohmann::json& json, TextureDescriptor& descriptor) {
-    descriptor = TextureDescriptor{};
+inline void from_json(const nlohmann::json& json, TextureConfig& descriptor) {
+    descriptor = TextureConfig{};
     if (!json.is_object()) {
         return;
     }
     descriptor.name = detail::valueOr(json, "name", std::string{});
     descriptor.path = detail::valueOr(json, "path", std::string{});
-    if (const auto it = json.find("generatedTextureDescriptor"); it != json.end()) {
-        descriptor.generatedTextureDescriptor = parseGeneratedTextureDescriptor(*it);
+    if (const auto it = json.find("generatedTextureConfig"); it != json.end()) {
+        descriptor.generatedTextureConfig = parseGeneratedTextureConfig(*it);
     }
-    if (descriptor.generatedTextureDescriptor) {
+    if (descriptor.generatedTextureConfig) {
         descriptor.path.clear();
     }
 }
-} // namespace vax::gfx
+} // namespace vax::scene

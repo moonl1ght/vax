@@ -23,14 +23,14 @@ bool EnvironmentMap::load(
         .texBRDFLUT = NO_TEXTURE_FLAG,
         .texBRDFLUTSampler = cubeMapSampler->shaderHandle.index,
     };
-    for (const auto& textureDescriptor : descriptor.textures) {
-        auto texture = textureLoader.loadTexture(textureDescriptor.second);
+    for (const auto& textureConfig : descriptor.textures) {
+        auto texture = textureLoader.loadTexture(textureConfig.second);
         textureGpuUploader.addTexture(texture.get());
         if (!texture) {
-            _logger.error("Failed to load texture: {}", textureDescriptor.second);
+            _logger.error("Failed to load texture: {}", textureConfig.second);
             continue;
         }
-        switch (textureDescriptor.first) {
+        switch (textureConfig.first) {
         case TextureType::EnvMap:
             _environmentMapData.envMapTexture = texture->sampledShaderHandle().index;
             break;

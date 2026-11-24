@@ -2,8 +2,8 @@
     "name": "Physics Demo Scene",
     "shouldDrawGizmo": true,
     "sceneType": "other",
-    "gizmoDescriptor": {
-        "cameraDescriptor": {
+    "gizmoConfig": {
+        "cameraConfig": {
             "name": "gizmoCamera"
         }
     },
@@ -11,7 +11,7 @@
         {
             "id": "ground",
             "type": "environment",
-            "prefabDescriptor": {
+            "prefabConfig": {
                 "prefabType": "preset",
                 "id": "cube",
                 "instanceInfos": [
@@ -49,11 +49,11 @@
                         1,
                         1
                     ],
-                    "materialDescriptor": {
+                    "materialConfig": {
                         "name": "floorMaterial",
-                        "textureDescriptor": {
+                        "textureConfig": {
                             "name": "floorCheckerboard",
-                            "generatedTextureDescriptor": {
+                            "generatedTextureConfig": {
                                 "type": "checkerboard",
                                 "width": 512,
                                 "height": 512,
@@ -80,7 +80,7 @@
         {
             "id": "ball",
             "type": "environment",
-            "prefabDescriptor": {
+            "prefabConfig": {
                 "prefabType": "preset",
                 "id": "sphere",
                 "instanceInfos": [
@@ -118,11 +118,11 @@
                         1,
                         1
                     ],
-                    "materialDescriptor": {
+                    "materialConfig": {
                         "name": "sphereMaterial",
-                        "textureDescriptor": {
+                        "textureConfig": {
                             "name": "sphereCheckerboard",
-                            "generatedTextureDescriptor": {
+                            "generatedTextureConfig": {
                                 "type": "checkerboard",
                                 "width": 256,
                                 "height": 256,

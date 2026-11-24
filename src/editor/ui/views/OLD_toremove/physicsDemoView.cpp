@@ -1,6 +1,6 @@
 #include "physicsDemoView.h"
 #include "paths.h"
-#include "sceneLoader.h"
+#include "sceneLoader_old.h"
 #include "viewManager.h"
 #include "renderEngine.h"
 

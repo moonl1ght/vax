@@ -2,8 +2,8 @@
     "name": "Physics Demo Scene",
     "shouldDrawGizmo": true,
     "sceneType": "gridWorld",
-    "gizmoDescriptor": {
-        "cameraDescriptor": {
+    "gizmoConfig": {
+        "cameraConfig": {
             "name": "gizmoCamera"
         }
     }

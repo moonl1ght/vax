@@ -6,8 +6,8 @@
 #include <nlohmann/json.hpp>
 #include <optional>
 
-namespace vax::gfx {
-struct PhysicsDescriptor final {
+namespace vax::scene {
+struct PhysicsObjectConfig final {
     enum class ColliderType { SPHERE, PLANE, NONE };
 
     struct SphereColliderDescriptor final {
@@ -63,21 +63,21 @@ struct PhysicsDescriptor final {
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(
-    PhysicsDescriptor::ColliderType,
+    PhysicsObjectConfig::ColliderType,
     {
-    {PhysicsDescriptor::ColliderType::SPHERE, "sphere"},
-    {PhysicsDescriptor::ColliderType::PLANE, "plane"},
-    {PhysicsDescriptor::ColliderType::NONE, "none"},
+    {PhysicsObjectConfig::ColliderType::SPHERE, "sphere"},
+    {PhysicsObjectConfig::ColliderType::PLANE, "plane"},
+    {PhysicsObjectConfig::ColliderType::NONE, "none"},
     }
 )
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PhysicsDescriptor::SphereColliderDescriptor, radius)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PhysicsObjectConfig::SphereColliderDescriptor, radius)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
-    PhysicsDescriptor::PlaneColliderDescriptor, normalX, normalY, normalZ, distance
+    PhysicsObjectConfig::PlaneColliderDescriptor, normalX, normalY, normalZ, distance
 )
 
-inline void to_json(nlohmann::json& json, const PhysicsDescriptor& descriptor) {
+inline void to_json(nlohmann::json& json, const PhysicsObjectConfig& descriptor) {
     json = {
         {"colliderType", descriptor.colliderType},
         {"invMass", descriptor.invMass},
@@ -90,17 +90,17 @@ inline void to_json(nlohmann::json& json, const PhysicsDescriptor& descriptor) {
     };
 }
 
-inline void from_json(const nlohmann::json& json, PhysicsDescriptor& descriptor) {
-    PhysicsDescriptor defaults;
+inline void from_json(const nlohmann::json& json, PhysicsObjectConfig& descriptor) {
+    PhysicsObjectConfig defaults;
     descriptor.invMass = json.value("invMass", defaults.invMass);
     descriptor.restitution = json.value("restitution", defaults.restitution);
     descriptor.staticFriction = json.value("staticFriction", defaults.staticFriction);
     descriptor.dynamicFriction = json.value("dynamicFriction", defaults.dynamicFriction);
     descriptor.isStatic = json.value("isStatic", defaults.isStatic);
     descriptor.sphereColliderDescriptor =
-        json.value("sphereColliderDescriptor", std::optional<PhysicsDescriptor::SphereColliderDescriptor>{});
+        json.value("sphereColliderDescriptor", std::optional<PhysicsObjectConfig::SphereColliderDescriptor>{});
     descriptor.planeColliderDescriptor =
-        json.value("planeColliderDescriptor", std::optional<PhysicsDescriptor::PlaneColliderDescriptor>{});
+        json.value("planeColliderDescriptor", std::optional<PhysicsObjectConfig::PlaneColliderDescriptor>{});
 
     if (json.contains("colliderType")) {
         json.at("colliderType").get_to(descriptor.colliderType);
@@ -108,13 +108,13 @@ inline void from_json(const nlohmann::json& json, PhysicsDescriptor& descriptor)
     }
     int filledCount = descriptor.sphereColliderDescriptor.has_value() + descriptor.planeColliderDescriptor.has_value();
     if (filledCount != 1) {
-        descriptor.colliderType = PhysicsDescriptor::ColliderType::NONE;
+        descriptor.colliderType = PhysicsObjectConfig::ColliderType::NONE;
         return;
     }
     if (descriptor.sphereColliderDescriptor) {
-        descriptor.colliderType = PhysicsDescriptor::ColliderType::SPHERE;
+        descriptor.colliderType = PhysicsObjectConfig::ColliderType::SPHERE;
     } else if (descriptor.planeColliderDescriptor) {
-        descriptor.colliderType = PhysicsDescriptor::ColliderType::PLANE;
+        descriptor.colliderType = PhysicsObjectConfig::ColliderType::PLANE;
     }
 }
-} // namespace vax::gfx
+} // namespace vax::scene

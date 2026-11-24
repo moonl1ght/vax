@@ -3,8 +3,8 @@
 #include "colorPalette.h"
 #include "jsonGlm.h"
 #include "jsonOptional.h"
-#include "materialDescriptor.h"
-#include "physicsDescriptor.h"
+#include "materialConfig.h"
+#include "physicsObjectConfig.h"
 #include "transform.h"
 #include <nlohmann/json.hpp>
 #include <optional>
@@ -12,8 +12,8 @@
 #include <variant>
 #include <vector>
 
-namespace vax::gfx {
-struct PrefabDescriptor final {
+namespace vax::scene {
+struct PrefabConfig final {
     enum class PrefabType { ASSET, PRESET };
 
     enum class AssetExtension { GLB, URDF, UNKNOWN };
@@ -54,8 +54,8 @@ struct PrefabDescriptor final {
         std::optional<PlanePrimitiveDescriptor> planeDescriptor;
         std::optional<SpherePrimitiveDescriptor> sphereDescriptor;
         std::optional<IcospherePrimitiveDescriptor> icosphereDescriptor;
-        Color color = ColorPalette::White;
-        std::optional<MaterialDescriptor> materialDescriptor;
+        gfx::Color color = gfx::ColorPalette::White;
+        std::optional<MaterialConfig> materialConfig;
 
         ShapeDescriptor getShapeDescriptor() const {
             switch (primitiveType) {
@@ -83,7 +83,7 @@ struct PrefabDescriptor final {
     struct InstanceInfo final {
         bool isSelected = false;
         vax::math::Transform transform;
-        Color selectionColor = ColorPalette::Clear;
+        gfx::Color selectionColor = gfx::ColorPalette::Clear;
     };
 
     PrefabType prefabType;
@@ -91,7 +91,7 @@ struct PrefabDescriptor final {
     std::vector<InstanceInfo> instanceInfos;
     std::optional<AssetDescriptor> assetDescriptor;
     std::optional<PrimitiveDescriptor> primitiveDescriptor;
-    std::optional<PhysicsDescriptor> physicsDescriptor;
+    std::optional<PhysicsObjectConfig> physicsDescriptor;
 
     vax::math::Transform getTransformForInstance(uint32_t instanceIndex) const {
         if (instanceInfos.empty()) {
@@ -102,32 +102,32 @@ struct PrefabDescriptor final {
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(
-    PrefabDescriptor::PrefabType,
+    PrefabConfig::PrefabType,
     {
-    {PrefabDescriptor::PrefabType::ASSET, "asset"},
-    {PrefabDescriptor::PrefabType::PRESET, "preset"},
+    {PrefabConfig::PrefabType::ASSET, "asset"},
+    {PrefabConfig::PrefabType::PRESET, "preset"},
     }
 )
 
 NLOHMANN_JSON_SERIALIZE_ENUM(
-    PrefabDescriptor::PrimitiveType,
+    PrefabConfig::PrimitiveType,
     {
-    {PrefabDescriptor::PrimitiveType::CUBE, "cube"},
-    {PrefabDescriptor::PrimitiveType::PLANE, "plane"},
-    {PrefabDescriptor::PrimitiveType::SPHERE, "sphere"},
-    {PrefabDescriptor::PrimitiveType::ICOSPHERE, "icosphere"},
+    {PrefabConfig::PrimitiveType::CUBE, "cube"},
+    {PrefabConfig::PrimitiveType::PLANE, "plane"},
+    {PrefabConfig::PrimitiveType::SPHERE, "sphere"},
+    {PrefabConfig::PrimitiveType::ICOSPHERE, "icosphere"},
     }
 )
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PrefabDescriptor::CubePrimitiveDescriptor, width, height, depth)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PrefabConfig::CubePrimitiveDescriptor, width, height, depth)
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PrefabDescriptor::PlanePrimitiveDescriptor, width, height)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PrefabConfig::PlanePrimitiveDescriptor, width, height)
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PrefabDescriptor::SpherePrimitiveDescriptor, radius, segments, rings)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PrefabConfig::SpherePrimitiveDescriptor, radius, segments, rings)
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PrefabDescriptor::IcospherePrimitiveDescriptor, radius, subdivisions)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PrefabConfig::IcospherePrimitiveDescriptor, radius, subdivisions)
 
-inline void to_json(nlohmann::json& json, const PrefabDescriptor::PrimitiveDescriptor& descriptor) {
+inline void to_json(nlohmann::json& json, const PrefabConfig::PrimitiveDescriptor& descriptor) {
     json = {
         {"primitiveType", descriptor.primitiveType},
         {"cubeDescriptor", descriptor.cubeDescriptor},
@@ -135,22 +135,20 @@ inline void to_json(nlohmann::json& json, const PrefabDescriptor::PrimitiveDescr
         {"sphereDescriptor", descriptor.sphereDescriptor},
         {"icosphereDescriptor", descriptor.icosphereDescriptor},
         {"color", descriptor.color},
-        {"materialDescriptor", descriptor.materialDescriptor},
+        {"materialConfig", descriptor.materialConfig},
     };
 }
 
-inline void from_json(const nlohmann::json& json, PrefabDescriptor::PrimitiveDescriptor& descriptor) {
-    PrefabDescriptor::PrimitiveDescriptor defaults;
-    descriptor.cubeDescriptor =
-        json.value("cubeDescriptor", std::optional<PrefabDescriptor::CubePrimitiveDescriptor>{});
-    descriptor.planeDescriptor =
-        json.value("planeDescriptor", std::optional<PrefabDescriptor::PlanePrimitiveDescriptor>{});
+inline void from_json(const nlohmann::json& json, PrefabConfig::PrimitiveDescriptor& descriptor) {
+    PrefabConfig::PrimitiveDescriptor defaults;
+    descriptor.cubeDescriptor = json.value("cubeDescriptor", std::optional<PrefabConfig::CubePrimitiveDescriptor>{});
+    descriptor.planeDescriptor = json.value("planeDescriptor", std::optional<PrefabConfig::PlanePrimitiveDescriptor>{});
     descriptor.sphereDescriptor =
-        json.value("sphereDescriptor", std::optional<PrefabDescriptor::SpherePrimitiveDescriptor>{});
+        json.value("sphereDescriptor", std::optional<PrefabConfig::SpherePrimitiveDescriptor>{});
     descriptor.icosphereDescriptor =
-        json.value("icosphereDescriptor", std::optional<PrefabDescriptor::IcospherePrimitiveDescriptor>{});
+        json.value("icosphereDescriptor", std::optional<PrefabConfig::IcospherePrimitiveDescriptor>{});
     descriptor.color = json.value("color", defaults.color);
-    descriptor.materialDescriptor = json.value("materialDescriptor", std::optional<MaterialDescriptor>{});
+    descriptor.materialConfig = json.value("materialConfig", std::optional<MaterialConfig>{});
 
     if (json.contains("primitiveType")) {
         json.at("primitiveType").get_to(descriptor.primitiveType);
@@ -164,41 +162,40 @@ inline void from_json(const nlohmann::json& json, PrefabDescriptor::PrimitiveDes
         );
     }
     if (descriptor.cubeDescriptor) {
-        descriptor.primitiveType = PrefabDescriptor::PrimitiveType::CUBE;
+        descriptor.primitiveType = PrefabConfig::PrimitiveType::CUBE;
     } else if (descriptor.planeDescriptor) {
-        descriptor.primitiveType = PrefabDescriptor::PrimitiveType::PLANE;
+        descriptor.primitiveType = PrefabConfig::PrimitiveType::PLANE;
     } else if (descriptor.sphereDescriptor) {
-        descriptor.primitiveType = PrefabDescriptor::PrimitiveType::SPHERE;
+        descriptor.primitiveType = PrefabConfig::PrimitiveType::SPHERE;
     } else {
-        descriptor.primitiveType = PrefabDescriptor::PrimitiveType::ICOSPHERE;
+        descriptor.primitiveType = PrefabConfig::PrimitiveType::ICOSPHERE;
     }
 }
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PrefabDescriptor::AssetDescriptor, path)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PrefabConfig::AssetDescriptor, path)
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PrefabDescriptor::InstanceInfo, isSelected, transform, selectionColor)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PrefabConfig::InstanceInfo, isSelected, transform, selectionColor)
 
-inline void to_json(nlohmann::json& json, const PrefabDescriptor& descriptor) {
+inline void to_json(nlohmann::json& json, const PrefabConfig& config) {
     json = {
-        {"prefabType", descriptor.prefabType},
-        {"id", descriptor.id},
-        {"instanceInfos", descriptor.instanceInfos},
-        {"assetDescriptor", descriptor.assetDescriptor},
-        {"primitiveDescriptor", descriptor.primitiveDescriptor},
-        {"physicsDescriptor", descriptor.physicsDescriptor},
+        {"prefabType", config.prefabType},
+        {"id", config.id},
+        {"instanceInfos", config.instanceInfos},
+        {"assetDescriptor", config.assetDescriptor},
+        {"primitiveDescriptor", config.primitiveDescriptor},
+        {"physicsDescriptor", config.physicsDescriptor},
     };
 }
 
-inline void from_json(const nlohmann::json& json, PrefabDescriptor& descriptor) {
-    json.at("prefabType").get_to(descriptor.prefabType);
-    json.at("id").get_to(descriptor.id);
-    descriptor.instanceInfos = json.value("instanceInfos", std::vector<PrefabDescriptor::InstanceInfo>{});
-    if (descriptor.instanceInfos.empty()) {
-        descriptor.instanceInfos.push_back(PrefabDescriptor::InstanceInfo{});
+inline void from_json(const nlohmann::json& json, PrefabConfig& config) {
+    json.at("prefabType").get_to(config.prefabType);
+    json.at("id").get_to(config.id);
+    config.instanceInfos = json.value("instanceInfos", std::vector<PrefabConfig::InstanceInfo>{});
+    if (config.instanceInfos.empty()) {
+        config.instanceInfos.push_back(PrefabConfig::InstanceInfo{});
     }
-    descriptor.assetDescriptor = json.value("assetDescriptor", std::optional<PrefabDescriptor::AssetDescriptor>{});
-    descriptor.primitiveDescriptor =
-        json.value("primitiveDescriptor", std::optional<PrefabDescriptor::PrimitiveDescriptor>{});
-    descriptor.physicsDescriptor = json.value("physicsDescriptor", std::optional<PhysicsDescriptor>{});
+    config.assetDescriptor = json.value("assetDescriptor", std::optional<PrefabConfig::AssetDescriptor>{});
+    config.primitiveDescriptor = json.value("primitiveDescriptor", std::optional<PrefabConfig::PrimitiveDescriptor>{});
+    config.physicsDescriptor = json.value("physicsDescriptor", std::optional<PhysicsObjectConfig>{});
 }
-} // namespace vax::gfx
+} // namespace vax::scene

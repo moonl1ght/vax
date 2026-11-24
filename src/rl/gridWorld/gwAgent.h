@@ -2,7 +2,7 @@
 
 #include "agent.h"
 #include "gwenv.h"
-#include "prefabDescriptor.h"
+#include "prefabConfig.h"
 #include "logger.h"
 #include <memory>
 #include <utility>
@@ -36,7 +36,7 @@ class GWAgent final : public vax::rl::Agent<GWAgent, State, MoveAction> {
     GWAgent(GWAgent&& other) noexcept = delete;
     GWAgent& operator=(GWAgent&& other) noexcept = delete;
 
-    vax::gfx::PrefabDescriptor getPrefabDescriptor() const;
+    scene::PrefabConfig getPrefabConfig() const;
 
     void moveByOutsideAction(MoveAction action);
 

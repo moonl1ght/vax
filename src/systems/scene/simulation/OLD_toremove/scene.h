@@ -12,7 +12,7 @@
 #include "renderPassGraphDescriptor.h"
 #include "resourceManager.h"
 #include "sceneComposer.h"
-#include "sceneDescriptor.h"
+#include "sceneConfig.h"
 #include "shaderData.h"
 #include "shaderResourceHandle.h"
 #include "state_tracker.h"
@@ -81,7 +81,7 @@ class Scene final : public app::InputController::Observer {
 
     void resize();
 
-    void load(const vax::gfx::SceneDescriptor& descriptor);
+    void load(const scene::SceneConfig& descriptor);
 
     void prepareForDraw(vax::gfx::RenderCallContext renderCallContext);
 
@@ -162,7 +162,7 @@ class Scene final : public app::InputController::Observer {
 
     void _bindIndexBuffer(const vax::gfx::DrawContext& drawContext) const noexcept;
 
-    std::optional<vax::gfx::SceneDescriptor> _descriptor;
+    std::optional<scene::SceneConfig> _descriptor;
 
     ecs::Entity _gizmoEntity;
     vax::gfx::Camera _agentCamera;

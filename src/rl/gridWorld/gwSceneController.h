@@ -6,7 +6,7 @@
 #include "gwenv.h"
 #include "logger.h"
 #include "sceneController.h"
-#include "sceneDescriptor.h"
+#include "sceneConfig.h"
 #include "vaxMath.h"
 #include "components.h"
 #include <string_view>
@@ -31,7 +31,7 @@ class GWSceneController final : public vax::gfx::SceneController<GWSceneControll
     GWSceneController(GWSceneController&& other) noexcept = delete;
     GWSceneController& operator=(GWSceneController&& other) noexcept = delete;
 
-    bool load(const vax::gfx::SceneDescriptor& descriptor);
+    bool load(const scene::SceneConfig& descriptor);
 
     void onUpdate(const vax::gfx::SceneUpdateContext& sceneUpdateContext);
 

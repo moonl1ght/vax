@@ -1,11 +1,11 @@
 #pragma once
 
+#include "gridWorld.h"
 #include "gwAgent.h"
 #include "paths.h"
-#include "sceneDescriptor.h"
+#include "sceneConfig.h"
 #include "tensor.h"
 #include "vaxMath.h"
-#include "gridWorld.h"
 
 namespace vax::rl {
 class GridWorldSceneBuilder {
@@ -28,7 +28,7 @@ class GridWorldSceneBuilder {
     GridWorldSceneBuilder() {};
     ~GridWorldSceneBuilder() = default;
 
-    vax::gfx::SceneDescriptor buildScene(
+    scene::SceneConfig buildScene(
         const vax::math::Tensor& grid,
         std::vector<vax::math::Position2DFloat> drawableWorldPosition,
         vax::rl::GWAgent& agent

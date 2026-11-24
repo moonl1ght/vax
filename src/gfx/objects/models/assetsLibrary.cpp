@@ -4,14 +4,14 @@ using namespace vax::gfx;
 using namespace vax::rhi;
 using namespace vax;
 
-void AssetsLibrary::preload(const std::vector<PrefabDescriptor>& modelDescriptors) {
-    for (const auto& descriptor : modelDescriptors) {
-        if (_prefabs.contains(descriptor.id)) {
+void AssetsLibrary::preload(const std::vector<scene::PrefabConfig>& modelConfigs) {
+    for (const auto& modelConfig : modelConfigs) {
+        if (_prefabs.contains(modelConfig.id)) {
             continue;
         }
-        auto prefabResult = _prefabLoader->loadPrefab(descriptor);
+        auto prefabResult = _prefabLoader->loadPrefab(modelConfig);
         if (!prefabResult.has_value()) {
-            _logger.error("Failed to load prefab: ", descriptor.id);
+            _logger.error("Failed to load prefab: ", modelConfig.id);
             continue;
         }
         auto& [prefab, models] = *prefabResult;
@@ -24,7 +24,7 @@ void AssetsLibrary::preload(const std::vector<PrefabDescriptor>& modelDescriptor
                 *node.model += baseModelId;
             }
         }
-        prefab.id = descriptor.id;
-        _prefabs.emplace(descriptor.id, std::move(prefab));
+        prefab.id = modelConfig.id;
+        _prefabs.emplace(modelConfig.id, std::move(prefab));
     }
 }

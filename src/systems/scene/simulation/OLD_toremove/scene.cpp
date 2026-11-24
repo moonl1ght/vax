@@ -12,7 +12,7 @@ using namespace vax::rhi;
 using namespace vax::gfx;
 using namespace vax::rl;
 
-void Scene::load(const vax::gfx::SceneDescriptor& descriptor) {
+void Scene::load(const scene::SceneConfig& descriptor) {
     _descriptor = descriptor;
 
     _renderPassGraphDescriptor.update([&](vax::gfx::RenderPassGraphDescriptor& renderPassGraphDescriptor) {

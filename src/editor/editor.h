@@ -35,8 +35,6 @@ class Editor {
 
     void createUIEngine(rhi::VulkanEngine& vkEngine) noexcept;
 
-    void linkSimulationEngine(sim::SimulationEngine& simulationEngine) noexcept;
-
     UIEngine& uiEngine() noexcept { return *_uiEngine; }
 
     const UIEngine& uiEngine() const noexcept { return *_uiEngine; }
@@ -53,8 +51,6 @@ class Editor {
     dev::Logger _logger = dev::Logger("Editor");
 
     std::reference_wrapper<app::InputController> _inputController;
-
-    sim::SimulationEngine* _simulationEngine = nullptr;
 
     std::unique_ptr<WindowController> _windowController;
     std::unique_ptr<ViewBuilder> _viewBuilder;

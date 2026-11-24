@@ -4,7 +4,7 @@
 #include "logger.h"
 #include "modelLoader.h"
 #include "prefab.h"
-#include "prefabDescriptor.h"
+#include "prefabConfig.h"
 #include "prefabLoader.h"
 #include "resourceManager.h"
 
@@ -34,7 +34,7 @@ class AssetsLibrary {
     AssetsLibrary(AssetsLibrary&& other) noexcept = delete;
     AssetsLibrary& operator=(AssetsLibrary&& other) noexcept = delete;
 
-    void preload(const std::vector<vax::gfx::PrefabDescriptor>& descriptors);
+    void preload(const std::vector<scene::PrefabConfig>& modelConfigs);
 
     std::vector<std::string> getDrawableNodeIds() const;
 

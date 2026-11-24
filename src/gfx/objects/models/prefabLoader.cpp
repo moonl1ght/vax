@@ -73,66 +73,65 @@ void _processURDFLink(
 }
 
 std::optional<std::pair<Prefab, std::vector<DrawableModel>>>
-PrefabLoader::loadPrefab(const PrefabDescriptor& descriptor) {
-    switch (descriptor.prefabType) {
-    case PrefabDescriptor::PrefabType::PRESET:
-        return _loadPrimitivePrefab(descriptor);
-    case PrefabDescriptor::PrefabType::ASSET:
-        return _loadAssetPrefab(descriptor);
+PrefabLoader::loadPrefab(const scene::PrefabConfig& config) {
+    switch (config.prefabType) {
+    case scene::PrefabConfig::PrefabType::PRESET:
+        return _loadPrimitivePrefab(config);
+    case scene::PrefabConfig::PrefabType::ASSET:
+        return _loadAssetPrefab(config);
     default:
-        _logger.error("Unsupported prefab type: " + std::to_string(static_cast<int>(descriptor.prefabType)));
+        _logger.error("Unsupported prefab type: " + std::to_string(static_cast<int>(config.prefabType)));
         return std::nullopt;
     }
 }
 
 std::optional<std::pair<Prefab, std::vector<DrawableModel>>>
-PrefabLoader::_loadPrimitivePrefab(const PrefabDescriptor& descriptor) {
-    auto primitiveDescriptor = descriptor.primitiveDescriptor;
-    if (!primitiveDescriptor) {
+PrefabLoader::_loadPrimitivePrefab(const scene::PrefabConfig& config) {
+    auto primitiveConfig = config.primitiveDescriptor;
+    if (!primitiveConfig) {
         _logger.error("Primitive descriptor is null");
         return std::nullopt;
     }
     std::vector<DrawableModel> models;
     PBRMaterial material;
-    auto materialDescriptor = primitiveDescriptor->materialDescriptor;
-    material.baseColor = primitiveDescriptor->color;
+    auto materialConfig = primitiveConfig->materialConfig;
+    material.baseColor = primitiveConfig->color;
     material.baseColorTextureIndex = NO_TEXTURE_FLAG;
     material.metallicFactor = 0.0f;
     material.roughnessFactor = 1.0f;
-    if (materialDescriptor && materialDescriptor->textureDescriptor.generatedTextureDescriptor) {
+    if (materialConfig && materialConfig->textureConfig.generatedTextureConfig) {
 
         auto textureGenerator = TextureGenerator(*_textureLoader);
-        auto texture =
-            textureGenerator.generateCheckerboardTexture(materialDescriptor->textureDescriptor.name, 512, 512, 64);
+        auto texture = textureGenerator.generateCheckerboardTexture(materialConfig->textureConfig.name, 512, 512, 64);
         if (texture) {
             _textureGpuUploader.get().addTexture(texture.get());
             material.baseColorTextureIndex = texture->sampledShaderHandle().index;
             _resourceManager.get().textureLibrary().addTexture(std::move(texture));
         }
     }
-    switch (primitiveDescriptor->primitiveType) {
-    case PrefabDescriptor::PrimitiveType::CUBE: {
-        auto cube = std::get<PrefabDescriptor::CubePrimitiveDescriptor>(primitiveDescriptor->getShapeDescriptor());
+    switch (primitiveConfig->primitiveType) {
+    case scene::PrefabConfig::PrimitiveType::CUBE: {
+        auto cube = std::get<scene::PrefabConfig::CubePrimitiveDescriptor>(primitiveConfig->getShapeDescriptor());
         models.push_back(
             std::move(_primitivesBuilder->createCube(cube.width, cube.height, cube.depth, material).value())
         );
         break;
     }
-    case PrefabDescriptor::PrimitiveType::PLANE: {
-        auto plane = std::get<PrefabDescriptor::PlanePrimitiveDescriptor>(primitiveDescriptor->getShapeDescriptor());
+    case scene::PrefabConfig::PrimitiveType::PLANE: {
+        auto plane = std::get<scene::PrefabConfig::PlanePrimitiveDescriptor>(primitiveConfig->getShapeDescriptor());
         models.push_back(std::move(_primitivesBuilder->createPlane(plane.width, plane.height, material).value()));
         break;
     }
-    case PrefabDescriptor::PrimitiveType::SPHERE: {
-        auto sphere = std::get<PrefabDescriptor::SpherePrimitiveDescriptor>(primitiveDescriptor->getShapeDescriptor());
+    case scene::PrefabConfig::PrimitiveType::SPHERE: {
+        auto sphere = std::get<scene::PrefabConfig::SpherePrimitiveDescriptor>(primitiveConfig->getShapeDescriptor());
         models.push_back(
             std::move(_primitivesBuilder->createSphere(sphere.radius, sphere.segments, sphere.rings, material).value())
         );
         break;
     }
-    case PrefabDescriptor::PrimitiveType::ICOSPHERE: {
+    case scene::PrefabConfig::PrimitiveType::ICOSPHERE: {
         auto icosphere =
-            std::get<PrefabDescriptor::IcospherePrimitiveDescriptor>(primitiveDescriptor->getShapeDescriptor());
+            std::get<scene::PrefabConfig::IcospherePrimitiveDescriptor>(primitiveConfig->getShapeDescriptor());
         models.push_back(
             std::move(_primitivesBuilder->createIcosphere(icosphere.radius, icosphere.subdivisions, material).value())
         );
@@ -140,7 +139,7 @@ PrefabLoader::_loadPrimitivePrefab(const PrefabDescriptor& descriptor) {
     }
     default:
         _logger.error(
-            "Unsupported primitive type: " + std::to_string(static_cast<int>(primitiveDescriptor->primitiveType))
+            "Unsupported primitive type: " + std::to_string(static_cast<int>(primitiveConfig->primitiveType))
         );
         return std::nullopt;
     }
@@ -149,8 +148,8 @@ PrefabLoader::_loadPrimitivePrefab(const PrefabDescriptor& descriptor) {
         return std::nullopt;
     }
     Prefab prefab{
-        .id = descriptor.id,
-        .nodes = {{.name = descriptor.id, .model = 0}},
+        .id = config.id,
+        .nodes = {{.name = config.id, .model = 0}},
     };
     return std::optional<std::pair<Prefab, std::vector<DrawableModel>>>(
         std::in_place, std::make_pair(std::move(prefab), std::move(models))
@@ -158,37 +157,37 @@ PrefabLoader::_loadPrimitivePrefab(const PrefabDescriptor& descriptor) {
 }
 
 std::optional<std::pair<Prefab, std::vector<DrawableModel>>>
-PrefabLoader::_loadAssetPrefab(const PrefabDescriptor& descriptor) {
-    switch (descriptor.assetDescriptor->getAssetExtension()) {
-    case PrefabDescriptor::AssetExtension::GLB:
-        return _loadGLBPrefab(descriptor);
-    case PrefabDescriptor::AssetExtension::URDF:
-        return _loadURDFPrefab(descriptor);
+PrefabLoader::_loadAssetPrefab(const scene::PrefabConfig& config) {
+    switch (config.assetDescriptor->getAssetExtension()) {
+    case scene::PrefabConfig::AssetExtension::GLB:
+        return _loadGLBPrefab(config);
+    case scene::PrefabConfig::AssetExtension::URDF:
+        return _loadURDFPrefab(config);
     default:
         _logger.error(
             "Unsupported asset extension: " +
-            std::to_string(static_cast<int>(descriptor.assetDescriptor->getAssetExtension()))
+            std::to_string(static_cast<int>(config.assetDescriptor->getAssetExtension()))
         );
         return std::nullopt;
     }
 }
 
 std::optional<std::pair<Prefab, std::vector<DrawableModel>>>
-PrefabLoader::_loadURDFPrefab(const PrefabDescriptor& descriptor) {
-    if (!descriptor.assetDescriptor) {
+PrefabLoader::_loadURDFPrefab(const scene::PrefabConfig& config) {
+    if (!config.assetDescriptor) {
         _logger.error("Asset descriptor is null");
         return std::nullopt;
     }
-    auto path = descriptor.assetDescriptor->path;
+    auto path = config.assetDescriptor->path;
     auto model = urdf::parseURDFFile(path);
     if (!model) {
         _logger.error("Failed to load URDF model: " + path);
         return std::nullopt;
     }
-    auto mainPath = descriptor.assetDescriptor->getMainPath();
+    auto mainPath = config.assetDescriptor->getMainPath();
     std::vector<DrawableModel> models;
     Prefab prefab;
-    prefab.id = descriptor.id;
+    prefab.id = config.id;
     _processURDFLink(*_modelLoader, _resourceManager.get(), prefab, models, -1, mainPath, model->getRoot());
     return std::optional<std::pair<Prefab, std::vector<DrawableModel>>>(
         std::in_place, std::make_pair(std::move(prefab), std::move(models))
@@ -196,21 +195,21 @@ PrefabLoader::_loadURDFPrefab(const PrefabDescriptor& descriptor) {
 }
 
 std::optional<std::pair<Prefab, std::vector<DrawableModel>>>
-PrefabLoader::_loadGLBPrefab(const PrefabDescriptor& descriptor) {
-    if (!descriptor.assetDescriptor) {
+PrefabLoader::_loadGLBPrefab(const scene::PrefabConfig& config) {
+    if (!config.assetDescriptor) {
         _logger.error("Asset descriptor is null");
         return std::nullopt;
     }
-    auto model = _modelLoader->loadModel(descriptor.assetDescriptor->path);
+    auto model = _modelLoader->loadModel(config.assetDescriptor->path);
     if (!model.has_value()) {
-        _logger.error("Failed to load GLB model: " + descriptor.assetDescriptor->path);
+        _logger.error("Failed to load GLB model: " + config.assetDescriptor->path);
         return std::nullopt;
     }
     std::vector<DrawableModel> models;
     models.push_back(std::move(*model));
     Prefab prefab{
-        .id = descriptor.id,
-        .nodes = {{.name = descriptor.id, .model = 0}},
+        .id = config.id,
+        .nodes = {{.name = config.id, .model = 0}},
     };
     return std::optional<std::pair<Prefab, std::vector<DrawableModel>>>(
         std::in_place, std::make_pair(std::move(prefab), std::move(models))

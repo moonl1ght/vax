@@ -38,6 +38,7 @@ bool RenderEngine::setup(editor::Editor* editor) noexcept {
     _editorRenderer_old =
         std::make_unique<gfx::EditorRenderer_old>(*_vkEngine, editor->uiEngine(), editor->windowController());
     _editorRenderer_old->setup(*_resourceManager);
+    _editorRenderer = std::make_unique<gfx::EditorRenderer>(*_vkEngine, editor->windowController());
     _logger.success("Rendering engine setup complete!");
     return true;
 }

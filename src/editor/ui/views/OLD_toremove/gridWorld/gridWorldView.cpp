@@ -5,7 +5,7 @@
 #include "paths.h"
 #include "qlConfig.h"
 #include "renderEngine.h"
-#include "sceneLoader.h"
+#include "sceneLoader_old.h"
 #include "viewManager.h"
 
 using namespace vax::editor;
@@ -87,14 +87,14 @@ bool GridWorldView::_load() {
         _rendererEngine.get().resourceManager(),
         _windowController.get()
     );
-    auto gridWorldSceneDescriptor = GridWorldSceneBuilder().buildScene(
+    auto gridWorldSceneConfig = GridWorldSceneBuilder().buildScene(
         _gridWorld->getGrid(), _gridWorld->getDrawableWorldPosition(), _gridWorld->getAgent()
     );
-    auto sceneWorldPair = sceneLoader.load(gridWorldSceneDescriptor);
+    auto sceneWorldPair = sceneLoader.load(gridWorldSceneConfig);
     _controller =
         std::make_unique<vax::rl::GWSceneController>(std::move(sceneWorldPair.first), std::move(sceneWorldPair.second));
 
-    _controller->load(gridWorldSceneDescriptor);
+    _controller->load(gridWorldSceneConfig);
     _controller->getScene().resize();
 
     _gridWorld->linkSceneController(_controller.get());

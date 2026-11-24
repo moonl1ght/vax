@@ -1,30 +1,17 @@
 #include "sceneLoader.h"
-#include "environmentMap.h"
-#include "paths.h"
-#include "physicsComponents.h"
-#include "prefabSpawner.h"
-#include "resourceManager.h"
-#include "sceneDescriptor.h"
-#include "textureLoader.h"
-#include <fstream>
-#include <nlohmann/json.hpp>
 
-using namespace vax::gfx;
-using namespace vax::ecs;
+using namespace vax;
+using namespace vax::scene;
 
-std::optional<SceneLoader::SceneWorldPair> SceneLoader::load(const std::string& path) {
-    auto sceneDescriptor = _loadSceneDescriptor(path);
-    if (!sceneDescriptor.has_value()) {
-        return std::nullopt;
+std::unique_ptr<EditorScene> SceneLoader::loadEditorScene(const std::string& path) {
+    auto config = _loadSceneConfig(path);
+    if (!config.has_value()) {
+        return nullptr;
     }
-    return load(sceneDescriptor.value());
+    return loadEditorScene(config.value());
 }
 
-SceneLoader::SceneWorldPair SceneLoader::load(SceneDescriptor& descriptor) {
-    std::shared_ptr<ecs::World> world = std::make_shared<ecs::World>();
-    auto scene = _initScene(*world, descriptor);
-    scene->load(descriptor);
-    scene->setWorld(world);
+std::unique_ptr<EditorScene> SceneLoader::loadEditorScene(scene::SceneConfig& config) {
     auto loadQueue = _vkEngine.get().queueManager->graphicsQueue;
     auto loadCommandBuffer = _vkEngine.get().commandManager->createSingleTimeCommandBuffer();
 
@@ -36,159 +23,16 @@ SceneLoader::SceneWorldPair SceneLoader::load(SceneDescriptor& descriptor) {
     loadCommandBuffer.submitAndWait(loadQueue);
 
     _textureGpuUploader->resetAllTexturesStagingBuffers();
-    return std::make_pair(std::move(scene), std::move(world));
+    return nullptr;
 }
 
-std::optional<SceneDescriptor> SceneLoader::_loadSceneDescriptor(const std::string& path) {
+std::optional<scene::SceneConfig> SceneLoader::_loadSceneConfig(const std::string& path) {
     std::ifstream file(path);
     if (!file.is_open()) {
         return std::nullopt;
     }
     nlohmann::json json;
     file >> json;
-    SceneDescriptor descriptor = json.get<SceneDescriptor>();
+    scene::SceneConfig descriptor = json.get<scene::SceneConfig>();
     return descriptor;
-}
-
-std::unique_ptr<Scene> SceneLoader::_initScene(ecs::World& world, const SceneDescriptor& descriptor) {
-    std::unique_ptr<ecs::World> gizmoWorld = std::make_unique<ecs::World>();
-    std::unique_ptr<ecs::World> backgroundWorld = std::make_unique<ecs::World>();
-    auto maxDrawableInstances = vax::rhi::MAX_DRAWABLE_INSTANCES;
-    _resourceManager.get().load(maxDrawableInstances);
-    auto environmentMap = std::make_unique<EnvironmentMap>(*_vkEngine.get().device);
-    auto assetsLibrary = std::make_unique<AssetsLibrary>(
-        *_vkEngine.get().device,
-        maxDrawableInstances,
-        _resourceManager.get(),
-        *_textureGpuUploader,
-        _pipelineManager.get().descriptorRegistry()
-    );
-
-    auto textureLoader = rhi::TextureLoader(*_vkEngine.get().device, _pipelineManager.get().descriptorRegistry());
-    environmentMap->load(
-        {
-        .textures =
-            {
-            {gfx::EnvironmentMap::TextureType::BRDFLUT, RES_PATH("brdf/brdfLUT.ktx")},
-            {gfx::EnvironmentMap::TextureType::EnvMapIrradiance, RES_PATH("brdf/irradiance.ktx")},
-            {gfx::EnvironmentMap::TextureType::EnvMap, RES_PATH("brdf/prefilter.ktx")},
-            },
-        },
-        _resourceManager.get(),
-        textureLoader,
-        *_textureGpuUploader
-    );
-
-    PrefabDescriptor backgroundDescriptor = {
-        .prefabType = vax::gfx::PrefabDescriptor::PrefabType::PRESET,
-        .id = "background",
-        .primitiveDescriptor = vax::gfx::PrefabDescriptor::PrimitiveDescriptor{
-        .primitiveType = vax::gfx::PrefabDescriptor::PrimitiveType::PLANE,
-        },
-    };
-    PrefabDescriptor gizmoDescriptor = {
-        .prefabType = vax::gfx::PrefabDescriptor::PrefabType::ASSET,
-        .id = "gizmo",
-        .assetDescriptor = vax::gfx::PrefabDescriptor::AssetDescriptor{
-        .path = RES_PATH("assets/models/gizmo.glb"),
-        },
-    };
-    std::vector<vax::gfx::PrefabDescriptor> prefabDescriptors;
-    prefabDescriptors.reserve(descriptor.entities.size() + 2);
-    for (const auto& entity : descriptor.entities) {
-        prefabDescriptors.push_back(*entity.prefabDescriptor);
-    }
-    prefabDescriptors.push_back(backgroundDescriptor);
-    prefabDescriptors.push_back(gizmoDescriptor);
-
-    assetsLibrary->preload(prefabDescriptors);
-
-    auto agentEntities = descriptor.forEachEntityOfType(gfx::EntityDescriptor::Type::Agent);
-    for (const auto& agentEntity : agentEntities) {
-        if (const Prefab* agentPrefab = assetsLibrary->findPrefab(agentEntity.prefabDescriptor->id)) {
-            auto agentTransform = agentEntity.prefabDescriptor->getTransformForInstance(0);
-            Entity agent = PrefabSpawner::spawnPrefab(world, *agentPrefab, agentTransform);
-            world.addCoreComponentFor<AgentComponent>(agent);
-        }
-    }
-
-    auto envEntities = descriptor.forEachEntityOfType(gfx::EntityDescriptor::Type::Environment);
-    uint32_t envEntityTypeIndex = 0;
-    for (const auto& envEntity : envEntities) {
-        auto prefabDescriptor = envEntity.prefabDescriptor;
-        const Prefab* prefab = assetsLibrary->findPrefab(prefabDescriptor->id);
-        if (prefab == nullptr) {
-            continue;
-        }
-        for (uint32_t instanceIndex = 0; instanceIndex < prefabDescriptor->instanceInfos.size(); ++instanceIndex) {
-            Entity entity =
-                PrefabSpawner::spawnPrefab(world, *prefab, prefabDescriptor->getTransformForInstance(instanceIndex));
-            world.addCoreComponentFor<InstanceComponent>(entity, envEntityTypeIndex, instanceIndex);
-            if (prefabDescriptor->physicsDescriptor.has_value()) {
-                if (prefabDescriptor->physicsDescriptor->isStatic) {
-                    StaticRigidBodyComponent staticRigidBodyComponent =
-                        prefabDescriptor->physicsDescriptor->getStaticRigidBodyComponent();
-                    world.addCoreComponentFor<StaticRigidBodyComponent>(entity, staticRigidBodyComponent);
-                } else {
-                    RigidBodyComponent rigidBodyComponent =
-                        prefabDescriptor->physicsDescriptor->getRigidBodyComponent();
-                    world.addCoreComponentFor<RigidBodyComponent>(entity, rigidBodyComponent);
-                }
-                switch (prefabDescriptor->physicsDescriptor->colliderType) {
-                case vax::gfx::PhysicsDescriptor::ColliderType::SPHERE: {
-                    if (prefabDescriptor->physicsDescriptor->sphereColliderDescriptor.has_value()) {
-                        SphereColliderComponent sphereColliderComponent =
-                            prefabDescriptor->physicsDescriptor->sphereColliderDescriptor->getSphereColliderComponent();
-                        world.addCoreComponentFor<SphereColliderComponent>(entity, sphereColliderComponent);
-                    } else {
-                        _logger.error("Sphere collider descriptor is not set for entity: ", prefabDescriptor->id);
-                        continue;
-                    }
-                    break;
-                }
-                case vax::gfx::PhysicsDescriptor::ColliderType::PLANE: {
-                    if (prefabDescriptor->physicsDescriptor->planeColliderDescriptor.has_value()) {
-                        PlaneColliderComponent planeColliderComponent =
-                            prefabDescriptor->physicsDescriptor->planeColliderDescriptor->getPlaneColliderComponent();
-                        world.addCoreComponentFor<PlaneColliderComponent>(entity, planeColliderComponent);
-                    } else {
-                        _logger.error("Plane collider descriptor is not set for entity: ", prefabDescriptor->id);
-                        continue;
-                    }
-                    break;
-                }
-                };
-            }
-        }
-        ++envEntityTypeIndex;
-    }
-
-    if (const Prefab* backgroundPrefab = assetsLibrary->findPrefab("background")) {
-        Entity background = PrefabSpawner::spawnPrefab(*backgroundWorld, *backgroundPrefab, vax::math::Transform());
-        backgroundWorld->addCoreComponentFor<BackgroundComponent>(background);
-    }
-
-    if (const Prefab* gizmoPrefab = assetsLibrary->findPrefab("gizmo")) {
-        for (const auto& node : gizmoPrefab->nodes) {
-            if (node.model.has_value()) {
-                assetsLibrary->drawableModel(*node.model).settings().precomputedMVP = true;
-            }
-        }
-        Entity gizmo = PrefabSpawner::spawnPrefab(*gizmoWorld, *gizmoPrefab, vax::math::Transform());
-        gizmoWorld->addCoreComponentFor<GizmoComponent>(gizmo);
-    }
-
-    auto sceneComposer = std::make_unique<SceneComposer>(
-        std::move(assetsLibrary), _resourceManager.get().ssboManager(), maxDrawableInstances
-    );
-
-    return std::make_unique<Scene>(
-        _vkEngine.get(),
-        _windowController.get(),
-        std::move(gizmoWorld),
-        std::move(backgroundWorld),
-        std::move(environmentMap),
-        std::move(sceneComposer),
-        _resourceManager.get()
-    );
 }

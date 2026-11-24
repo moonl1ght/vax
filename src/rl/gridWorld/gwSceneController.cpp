@@ -1,6 +1,6 @@
 #include "gwSceneController.h"
 #include "colorPalette.h"
-#include "entityDescriptor.h"
+#include "entityConfig.h"
 #include "shaderUtils.h"
 
 using namespace vax;
@@ -17,7 +17,7 @@ constexpr std::array<std::string_view, 4> WheelLinkNames = {
 };
 } // namespace
 
-bool GWSceneController::load(const vax::gfx::SceneDescriptor& descriptor) {
+bool GWSceneController::load(const scene::SceneConfig& descriptor) {
     if (!_loadAgent()) {
         return false;
     }
@@ -36,15 +36,15 @@ bool GWSceneController::load(const vax::gfx::SceneDescriptor& descriptor) {
         entities[instance.instanceIndex] = entity;
     });
 
-    auto envEntities = descriptor.forEachEntityOfType(gfx::EntityDescriptor::Type::Environment);
+    auto envEntities = descriptor.forEachEntityOfType(scene::EntityConfig::Type::Environment);
     for (const auto& envEntity : envEntities) {
         if (!_envEntities.contains(envEntity.id)) {
             _logger.error("No entities spawned for model: ", envEntity.id);
             continue;
         }
-        for (size_t instanceIndex = 0; instanceIndex < envEntity.prefabDescriptor->instanceInfos.size();
+        for (size_t instanceIndex = 0; instanceIndex < envEntity.prefabConfig->instanceInfos.size();
              ++instanceIndex) {
-            const auto& instanceInfo = envEntity.prefabDescriptor->instanceInfos[instanceIndex];
+            const auto& instanceInfo = envEntity.prefabConfig->instanceInfos[instanceIndex];
             if (instanceInfo.isSelected) {
                 highlightInstance(envEntity.id, instanceIndex, instanceInfo.selectionColor);
             }
