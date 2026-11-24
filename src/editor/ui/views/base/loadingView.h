@@ -7,7 +7,7 @@
 namespace vax::editor {
 class LoadingView final : public View {
   public:
-    LoadingView(vax::gfx::EditorRenderer& editorRenderer)
+    LoadingView(vax::gfx::EditorRenderer_old& editorRenderer)
         : View(editorRenderer) {};
 
     ~LoadingView() = default;

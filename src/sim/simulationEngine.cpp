@@ -3,7 +3,10 @@
 
 using namespace vax::sim;
 
-bool SimulationEngine::setup(const SimulationConfig& config) noexcept {
+bool SimulationEngine::setup(
+    const SimulationConfig& config, std::unique_ptr<scene::SimulationScene> simulationScene
+) noexcept {
+    _simulationScene = std::move(simulationScene);
     _thread = std::make_unique<core::Thread>();
     if (config.enableThreadAffinity) {
         auto cores = core::PhysicalCore::cores();

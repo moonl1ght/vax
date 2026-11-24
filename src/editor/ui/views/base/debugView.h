@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IconsFontAwesome6.h"
-#include "editorRenderer.h"
+#include "editorRenderer_old.h"
 #include "frameProfiler.h"
 #include "settingsView.h"
 #include "simSettingsView.h"
@@ -16,7 +16,7 @@
 namespace vax::editor {
 class DebugView : public View {
   public:
-    DebugView(vax::gfx::EditorRenderer& editorRenderer)
+    DebugView(vax::gfx::EditorRenderer_old& editorRenderer)
         : View(editorRenderer) {
         _statsView = std::make_unique<StatsView>(editorRenderer);
         _settingsView = std::make_unique<SettingsView>(editorRenderer);

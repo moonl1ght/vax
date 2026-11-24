@@ -3,6 +3,7 @@
 #include "logger.h"
 #include "physicsEngine.h"
 #include "simulationConfig.h"
+#include "simulationScene.h"
 #include "thread.h"
 #include <memory>
 
@@ -24,7 +25,7 @@ class SimulationEngine {
     SimulationEngine(SimulationEngine&& other) noexcept = delete;
     SimulationEngine& operator=(SimulationEngine&& other) noexcept = delete;
 
-    bool setup(const SimulationConfig& config) noexcept;
+    bool setup(const sim::SimulationConfig& config, std::unique_ptr<scene::SimulationScene> simulationScene) noexcept;
 
     void run() noexcept;
 
@@ -34,6 +35,8 @@ class SimulationEngine {
     std::unique_ptr<core::Thread> _thread;
 
     std::unique_ptr<physics::PhysicsEngine> _physicsEngine;
+
+    std::unique_ptr<scene::SimulationScene> _simulationScene;
 };
 
 } // namespace vax::sim

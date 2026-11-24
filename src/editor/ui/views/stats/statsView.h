@@ -3,14 +3,14 @@
 #include "debouncer.h"
 #include "frameProfiler.h"
 #include "fullStatsView.h"
-#include "editorRenderer.h"
+#include "editorRenderer_old.h"
 #include "systemInfo.h"
 #include "view.h"
 
 namespace vax::editor {
 class StatsView final : public View {
   public:
-    StatsView(vax::gfx::EditorRenderer& editorRenderer)
+    StatsView(vax::gfx::EditorRenderer_old& editorRenderer)
         : View(editorRenderer)
         , _debouncer(std::chrono::milliseconds(500)) {
         _systemInfo = dev::SystemInfo();

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "appMode.h"
-#include "editorRenderer.h"
+#include "editorRenderer_old.h"
 #include "frameTime.h"
 #undef Status
 #include "imgui.h"
@@ -13,7 +13,7 @@ class ViewManager;
 
 class View {
   public:
-    View(vax::gfx::EditorRenderer& editorRenderer)
+    View(vax::gfx::EditorRenderer_old& editorRenderer)
         : _editorRenderer(editorRenderer) {};
 
     virtual ~View() = default;
@@ -31,7 +31,7 @@ class View {
     void linkViewManager(ViewManager* viewManager) { _viewManager = viewManager; }
 
   protected:
-    std::reference_wrapper<vax::gfx::EditorRenderer> _editorRenderer;
+    std::reference_wrapper<vax::gfx::EditorRenderer_old> _editorRenderer;
     ViewManager* _viewManager = nullptr;
 
     bool _beginInMainWindow(const char* name, ImGuiWindowFlags flags = 0) {

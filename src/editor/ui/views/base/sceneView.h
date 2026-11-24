@@ -11,7 +11,7 @@ namespace vax::editor {
 
 template <typename ControllerType> class SceneView : public DebugView {
   public:
-    SceneView(vax::gfx::EditorRenderer& editorRenderer, app::InputController& inputController)
+    SceneView(vax::gfx::EditorRenderer_old& editorRenderer, app::InputController& inputController)
         : DebugView(editorRenderer)
         , _inputController(inputController) {
         _loadingView = std::make_unique<LoadingView>(editorRenderer);

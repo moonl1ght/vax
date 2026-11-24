@@ -1,6 +1,6 @@
 #pragma once
 
-#include "editorRenderer.h"
+#include "editorRenderer_old.h"
 #include "simSettingsView.h"
 #include "simStatsView.h"
 #include "view.h"
@@ -9,7 +9,7 @@ namespace vax::editor {
 
 class SimulationView final : public View {
   public:
-    SimulationView(vax::gfx::EditorRenderer& editorRenderer)
+    SimulationView(vax::gfx::EditorRenderer_old& editorRenderer)
         : View(editorRenderer) {
         _simSettingsView = std::make_unique<SimSettingsView>(editorRenderer);
         _simStatsView = std::make_unique<SimStatsView>(editorRenderer);

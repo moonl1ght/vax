@@ -1,12 +1,12 @@
 #pragma once
 
-#include "editorRenderer.h"
+#include "editorRenderer_old.h"
 #include "view.h"
 
 namespace vax::editor {
 class FullStatsView final : public View {
   public:
-    FullStatsView(vax::gfx::EditorRenderer& editorRenderer)
+    FullStatsView(vax::gfx::EditorRenderer_old& editorRenderer)
         : View(editorRenderer) {}
 
     ~FullStatsView() override = default;

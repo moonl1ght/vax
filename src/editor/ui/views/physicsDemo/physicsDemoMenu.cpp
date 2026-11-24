@@ -1,7 +1,7 @@
 #include "physicsDemoMenu.h"
 #undef Status
 #include "imgui.h"
-#include "startingView.h"
+#include "mainView.h"
 #include "viewManager.h"
 
 using namespace vax::editor;
@@ -14,17 +14,17 @@ void PhysicsDemoMenuView::updateUI(const vax::time::FrameTime& frameTime) {
         ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar
     );
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10.0f);
-    if (ImGui::Button("Show Simple Demo", ImVec2(-1, 55))) {
-        _showSimpleDemo();
+    if (ImGui::Button("Show Sphere Demo", ImVec2(-1, 55))) {
+        _showSphereDemo();
     }
     ImGui::End();
 
     DebugView::updateUI(frameTime);
 }
 
-void PhysicsDemoMenuView::_showSimpleDemo() {
+void PhysicsDemoMenuView::_showSphereDemo() {
     auto viewBuilder = _viewManager->viewBuilder();
     if (_viewManager) {
-        _viewManager->pushView(viewBuilder.buildPhysicsDemoView());
+        _viewManager->pushView(viewBuilder.buildPhysicsSphereDemoView());
     }
 }

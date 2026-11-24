@@ -5,7 +5,7 @@
 #include "gwTrainingManager.h"
 #include "inputController.h"
 #include "logger.h"
-#include "editorRenderer.h"
+#include "editorRenderer_old.h"
 #include "sceneView.h"
 #include "threadRunner.h"
 #include "windowController.h"
@@ -19,7 +19,7 @@ class GridWorldView final : public SceneView<rl::GWSceneController> {
   public:
     GridWorldView(
         WindowController& windowController,
-        gfx::EditorRenderer& editorRenderer,
+        gfx::EditorRenderer_old& editorRenderer,
         gfx::RenderEngine& rendererEngine,
         app::InputController& inputController
     )

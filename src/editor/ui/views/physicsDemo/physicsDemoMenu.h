@@ -5,7 +5,7 @@
 namespace vax::editor {
 class PhysicsDemoMenuView final : public DebugView {
   public:
-    PhysicsDemoMenuView(vax::gfx::EditorRenderer& editorRenderer)
+    PhysicsDemoMenuView(vax::gfx::EditorRenderer_old& editorRenderer)
         : DebugView(editorRenderer) {}
 
     ~PhysicsDemoMenuView() override = default;
@@ -18,6 +18,6 @@ class PhysicsDemoMenuView final : public DebugView {
     void updateUI(const vax::time::FrameTime& frameTime) override;
 
   private:
-    void _showSimpleDemo();
+    void _showSphereDemo();
 };
 } // namespace vax::editor

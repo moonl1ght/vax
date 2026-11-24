@@ -1,12 +1,11 @@
 #include "viewBuilder.h"
+#include "mainView.h"
 #include "physicsDemoMenu.h"
-#include "startingView.h"
 
+using namespace vax;
 using namespace vax::editor;
 
-std::unique_ptr<StartingView> ViewBuilder::buildStartingView() {
-    return std::make_unique<StartingView>(_editorRenderer.get());
-}
+std::unique_ptr<MainView> ViewBuilder::buildMainView() { return std::make_unique<MainView>(_editorRenderer.get()); }
 
 std::unique_ptr<GridWorldView> ViewBuilder::buildGridWorldView() {
     return std::make_unique<GridWorldView>(
@@ -22,4 +21,8 @@ std::unique_ptr<PhysicsDemoView> ViewBuilder::buildPhysicsDemoView() {
     return std::make_unique<PhysicsDemoView>(
         _editorRenderer.get(), _renderEngine.get(), _windowController.get(), _inputController.get()
     );
+}
+
+std::unique_ptr<editor::EditorView> ViewBuilder::buildPhysicsSphereDemoView() {
+    return std::make_unique<editor::EditorView>(_editorRenderer.get());
 }

@@ -6,7 +6,6 @@
 #include "inputController.h"
 #include "logger.h"
 #include "renderEngine.h"
-#include "simulationEngine.h"
 #include <memory>
 
 namespace vax::app {
@@ -31,7 +30,6 @@ class App final {
 
     std::unique_ptr<editor::Editor> _editor;
     std::unique_ptr<gfx::RenderEngine> _renderEngine;
-    std::unique_ptr<sim::SimulationEngine> _simulationEngine;
 
     void _mainLoop();
     void _loopUpdate();

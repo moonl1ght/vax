@@ -1,20 +1,21 @@
 #pragma once
 
-#include "editorRenderer.h"
+#include "editorRenderer_old.h"
 #include "view.h"
 
 namespace vax::editor {
-class SimStatsView final : public View {
+
+class SettingsView final : public View {
   public:
-    SimStatsView(vax::gfx::EditorRenderer& editorRenderer)
+    SettingsView(vax::gfx::EditorRenderer_old& editorRenderer)
         : View(editorRenderer) {}
 
-    ~SimStatsView() override = default;
+    ~SettingsView() override = default;
 
-    SimStatsView(const SimStatsView& other) = delete;
-    SimStatsView(SimStatsView&& other) noexcept = delete;
-    SimStatsView& operator=(const SimStatsView& other) = delete;
-    SimStatsView& operator=(SimStatsView&& other) noexcept = delete;
+    SettingsView(const SettingsView& other) = delete;
+    SettingsView(SettingsView&& other) noexcept = delete;
+    SettingsView& operator=(const SettingsView& other) = delete;
+    SettingsView& operator=(SettingsView&& other) noexcept = delete;
 
     void update(const vax::time::FrameTime& frameTime) override {}
 
@@ -29,4 +30,5 @@ class SimStatsView final : public View {
 
     void _showContents();
 };
+
 } // namespace vax::editor

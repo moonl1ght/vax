@@ -23,7 +23,7 @@ void Editor::loadMainView(gfx::RenderEngine& renderEngine) noexcept {
         *_windowController, _inputController, renderEngine.editorRenderer(), renderEngine
     );
     _viewManager = std::make_unique<ViewManager>(*_uiEngine, *_viewBuilder);
-    _viewManager->setRootView(_viewBuilder->buildStartingView());
+    _viewManager->setRootView(_viewBuilder->buildMainView());
 }
 
 void Editor::cleanup() noexcept {

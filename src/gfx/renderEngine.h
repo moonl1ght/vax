@@ -1,7 +1,7 @@
 #pragma once
 
 #include "editor.h"
-#include "editorRenderer.h"
+#include "editorRenderer_old.h"
 #include "logger.h"
 #include "resourceManager.h"
 #include "simulationRenderer.h"
@@ -30,7 +30,7 @@ class RenderEngine final {
 
     rhi::ResourceManager& resourceManager() noexcept { return *_resourceManager; }
 
-    gfx::EditorRenderer& editorRenderer() noexcept { return *_editorRenderer; }
+    gfx::EditorRenderer_old& editorRenderer() noexcept { return *_editorRenderer; }
 
     gfx::SimulationRenderer& simulationRenderer() noexcept { return *_simulationRenderer; }
 
@@ -38,7 +38,7 @@ class RenderEngine final {
     dev::Logger _logger = dev::Logger("RenderEngine");
 
     std::unique_ptr<rhi::VulkanEngine> _vkEngine;
-    std::unique_ptr<gfx::EditorRenderer> _editorRenderer;
+    std::unique_ptr<gfx::EditorRenderer_old> _editorRenderer;
     std::unique_ptr<gfx::SimulationRenderer> _simulationRenderer;
     std::unique_ptr<rhi::ResourceManager> _resourceManager;
 };

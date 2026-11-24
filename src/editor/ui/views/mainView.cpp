@@ -1,4 +1,4 @@
-#include "startingView.h"
+    #include "mainView.h"
 #undef Status
 #include "imgui.h"
 #include "physicsDemoMenu.h"
@@ -7,7 +7,7 @@
 using namespace vax::editor;
 using namespace vax;
 
-void StartingView::updateUI(const vax::time::FrameTime& frameTime) {
+void MainView::updateUI(const vax::time::FrameTime& frameTime) {
     ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetWorkCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     ImGui::SetNextWindowSize(ImVec2(480, 0), ImGuiCond_Always);
     _beginInMainWindow(
@@ -26,14 +26,14 @@ void StartingView::updateUI(const vax::time::FrameTime& frameTime) {
     DebugView::updateUI(frameTime);
 }
 
-void StartingView::_showGridWorldDemo() {
+void MainView::_showGridWorldDemo() {
     auto viewBuilder = _viewManager->viewBuilder();
     if (_viewManager) {
         _viewManager->pushView(viewBuilder.buildGridWorldView());
     }
 }
 
-void StartingView::_showPhysicsEngineDemo() {
+void MainView::_showPhysicsEngineDemo() {
     auto viewBuilder = _viewManager->viewBuilder();
     if (_viewManager) {
         _viewManager->pushView(viewBuilder.buildPhysicsDemoMenuView());

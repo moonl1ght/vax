@@ -1,20 +1,19 @@
 #pragma once
 
+#include "editorView.h"
 #include "gridWorldView.h"
 #include "inputController.h"
+#include "mainView.h"
 #include "physicsDemoView.h"
 #include "uiEngine.h"
 #include "windowController.h"
-#include "startingView.h"
 
 namespace vax::gfx {
 class RenderEngine;
-class EditorRenderer;
+class EditorRenderer_old;
 } // namespace vax::gfx
 
 namespace vax::editor {
-
-class StartingView;
 class PhysicsDemoMenuView;
 
 class ViewBuilder {
@@ -22,7 +21,7 @@ class ViewBuilder {
     ViewBuilder(
         WindowController& windowController,
         app::InputController& inputController,
-        gfx::EditorRenderer& editorRenderer,
+        gfx::EditorRenderer_old& editorRenderer,
         gfx::RenderEngine& renderEngine
     )
         : _windowController(windowController)
@@ -32,7 +31,7 @@ class ViewBuilder {
 
     ~ViewBuilder() = default;
 
-    std::unique_ptr<StartingView> buildStartingView();
+    std::unique_ptr<MainView> buildMainView();
 
     std::unique_ptr<GridWorldView> buildGridWorldView();
 
@@ -40,10 +39,12 @@ class ViewBuilder {
 
     std::unique_ptr<PhysicsDemoView> buildPhysicsDemoView();
 
+    std::unique_ptr<editor::EditorView> buildPhysicsSphereDemoView();
+
   private:
     std::reference_wrapper<WindowController> _windowController;
     std::reference_wrapper<app::InputController> _inputController;
-    std::reference_wrapper<gfx::EditorRenderer> _editorRenderer;
+    std::reference_wrapper<gfx::EditorRenderer_old> _editorRenderer;
     std::reference_wrapper<gfx::RenderEngine> _renderEngine;
 };
 

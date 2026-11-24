@@ -2,7 +2,7 @@
 #include "notificationCenter.h"
 #include "profiler.h"
 #include "renderdoc.h"
-#include "startingView.h"
+#include "mainView.h"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_vulkan.h>
 #include <cuda_runtime.h>
@@ -32,9 +32,6 @@ void App::setup() noexcept {
     }
 
     _editor->loadMainView(*_renderEngine);
-
-    _simulationEngine = std::make_unique<sim::SimulationEngine>();
-    _simulationEngine->setup(sim::SimulationConfig::defaultConfig());
 
     _logger.success("App setup complete!");
 }

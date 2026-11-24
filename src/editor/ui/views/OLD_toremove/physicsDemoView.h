@@ -13,7 +13,7 @@ namespace vax::editor {
 class PhysicsDemoView final : public SceneView<app::MainSceneController> {
   public:
     PhysicsDemoView(
-        vax::gfx::EditorRenderer& editorRenderer,
+        vax::gfx::EditorRenderer_old& editorRenderer,
         gfx::RenderEngine& rendererEngine,
         WindowController& windowController,
         app::InputController& inputController
