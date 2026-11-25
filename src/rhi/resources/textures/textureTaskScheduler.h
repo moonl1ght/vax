@@ -4,9 +4,10 @@
 #include "commandBuffer.h"
 #include "commandManager.h"
 #include "device.h"
+#include "gpuQueue.h"
+#include "texture.h"
 #include "vulkanCommon.h"
 #include <vector>
-#include "texture.h"
 
 namespace vax::rhi {
 class TextureTaskSchedulerInline final {
@@ -51,14 +52,14 @@ class TextureTaskScheduler final {
     TextureTaskScheduler& operator=(TextureTaskScheduler&& other) noexcept = delete;
 
     void transitionTextureLayoutAndSubmit(
-        VkQueue submitQueue,
+        GPUQueue& submitQueue,
         Texture& texture,
         VkImageLayout oldLayout,
         VkImageLayout newLayout,
         VkImageAspectFlags aspectMask
     );
 
-    void copyBufferToTextureAndSubmit(VkQueue submitQueue, vax::rhi::AnyBuffer& buffer, Texture& texture);
+    void copyBufferToTextureAndSubmit(GPUQueue& submitQueue, vax::rhi::AnyBuffer& buffer, Texture& texture);
 
   private:
     std::reference_wrapper<const vax::rhi::Device> _device;

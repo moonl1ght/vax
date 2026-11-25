@@ -26,7 +26,7 @@ SceneLoader::SceneWorldPair SceneLoader::load(scene::SceneConfig& descriptor) {
     auto scene = _initScene(*world, descriptor);
     scene->load(descriptor);
     scene->setWorld(world);
-    auto loadQueue = _vkEngine.get().queueManager->graphicsQueue;
+    auto& loadQueue = _vkEngine.get().queueManager->getMainGraphicsQueue();
     auto loadCommandBuffer = _vkEngine.get().commandManager->createSingleTimeCommandBuffer();
 
     loadCommandBuffer.begin();
@@ -131,8 +131,7 @@ std::unique_ptr<Scene> SceneLoader::_initScene(ecs::World& world, const scene::S
                         prefabConfig->physicsDescriptor->getStaticRigidBodyComponent();
                     world.addCoreComponentFor<StaticRigidBodyComponent>(entity, staticRigidBodyComponent);
                 } else {
-                    RigidBodyComponent rigidBodyComponent =
-                        prefabConfig->physicsDescriptor->getRigidBodyComponent();
+                    RigidBodyComponent rigidBodyComponent = prefabConfig->physicsDescriptor->getRigidBodyComponent();
                     world.addCoreComponentFor<RigidBodyComponent>(entity, rigidBodyComponent);
                 }
                 switch (prefabConfig->physicsDescriptor->colliderType) {

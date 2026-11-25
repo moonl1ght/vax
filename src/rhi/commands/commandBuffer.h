@@ -1,6 +1,7 @@
 #pragma once
 
 #include "device.h"
+#include "gpuQueue.h"
 #include "logger.h"
 #include "pipeline.h"
 
@@ -61,7 +62,7 @@ class CommandBuffer {
     bool bindPipeline(const Pipeline* pipeline, VkPipelineBindPoint bindPoint);
     bool end();
     void reset();
-    void submitAndWait(VkQueue queue);
+    void submitAndWait(GPUQueue& queue);
 
   private:
     dev::Logger _logger = dev::Logger("CommandBuffer");

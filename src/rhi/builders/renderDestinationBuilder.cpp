@@ -1,11 +1,12 @@
 #include "renderDestinationBuilder.h"
+#include "gpuQueue.h"
 #include "textureTaskScheduler.h"
 
 using namespace vax::rhi;
 using namespace vax;
 
 std::optional<RenderDestination> RenderDestinationBuilder::buildMainOffscreen(
-    CommandManager& commandManager, VkQueue submitQueue, VkExtent2D extent, RenderPassDescriptor& renderPassDescriptor
+    CommandManager& commandManager, GPUQueue& submitQueue, VkExtent2D extent, RenderPassDescriptor& renderPassDescriptor
 ) const noexcept {
     _logger.debug("Building main offscreen render destination...");
     VkFormat depthFormat = renderPassDescriptor.depthFormat;
@@ -94,7 +95,7 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildMainOffscreen(
 
 std::optional<RenderDestination> RenderDestinationBuilder::buildSwapchain(
     CommandManager& commandManager,
-    VkQueue submitQueue,
+    GPUQueue& submitQueue,
     Swapchain& swapchain,
     RenderPassDescriptor& renderPassDescriptor
 ) const noexcept {
@@ -148,7 +149,7 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildSwapchain(
 }
 
 std::optional<RenderDestination> RenderDestinationBuilder::buildShadowSunOffscreen(
-    CommandManager& commandManager, VkQueue submitQueue, VkExtent2D extent, RenderPassDescriptor& renderPassDescriptor
+    CommandManager& commandManager, GPUQueue& submitQueue, VkExtent2D extent, RenderPassDescriptor& renderPassDescriptor
 ) const noexcept {
     _logger.info("Building shadow sun offscreen render destination...");
     VkFormat depthFormat = renderPassDescriptor.depthFormat;

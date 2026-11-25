@@ -4,7 +4,7 @@
 using namespace vax::rhi;
 
 bool vax::rhi::CommandBuffer::begin() {
-    VkCommandBufferBeginInfo beginInfo {
+    VkCommandBufferBeginInfo beginInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
     };
@@ -29,14 +29,14 @@ bool vax::rhi::CommandBuffer::end() {
     }
 }
 
-void vax::rhi::CommandBuffer::submitAndWait(VkQueue queue) {
+void vax::rhi::CommandBuffer::submitAndWait(GPUQueue& queue) {
     VkSubmitInfo submitInfo{
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
         .commandBufferCount = 1,
         .pCommandBuffers = &vkCommandBuffer,
     };
-    vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(queue);
+    queue.submitV1(submitInfo, VK_NULL_HANDLE);
+    queue.waitIdle();
 }
 
 void vax::rhi::CommandBuffer::reset() { vkResetCommandBuffer(vkCommandBuffer, 0); }

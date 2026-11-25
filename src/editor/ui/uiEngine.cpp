@@ -32,7 +32,7 @@ void UIEngine::setup(VkRenderPass renderPass) {
     init_info.PhysicalDevice = _vkEngine.get().device->vkPhysicalDevice();
     init_info.Device = _vkEngine.get().device->vkDevice();
     init_info.QueueFamily = _vkEngine.get().device->queueFamilyIndices().graphicsFamily.value();
-    init_info.Queue = _vkEngine.get().queueManager->graphicsQueue;
+    init_info.Queue = _vkEngine.get().queueManager->getMainGraphicsQueue().vkQueue();
     init_info.DescriptorPool = _imguiDescriptorPool;
     init_info.RenderPass = renderPass;
     init_info.MinImageCount = 2;

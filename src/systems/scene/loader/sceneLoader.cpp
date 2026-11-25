@@ -28,7 +28,7 @@ void SceneLoader::asyncLoadScene(const scene::SceneConfig& config, LoadingCallba
 }
 
 void SceneLoader::_loadInBackground(const scene::SceneConfig& config, LoadingCallback callback) {
-    for (int i = 0; i < 50 && !_isCancelRequested.load(); ++i) {
+    for (int i = 0; i < 10 && !_isCancelRequested.load(); ++i) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
     if (_isCancelRequested.load()) {
@@ -90,7 +90,7 @@ std::unique_ptr<EditorScene> SceneLoader::_buildEditorScene(const scene::SceneCo
 }
 
 void SceneLoader::_uploadPendingTextures() {
-    auto loadQueue = _vkEngine.get().queueManager->graphicsQueue;
+    auto& loadQueue = _vkEngine.get().queueManager->getMainGraphicsQueue();
     auto loadCommandBuffer = _vkEngine.get().commandManager->createSingleTimeCommandBuffer();
 
     loadCommandBuffer.begin();

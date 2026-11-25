@@ -37,7 +37,7 @@ void TextureTaskSchedulerInline::transitionTextureLayout(
 }
 
 void TextureTaskScheduler::transitionTextureLayoutAndSubmit(
-    VkQueue submitQueue,
+    GPUQueue& submitQueue,
     Texture& texture,
     VkImageLayout oldLayout,
     VkImageLayout newLayout,
@@ -79,7 +79,7 @@ void TextureTaskSchedulerInline::copyBufferToTexture(
 }
 
 void TextureTaskScheduler::copyBufferToTextureAndSubmit(
-    VkQueue submitQueue, vax::rhi::AnyBuffer& buffer, Texture& texture
+    GPUQueue& submitQueue, vax::rhi::AnyBuffer& buffer, Texture& texture
 ) {
     auto commandBuffer = _commandManager.get().createSingleTimeCommandBuffer();
     auto taskSchedulerInline = TextureTaskSchedulerInline(_device.get(), commandBuffer);

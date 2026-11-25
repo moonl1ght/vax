@@ -9,6 +9,7 @@
 #include "swapchain.h"
 #include <optional>
 #include "textureFactory.h"
+#include "gpuQueue.h"
 
 namespace vax::rhi {
 class RenderDestinationBuilder {
@@ -20,21 +21,21 @@ class RenderDestinationBuilder {
 
     std::optional<RenderDestination> buildSwapchain(
         CommandManager& commandManager,
-        VkQueue submitQueue,
+        GPUQueue& submitQueue,
         Swapchain& swapchain,
         RenderPassDescriptor& renderPassDescriptor
     ) const noexcept;
 
     std::optional<RenderDestination> buildMainOffscreen(
         CommandManager& commandManager,
-        VkQueue submitQueue,
+        GPUQueue& submitQueue,
         VkExtent2D extent,
         RenderPassDescriptor& renderPassDescriptor
     ) const noexcept;
 
     std::optional<RenderDestination> buildShadowSunOffscreen(
         CommandManager& commandManager,
-        VkQueue submitQueue,
+        GPUQueue& submitQueue,
         VkExtent2D extent,
         RenderPassDescriptor& renderPassDescriptor
     ) const noexcept;

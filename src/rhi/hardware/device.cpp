@@ -50,45 +50,49 @@ bool checkDeviceExtensionSupport(VkPhysicalDevice device) {
     return requiredExtensions.empty();
 }
 
-static QueueFamilyIndices findDeviceQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface) {
-    if (surface != VK_NULL_HANDLE) {
-        return findQueueFamilies(device, surface);
-    }
-
-    QueueFamilyIndices indices;
-    uint32_t count = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(device, &count, nullptr);
-    std::vector<VkQueueFamilyProperties> families(count);
-    vkGetPhysicalDeviceQueueFamilyProperties(device, &count, families.data());
-
-    for (uint32_t i = 0; i < count; ++i) {
-        if (families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-            indices.graphicsFamily = i;
-            break;
-        }
-    }
-    return indices;
-}
-
 int Device::_createLogicalDevice(
     const VkPhysicalDevice& physicalDevice, VkDevice& device, bool enableValidationLayers
 ) noexcept {
 
-    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-    std::set<uint32_t> uniqueQueueFamilies{_indices.graphicsFamily.value()};
-    if (_indices.presentFamily.has_value()) {
-        uniqueQueueFamilies.insert(_indices.presentFamily.value());
+    std::vector<uint32_t> requestedQueueCounts(_indices.families.size(), 0);
+    auto requestQueues = [&](std::optional<uint32_t> family, uint32_t count) {
+        if (family.has_value()) {
+            requestedQueueCounts[*family] += count;
+        }
+    };
+    requestQueues(_indices.graphicsFamily, QUEUES_PER_ROLE);
+    requestQueues(_indices.computeFamily, QUEUES_PER_ROLE);
+    requestQueues(_indices.transferFamily, QUEUES_PER_ROLE);
+    if (_indices.presentFamily != _indices.graphicsFamily) {
+        requestQueues(_indices.presentFamily, 1);
     }
 
-    float queuePriority = 1.0f;
+    const std::vector<uint32_t> uniqueQueueFamilies = _indices.uniqueFamilies();
+    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+    std::vector<std::vector<float>> queuePriorities;
+    queueCreateInfos.reserve(uniqueQueueFamilies.size());
+    queuePriorities.reserve(uniqueQueueFamilies.size());
     for (uint32_t queueFamily : uniqueQueueFamilies) {
-        VkDeviceQueueCreateInfo queueCreateInfo{
+        const uint32_t queueCount = std::min(requestedQueueCounts[queueFamily], _indices.queueCount(queueFamily));
+        _indices.families[queueFamily].createdQueueCount = queueCount;
+        queuePriorities.emplace_back(queueCount, 1.0f);
+        queueCreateInfos.push_back({
             .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
             .queueFamilyIndex = queueFamily,
-            .queueCount = 1,
-            .pQueuePriorities = &queuePriority,
-        };
-        queueCreateInfos.push_back(queueCreateInfo);
+            .queueCount = queueCount,
+            .pQueuePriorities = queuePriorities.back().data(),
+        });
+        _logger.debug(
+            "Queue family ",
+            queueFamily,
+            ": created ",
+            queueCount,
+            " of ",
+            _indices.queueCount(queueFamily),
+            " (requested ",
+            requestedQueueCounts[queueFamily],
+            ")"
+        );
     }
 
     VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR barycentricFeatures{
@@ -156,7 +160,7 @@ int Device::_createLogicalDevice(
 }
 
 bool Device::_isDeviceSuitable(const VkPhysicalDevice& device, VkSurfaceKHR surface) noexcept {
-    QueueFamilyIndices indices = findDeviceQueueFamilies(device, surface);
+    QueueFamilyIndices indices = findQueueFamilies(device, surface);
 
     bool extensionsSupported = checkDeviceExtensionSupport(device);
 
@@ -243,7 +247,7 @@ bool Device::load(
 ) noexcept {
     _logger.debug("Loading device", surface == VK_NULL_HANDLE ? " (headless)..." : "...");
     if (_pickPhysicalDevice(instance, surface, _vkPhysicalDevice) == EXIT_SUCCESS) {
-        _indices = findDeviceQueueFamilies(_vkPhysicalDevice, surface);
+        _indices = findQueueFamilies(_vkPhysicalDevice, surface);
         if (_createLogicalDevice(_vkPhysicalDevice, _vkDevice, enableValidationLayers) == EXIT_SUCCESS) {
             VmaAllocatorCreateInfo allocatorInfo{
                 .flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT,

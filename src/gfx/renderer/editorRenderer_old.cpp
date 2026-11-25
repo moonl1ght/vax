@@ -194,12 +194,10 @@ bool EditorRenderer_old::render(Scene* scene, const time::FrameTime& frameTime) 
         .pSignalSemaphores = signalSemaphores.data()
     };
 
-    if (!VK_CHECK(vkQueueSubmit(
-            _vkEngine.get().queueManager->graphicsQueue,
-            1,
-            &submitInfo,
-            _vkEngine.get().syncObjectsManager->getInFlightFences()[_currentFrame]
-        ))) {
+    auto submitResult = _vkEngine.get().queueManager->getMainGraphicsQueue().submitV1(
+        submitInfo, _vkEngine.get().syncObjectsManager->getInFlightFences()[_currentFrame]
+    );
+    if (!submitResult) {
         _logger.error("failed to submit draw command buffer!");
         return false;
     }
@@ -223,7 +221,7 @@ bool EditorRenderer_old::render(Scene* scene, const time::FrameTime& frameTime) 
         .pResults = presentResults.data(),
     };
 
-    result = vkQueuePresentKHR(_vkEngine.get().queueManager->presentQueue, &presentInfo);
+    result = vkQueuePresentKHR(_vkEngine.get().queueManager->getMainPresentQueue().vkQueue(), &presentInfo);
     auto isStale = [](VkResult presentResult) {
         return presentResult == VK_ERROR_OUT_OF_DATE_KHR || presentResult == VK_SUBOPTIMAL_KHR;
     };

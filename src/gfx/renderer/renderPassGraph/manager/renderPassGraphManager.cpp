@@ -73,7 +73,7 @@ void RenderPassGraphManager::setupRenderDestinations(
 
     auto renderDestinationBuilder = RenderDestinationBuilder(_device.get(), _pipelineManager.get().descriptorRegistry());
     auto mainRenderDestination = renderDestinationBuilder.buildMainOffscreen(
-        commandManager, queueManager.graphicsQueue, swapchain.swapchainExtent, *mainRenderPassDescriptor
+        commandManager, queueManager.getMainGraphicsQueue(), swapchain.swapchainExtent, *mainRenderPassDescriptor
     );
     if (!mainRenderDestination.has_value()) {
         _logger.error("Failed to create main render destination!");
@@ -81,7 +81,7 @@ void RenderPassGraphManager::setupRenderDestinations(
     }
 
     auto swapchainRenderDestination = renderDestinationBuilder.buildSwapchain(
-        commandManager, queueManager.graphicsQueue, swapchain, *swapchainRenderPassDescriptor
+        commandManager, queueManager.getMainGraphicsQueue(), swapchain, *swapchainRenderPassDescriptor
     );
     if (!swapchainRenderDestination.has_value()) {
         _logger.error("Failed to create swapchain render destination!");
@@ -89,7 +89,7 @@ void RenderPassGraphManager::setupRenderDestinations(
     }
 
     auto shadowSunRenderDestination = renderDestinationBuilder.buildShadowSunOffscreen(
-        commandManager, queueManager.graphicsQueue, swapchain.swapchainExtent, *shadowSunRenderPassDescriptor
+        commandManager, queueManager.getMainGraphicsQueue(), swapchain.swapchainExtent, *shadowSunRenderPassDescriptor
     );
     if (!shadowSunRenderDestination.has_value()) {
         _logger.error("Failed to create shadow sun render destination!");
@@ -117,7 +117,7 @@ void RenderPassGraphManager::setupRenderDestinationsForAgentCamera(
     auto renderDestinationBuilder = RenderDestinationBuilder(_device.get(), _pipelineManager.get().descriptorRegistry());
 
     auto agentCameraRenderDestination = renderDestinationBuilder.buildMainOffscreen(
-        commandManager, queueManager.graphicsQueue, swapchain.swapchainExtent, *mainRenderPassDescriptor
+        commandManager, queueManager.getMainGraphicsQueue(), swapchain.swapchainExtent, *mainRenderPassDescriptor
     );
     if (!agentCameraRenderDestination.has_value()) {
         _logger.error("Failed to create main render destination!");
@@ -125,7 +125,7 @@ void RenderPassGraphManager::setupRenderDestinationsForAgentCamera(
     }
 
     auto agentCameraFBRenderDestination = renderDestinationBuilder.buildSwapchain(
-        commandManager, queueManager.graphicsQueue, swapchain, *swapchainRenderPassDescriptor
+        commandManager, queueManager.getMainGraphicsQueue(), swapchain, *swapchainRenderPassDescriptor
     );
     if (!agentCameraFBRenderDestination.has_value()) {
         _logger.error("Failed to create agent camera swapchain render destination!");
