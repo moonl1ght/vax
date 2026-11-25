@@ -2,12 +2,25 @@
 
 #include "editorScene.h"
 #include "inputController.h"
+#include "sceneLoader.h"
 #include "simulationEngine.h"
+#include "threadRunner.h"
+#include <functional>
+#include <string>
 
 namespace vax::editor {
 class EditorController final : public app::InputController::Observer {
   public:
-    explicit EditorController() noexcept = default;
+    EditorController(
+        rhi::VulkanEngine& vkEngine,
+        rhi::PipelineManager& pipelineManager,
+        rhi::ResourceManager& resourceManager,
+        core::ThreadRunner& mainThreadRunner
+    ) noexcept
+        : _vkEngine(vkEngine)
+        , _pipelineManager(pipelineManager)
+        , _resourceManager(resourceManager)
+        , _mainThreadRunner(mainThreadRunner) {}
 
     ~EditorController() noexcept = default;
 
@@ -24,7 +37,22 @@ class EditorController final : public app::InputController::Observer {
 
     void draw();
 
+    void load(const std::string& scenePath, std::function<void(bool)> onLoaded);
+
+    void cancelLoading() noexcept;
+
   private:
+    dev::Logger _logger = dev::Logger("EditorController");
+
+    std::reference_wrapper<rhi::VulkanEngine> _vkEngine;
+    std::reference_wrapper<rhi::PipelineManager> _pipelineManager;
+    std::reference_wrapper<rhi::ResourceManager> _resourceManager;
+    std::reference_wrapper<core::ThreadRunner> _mainThreadRunner;
+
+    std::unique_ptr<scene::SceneLoader> _sceneLoader;
+
+    std::shared_ptr<gfx::AssetsLibrary> _assetsLibrary;
+
     std::unique_ptr<scene::EditorScene> _editorScene;
 
     std::unique_ptr<sim::SimulationEngine> _simulationEngine;

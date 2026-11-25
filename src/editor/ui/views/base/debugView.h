@@ -30,7 +30,12 @@ class DebugView : public View {
     void updateUI(const vax::time::FrameTime& frameTime) override {
         _showMenuBar();
         _showDockSpace();
-        _simulationView->updateUI(frameTime);
+        if (_isMenuLocked()) {
+            return;
+        }
+        if (_hasSimulationView()) {
+            _simulationView->updateUI(frameTime);
+        }
         _statsView->updateUI(frameTime);
         _settingsView->updateUI(frameTime);
     }
@@ -49,6 +54,10 @@ class DebugView : public View {
     virtual void _showMenuBarItems() {}
 
     virtual bool _isClosable() const { return true; }
+
+    virtual bool _isMenuLocked() const { return false; }
+
+    virtual bool _hasSimulationView() const { return false; }
 
     virtual bool _isCloseEnabled() const { return true; }
 
@@ -80,30 +89,43 @@ class DebugView : public View {
             return;
         }
 
-        if (ImGui::MenuItem("Simulation", nullptr, _simulationView->isShown())) {
-            _simulationView->setShown(!_simulationView->isShown());
+        const bool isLocked = _isMenuLocked();
+
+        if (!isLocked) {
+            if (_hasSimulationView()) {
+                if (ImGui::MenuItem("Simulation", nullptr, _simulationView->isShown())) {
+                    _simulationView->setShown(!_simulationView->isShown());
+                }
+                ImGui::Separator();
+            }
+            _showMenuBarItems();
         }
-        ImGui::Separator();
-        _showMenuBarItems();
 
         const float rightBlockX = ImGui::GetWindowWidth() - _menuBarRightBlockWidth - ImGui::GetStyle().ItemSpacing.x;
         ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), rightBlockX));
         const float rightBlockStartX = ImGui::GetCursorScreenPos().x;
-        if (ImGui::MenuItem("Stats", nullptr, _statsView->isShown())) {
-            _statsView->setShown(!_statsView->isShown());
-        }
-        ImGui::Separator();
-        if (ImGui::MenuItem(ICON_FA_GEAR "##settings", nullptr, _settingsView->isShown())) {
-            _settingsView->setShown(!_settingsView->isShown());
-        }
-        ImGui::SetItemTooltip("Settings");
-        if (_isClosable()) {
+        bool hasRightBlockItems = false;
+        if (!isLocked) {
+            if (ImGui::MenuItem("Stats", nullptr, _statsView->isShown())) {
+                _statsView->setShown(!_statsView->isShown());
+            }
             ImGui::Separator();
+            if (ImGui::MenuItem(ICON_FA_GEAR "##settings", nullptr, _settingsView->isShown())) {
+                _settingsView->setShown(!_settingsView->isShown());
+            }
+            ImGui::SetItemTooltip("Settings");
+            hasRightBlockItems = true;
+        }
+        if (_isClosable()) {
+            if (hasRightBlockItems) {
+                ImGui::Separator();
+            }
             if (ImGui::MenuItem(ICON_FA_XMARK "##close", nullptr, false, _isCloseEnabled())) {
                 _onClose();
             }
+            hasRightBlockItems = true;
         }
-        _menuBarRightBlockWidth = ImGui::GetItemRectMax().x - rightBlockStartX;
+        _menuBarRightBlockWidth = hasRightBlockItems ? ImGui::GetItemRectMax().x - rightBlockStartX : 0.0f;
         ImGui::EndMainMenuBar();
     }
 };

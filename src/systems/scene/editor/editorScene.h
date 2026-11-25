@@ -6,7 +6,9 @@ namespace vax::scene {
 
 class EditorScene final {
   public:
-    explicit EditorScene() noexcept {};
+    explicit EditorScene(std::unique_ptr<Gizmo> gizmo) noexcept
+        : _gizmo(std::move(gizmo)) {}
+
     ~EditorScene() = default;
 
     EditorScene(const EditorScene&) = delete;

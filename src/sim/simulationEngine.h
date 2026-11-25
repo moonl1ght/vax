@@ -1,5 +1,6 @@
 #pragma once
 
+#include "assetsLibrary.h"
 #include "logger.h"
 #include "physicsEngine.h"
 #include "simulationConfig.h"
@@ -25,7 +26,11 @@ class SimulationEngine {
     SimulationEngine(SimulationEngine&& other) noexcept = delete;
     SimulationEngine& operator=(SimulationEngine&& other) noexcept = delete;
 
-    bool setup(const sim::SimulationConfig& config, std::unique_ptr<scene::SimulationScene> simulationScene) noexcept;
+    bool setup(
+        const sim::SimulationConfig& config,
+        std::shared_ptr<gfx::AssetsLibrary> assetsLibrary,
+        std::unique_ptr<scene::SimulationScene> simulationScene
+    ) noexcept;
 
     void run() noexcept;
 
@@ -33,6 +38,8 @@ class SimulationEngine {
     dev::Logger _logger = dev::Logger("SimulationEngine");
 
     std::unique_ptr<core::Thread> _thread;
+
+    std::shared_ptr<gfx::AssetsLibrary> _assetsLibrary;
 
     std::unique_ptr<physics::PhysicsEngine> _physicsEngine;
 

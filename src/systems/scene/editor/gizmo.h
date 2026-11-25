@@ -2,6 +2,7 @@
 
 #include "camera.h"
 #include "entity.h"
+#include "world.h"
 
 namespace vax::scene {
 
@@ -15,9 +16,14 @@ class Gizmo final {
     Gizmo& operator=(const Gizmo&) = delete;
     Gizmo& operator=(Gizmo&&) noexcept = delete;
 
+    void setCamera(const gfx::Camera& camera) { _camera = camera; }
+
+    void setEntity(const ecs::Entity& entity) { _entity = entity; }
+
   private:
     ecs::Entity _entity;
     gfx::Camera _camera;
+    ecs::World _world = ecs::World();
 };
 
 } // namespace vax::scene

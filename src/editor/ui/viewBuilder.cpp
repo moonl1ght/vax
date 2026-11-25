@@ -1,7 +1,10 @@
 #include "viewBuilder.h"
 #include "editorRenderer.h"
 #include "mainView.h"
+#include "paths.h"
 #include "physicsDemoMenu.h"
+#include "renderEngine.h"
+#include "sceneLoader.h"
 
 using namespace vax;
 using namespace vax::editor;
@@ -25,5 +28,14 @@ std::unique_ptr<PhysicsDemoView> ViewBuilder::buildPhysicsDemoView() {
 }
 
 std::unique_ptr<editor::EditorView> ViewBuilder::buildPhysicsSphereDemoView() {
-    return std::make_unique<editor::EditorView>(_editorRenderer_old.get());
+    auto& renderEngine = _renderEngine.get();
+    auto editorController = std::make_unique<EditorController>(
+        renderEngine.vkEngine(),
+        *renderEngine.vkEngine().pipelineManager,
+        renderEngine.resourceManager(),
+        _mainThreadRunner.get()
+    );
+    return std::make_unique<editor::EditorView>(
+        _editorRenderer_old.get(), std::move(editorController), RES_PATH("scenes/physics_demo_scene.json")
+    );
 }

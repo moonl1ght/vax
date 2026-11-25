@@ -31,8 +31,6 @@ class PhysicsDemoView final : public SceneView<app::MainSceneController> {
 
     void updateUI(const vax::time::FrameTime& frameTime) override;
 
-    app::AppMode getAppMode() override { return app::AppMode::Continous; }
-
   protected:
     std::reference_wrapper<gfx::RenderEngine> _rendererEngine;
     std::reference_wrapper<WindowController> _windowController;

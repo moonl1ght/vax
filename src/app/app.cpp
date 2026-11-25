@@ -1,8 +1,8 @@
 #include "app.h"
+#include "mainView.h"
 #include "notificationCenter.h"
 #include "profiler.h"
 #include "renderdoc.h"
-#include "mainView.h"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_vulkan.h>
 #include <cuda_runtime.h>
@@ -93,19 +93,17 @@ void App::_mainLoop() {
             return true;
         };
 
-        _appMode = _editor->viewManager().getAppMode();
-        if (_appMode == AppMode::Continous) {
-            while (SDL_PollEvent(&event)) {
-                if (!processEvent(event)) {
-                    break;
-                }
+        while (SDL_PollEvent(&event)) {
+            if (!processEvent(event)) {
+                break;
             }
-            _loopUpdate();
-        } else if (SDL_WaitEvent(&event)) {
-            do {
-                processEvent(event);
-            } while (SDL_PollEvent(&event));
-            _loopUpdate();
+        }
+        {
+            ZoneScoped;
+
+            _updateTimestamp();
+
+            _editor->update(_frameTime);
         }
         FrameMark;
     }
@@ -123,15 +121,4 @@ void App::_updateTimestamp() {
     _frameTime.fps = 1.0f / _frameTime.deltaTime;
     ++_frameTime.frameCount;
     previousTime = currentTime;
-}
-
-void App::_loopUpdate() {
-    ZoneScoped;
-
-    _updateTimestamp();
-
-    auto cycleResult = _editor->viewManager().runCycle(_frameTime);
-    if (!cycleResult) {
-        _logger.error("Failed to run app cycle!");
-    }
 }

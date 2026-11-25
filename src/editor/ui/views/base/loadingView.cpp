@@ -24,6 +24,8 @@ void LoadingView::updateUI(const vax::time::FrameTime& frameTime) {
         return;
     }
 
+    _showSpinner();
+    ImGui::Spacing();
     _showIndicator();
     if (_progress) {
         ImGui::Spacing();
@@ -32,9 +34,33 @@ void LoadingView::updateUI(const vax::time::FrameTime& frameTime) {
     ImGui::End();
 }
 
+void LoadingView::_showSpinner() const {
+    constexpr float radius = 18.0f;
+    constexpr float thickness = 4.0f;
+    constexpr int segments = 32;
+    constexpr float speed = 6.0f;
+    constexpr float sweep = IM_PI * 1.5f;
+
+    const float width = ImGui::GetContentRegionAvail().x;
+    const ImVec2 origin = ImGui::GetCursorScreenPos();
+    const ImVec2 center(origin.x + width * 0.5f, origin.y + radius + thickness);
+    ImGui::Dummy(ImVec2(width, (radius + thickness) * 2.0f));
+
+    const float start = static_cast<float>(ImGui::GetTime()) * speed;
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
+    drawList->PathClear();
+    for (int i = 0; i <= segments; ++i) {
+        float angle = start + sweep * static_cast<float>(i) / static_cast<float>(segments);
+        drawList->PathLineTo(ImVec2(center.x + std::cos(angle) * radius, center.y + std::sin(angle) * radius));
+    }
+    drawList->PathStroke(ImGui::GetColorU32(ImGuiCol_ButtonActive), ImDrawFlags_None, thickness);
+}
+
 void LoadingView::_showIndicator() const {
     int dotCount = static_cast<int>(std::fmod(ImGui::GetTime() * 3.0, 4.0));
-    std::string text = _message + std::string(dotCount, '.');
+    std::string text = _message + std::string(dotCount, '.') + std::string(3 - dotCount, ' ');
+    float textWidth = ImGui::CalcTextSize(text.c_str()).x;
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - textWidth) * 0.5f);
     ImGui::Text("%s", text.c_str());
 }
 

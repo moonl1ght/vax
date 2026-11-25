@@ -35,6 +35,8 @@ class Editor {
 
     void createUIEngine(rhi::VulkanEngine& vkEngine) noexcept;
 
+    void update(const vax::time::FrameTime& frameTime) noexcept;
+
     UIEngine& uiEngine() noexcept { return *_uiEngine; }
 
     const UIEngine& uiEngine() const noexcept { return *_uiEngine; }
@@ -42,10 +44,6 @@ class Editor {
     WindowController& windowController() noexcept { return *_windowController; }
 
     const WindowController& windowController() const noexcept { return *_windowController; }
-
-    ViewManager& viewManager() noexcept { return *_viewManager; }
-
-    const ViewManager& viewManager() const noexcept { return *_viewManager; }
 
   private:
     dev::Logger _logger = dev::Logger("Editor");
@@ -56,6 +54,7 @@ class Editor {
     std::unique_ptr<ViewBuilder> _viewBuilder;
     std::unique_ptr<ViewManager> _viewManager;
     std::unique_ptr<UIEngine> _uiEngine;
+    std::unique_ptr<core::ThreadRunner> _mainThreadRunner;
 };
 
 } // namespace vax::editor

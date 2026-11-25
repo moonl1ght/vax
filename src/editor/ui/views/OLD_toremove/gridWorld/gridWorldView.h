@@ -36,8 +36,6 @@ class GridWorldView final : public SceneView<rl::GWSceneController> {
 
     void updateUI(const vax::time::FrameTime& frameTime) override;
 
-    app::AppMode getAppMode() override { return app::AppMode::Continous; }
-
   protected:
     bool _load() override;
 

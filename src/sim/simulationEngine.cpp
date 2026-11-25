@@ -4,8 +4,11 @@
 using namespace vax::sim;
 
 bool SimulationEngine::setup(
-    const SimulationConfig& config, std::unique_ptr<scene::SimulationScene> simulationScene
+    const SimulationConfig& config,
+    std::shared_ptr<gfx::AssetsLibrary> assetsLibrary,
+    std::unique_ptr<scene::SimulationScene> simulationScene
 ) noexcept {
+    _assetsLibrary = std::move(assetsLibrary);
     _simulationScene = std::move(simulationScene);
     _thread = std::make_unique<core::Thread>();
     if (config.enableThreadAffinity) {

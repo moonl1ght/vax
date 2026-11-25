@@ -16,30 +16,30 @@ class ThreadRunner final {
     ThreadRunner(ThreadRunner&& other) noexcept = delete;
     ThreadRunner& operator=(ThreadRunner&& other) noexcept = delete;
 
-    void runOnThread(std::function<void()> callback) {
+    void runOnThread(std::move_only_function<void()> callback) {
         {
             std::lock_guard<std::mutex> lock(_queueMutex);
-            _mainThreadQueue.push_back(callback);
+            _mainThreadQueue.push_back(std::move(callback));
         }
         app::NotificationCenter::getInstance().wakeUpSDL();
     }
 
     void processThreadQueue() {
-        std::vector<std::function<void()>> callbacksToExecute;
+        std::vector<std::move_only_function<void()>> callbacksToExecute;
 
         {
             std::lock_guard<std::mutex> lock(_queueMutex);
             callbacksToExecute.swap(_mainThreadQueue);
         }
 
-        for (const auto& callback : callbacksToExecute) {
+        for (auto& callback : callbacksToExecute) {
             if (callback)
                 callback();
         }
     }
 
   private:
-    std::vector<std::function<void()>> _mainThreadQueue;
+    std::vector<std::move_only_function<void()>> _mainThreadQueue;
     std::mutex _queueMutex;
 };
 } // namespace vax::core

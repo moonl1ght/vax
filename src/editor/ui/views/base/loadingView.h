@@ -27,6 +27,8 @@ class LoadingView final : public View {
     std::string _message = "Loading";
     std::optional<float> _progress = std::nullopt;
 
+    void _showSpinner() const;
+
     void _showIndicator() const;
 
     void _showProgress() const;

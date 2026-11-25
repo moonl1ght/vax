@@ -45,7 +45,7 @@ void ViewManager::popView() {
     _topViewNode->view->viewWillShow();
 }
 
-bool ViewManager::runCycle(const vax::time::FrameTime& frameTime) {
+bool ViewManager::update(const vax::time::FrameTime& frameTime) {
     if (_topViewNode == nullptr) {
         _logger.error("No top view set!");
         return false;
@@ -71,14 +71,6 @@ bool ViewManager::runCycle(const vax::time::FrameTime& frameTime) {
     }
 
     return drawResult;
-}
-
-vax::app::AppMode ViewManager::getAppMode() const {
-    if (_topViewNode == nullptr) {
-        _logger.error("No top view set!");
-        return app::AppMode::EventDriven;
-    }
-    return _topViewNode->view.get()->getAppMode();
 }
 
 void ViewManager::_swapRootViewNode(std::unique_ptr<ViewNode> viewNode) {

@@ -24,13 +24,15 @@ class ViewBuilder {
         app::InputController& inputController,
         gfx::EditorRenderer_old& editorRenderer_old,
         gfx::EditorRenderer& editorRenderer,
-        gfx::RenderEngine& renderEngine
+        gfx::RenderEngine& renderEngine,
+        core::ThreadRunner& mainThreadRunner
     )
         : _windowController(windowController)
         , _inputController(inputController)
         , _editorRenderer_old(editorRenderer_old)
         , _editorRenderer(editorRenderer)
-        , _renderEngine(renderEngine) {}
+        , _renderEngine(renderEngine)
+        , _mainThreadRunner(mainThreadRunner) {}
 
     ~ViewBuilder() = default;
 
@@ -50,6 +52,7 @@ class ViewBuilder {
     std::reference_wrapper<gfx::EditorRenderer_old> _editorRenderer_old;
     std::reference_wrapper<gfx::EditorRenderer> _editorRenderer;
     std::reference_wrapper<gfx::RenderEngine> _renderEngine;
+    std::reference_wrapper<core::ThreadRunner> _mainThreadRunner;
 };
 
 } // namespace vax::editor

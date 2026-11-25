@@ -5,6 +5,7 @@
 using namespace vax::editor;
 
 bool Editor::setup() noexcept {
+    _mainThreadRunner = std::make_unique<core::ThreadRunner>();
     _windowController = std::make_unique<WindowController>();
     _windowController->setupWindow(0, vax::math::SizeUI{1920, 1080}, "VAX");
     if (!_windowController->getWindow(0)->setup(true, true)) {
@@ -24,7 +25,8 @@ void Editor::loadMainView(gfx::RenderEngine& renderEngine) noexcept {
         _inputController,
         renderEngine.editorRenderer_old(),
         renderEngine.editorRenderer(),
-        renderEngine
+        renderEngine,
+        *_mainThreadRunner
     );
     _viewManager = std::make_unique<ViewManager>(*_uiEngine, *_viewBuilder);
     _viewManager->setRootView(_viewBuilder->buildMainView());
@@ -39,4 +41,12 @@ void Editor::cleanup() noexcept {
     }
     _windowController->destroyAllWindows();
     _windowController = nullptr;
+}
+
+void Editor::update(const vax::time::FrameTime& frameTime) noexcept {
+    _mainThreadRunner->processThreadQueue();
+    auto updateResult = _viewManager->update(frameTime);
+    if (!updateResult) {
+        _logger.error("Failed to update view manager!");
+    }
 }

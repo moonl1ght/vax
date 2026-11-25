@@ -1,6 +1,5 @@
 #pragma once
 
-#include "appMode.h"
 #include "frameTime.h"
 #include "logger.h"
 #include "uiEngine.h"
@@ -21,15 +20,13 @@ class ViewManager final {
     ViewManager(ViewManager&& other) noexcept = delete;
     ViewManager& operator=(ViewManager&& other) noexcept = delete;
 
-    bool runCycle(const vax::time::FrameTime& frameTime);
+    bool update(const vax::time::FrameTime& frameTime);
 
     void setRootView(std::unique_ptr<View> view);
 
     void pushView(std::unique_ptr<View> view);
 
     void popView();
-
-    app::AppMode getAppMode() const;
 
     ViewBuilder& viewBuilder() { return _viewBuilder.get(); }
 

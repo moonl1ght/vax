@@ -1,6 +1,5 @@
 #pragma once
 
-#include "appMode.h"
 #include "editorRenderer.h"
 #include "editorRenderer_old.h"
 #include "frameTime.h"
@@ -29,8 +28,6 @@ class View {
     }
 
     virtual void viewWillShow() { _editorRenderer.get().renderPassGraphMode.set(gfx::RenderPassGraphMode::UI_ONLY); }
-
-    virtual app::AppMode getAppMode() { return app::AppMode::EventDriven; }
 
     void linkViewManager(ViewManager* viewManager) { _viewManager = viewManager; }
 
