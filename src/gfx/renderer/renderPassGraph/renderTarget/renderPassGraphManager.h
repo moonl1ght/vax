@@ -24,10 +24,9 @@ class RenderPassGraphManager final {
         editor::UIEngine& uiEngine
     )
         : _device(device)
-        , _pipelineManager(pipelineManager)
-        , _resourceManager(resourceManager) {
+        , _pipelineManager(pipelineManager) {
         _renderPassGraphBuilder = std::make_unique<RenderPassGraphBuilder>(
-            _device, windowController, _pipelineManager, uiEngine, _resourceManager
+            _device, windowController, _pipelineManager, uiEngine, resourceManager
         );
     }
 
@@ -68,7 +67,6 @@ class RenderPassGraphManager final {
 
     std::reference_wrapper<vax::rhi::Device> _device;
     std::reference_wrapper<vax::rhi::PipelineManager> _pipelineManager;
-    std::reference_wrapper<vax::rhi::ResourceManager> _resourceManager;
 
     std::unordered_map<std::string, std::shared_ptr<vax::rhi::RenderPassDescriptor>> _renderPassDescriptors;
     std::unordered_map<std::string, std::shared_ptr<vax::rhi::RenderDestination>> _renderDestinations;

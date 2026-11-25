@@ -317,7 +317,6 @@ bool EditorRenderer_old::_drawScene(CommandBuffer& commandBuffer, Scene* scene) 
 
     scene->beginDrawing(commandBuffer, _currentFrame);
     _renderPassGraphManager->getRenderPassGraph().run(runPassInfo);
-    scene->endDrawing(commandBuffer, _currentFrame);
     return true;
 }
 

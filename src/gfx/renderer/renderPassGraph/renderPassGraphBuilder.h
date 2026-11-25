@@ -1,8 +1,11 @@
 #pragma once
 
 #include "pipelineManager.h"
+#include "renderPass.h"
 #include "renderPassGraph.h"
 #include "renderPassGraphDescriptor.h"
+#include "renderStep.h"
+#include "renderTarget.h"
 
 namespace vax::gfx {
 class RenderPassGraphBuilder final {
@@ -27,6 +30,8 @@ class RenderPassGraphBuilder final {
     RenderPassGraphBuilder(RenderPassGraphBuilder&&) = delete;
     RenderPassGraphBuilder& operator=(RenderPassGraphBuilder&&) = delete;
 
+    void prebuild(const gfx::RenderTarget& renderTarget);
+
     std::unique_ptr<RenderPassGraph> buildUIOnlyGraph(
         const std::unordered_map<std::string, std::shared_ptr<vax::rhi::RenderPassDescriptor>>& renderPassDescriptors,
         const std::unordered_map<std::string, std::shared_ptr<vax::rhi::RenderDestination>>& renderDestinations
@@ -44,5 +49,7 @@ class RenderPassGraphBuilder final {
     std::reference_wrapper<vax::rhi::PipelineManager> _pipelineManager;
     std::reference_wrapper<editor::UIEngine> _uiEngine;
     std::reference_wrapper<vax::rhi::ResourceManager> _resourceManager;
+
+    std::unordered_map<std::string, std::shared_ptr<RenderStep>> _renderSteps;
 };
 } // namespace vax::gfx

@@ -4,6 +4,7 @@
 #include "drawContext.h"
 #include "environmentMap.h"
 #include "frameTime.h"
+#include "frameUniformSlot.h"
 #include "indirectDrawController.h"
 #include "inputController.h"
 #include "light.h"
@@ -35,13 +36,6 @@ struct SceneLoader;
 namespace vax::gfx {
 struct SceneUpdateContext {
     time::FrameTime frameTime;
-};
-
-enum class FrameUniformSlot : uint32_t {
-    MAIN_CAMERA = 0,
-    SUN_LIGHT = 1,
-    AGENT_CAMERA = 2,
-    SLOTS_COUNT = 3,
 };
 
 class Scene final : public app::InputController::Observer {
@@ -90,8 +84,6 @@ class Scene final : public app::InputController::Observer {
     void registerResources() noexcept;
 
     void beginDrawing(vax::rhi::CommandBuffer& commandBuffer, uint32_t frameIndex);
-
-    void endDrawing(vax::rhi::CommandBuffer& commandBuffer, uint32_t frameIndex);
 
     void draw(const vax::gfx::DrawContext& drawContext, FrameUniformSlot cameraSlot = FrameUniformSlot::MAIN_CAMERA);
 

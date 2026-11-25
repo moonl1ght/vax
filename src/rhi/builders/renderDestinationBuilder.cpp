@@ -5,7 +5,7 @@
 using namespace vax::rhi;
 using namespace vax;
 
-std::optional<RenderDestination> RenderDestinationBuilder::buildMainOffscreen(
+std::unique_ptr<RenderDestination> RenderDestinationBuilder::buildMainOffscreen(
     CommandManager& commandManager, GPUQueue& submitQueue, VkExtent2D extent, RenderPassDescriptor& renderPassDescriptor
 ) const noexcept {
     _logger.debug("Building main offscreen render destination...");
@@ -13,7 +13,7 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildMainOffscreen(
     auto depthTexture = _textureFactory->createDepthTexture(depthFormat, math::SizeUI(extent));
 
     if (!depthTexture) {
-        return std::nullopt;
+        return nullptr;
     }
 
     auto textureTaskScheduler = TextureTaskScheduler(_device.get(), commandManager);
@@ -47,7 +47,7 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildMainOffscreen(
         );
         if (!colorTexture) {
             _logger.error("Failed to create offscreen color texture!");
-            return std::nullopt;
+            return nullptr;
         }
 
         auto maskTexture = _textureFactory->createTexture(
@@ -60,7 +60,7 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildMainOffscreen(
         );
         if (!maskTexture) {
             _logger.error("Failed to create offscreen color texture!");
-            return std::nullopt;
+            return nullptr;
         }
 
         std::array<VkImageView, 3> attachments = {
@@ -77,14 +77,14 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildMainOffscreen(
         };
         if (!VK_CHECK(vkCreateFramebuffer(_device.get().vkDevice(), &framebufferInfo, nullptr, &framebuffers[i]))) {
             _logger.error("Failed to create offscreen framebuffer!");
-            return std::nullopt;
+            return nullptr;
         }
 
         colorTextures.push_back(std::move(colorTexture));
         maskTextures.push_back(std::move(maskTexture));
     }
 
-    return std::make_optional<RenderDestination>(
+    return std::make_unique<RenderDestination>(
         _device.get(),
         std::move(depthTexture),
         std::move(colorTextures),
@@ -93,7 +93,7 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildMainOffscreen(
     );
 }
 
-std::optional<RenderDestination> RenderDestinationBuilder::buildSwapchain(
+std::unique_ptr<RenderDestination> RenderDestinationBuilder::buildSwapchain(
     CommandManager& commandManager,
     GPUQueue& submitQueue,
     Swapchain& swapchain,
@@ -104,7 +104,7 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildSwapchain(
     auto depthTexture = _textureFactory->createDepthTexture(depthFormat, math::SizeUI(swapchain.swapchainExtent));
 
     if (!depthTexture) {
-        return std::nullopt;
+        return nullptr;
     }
 
     auto textureTaskScheduler = TextureTaskScheduler(_device.get(), commandManager);
@@ -135,11 +135,11 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildSwapchain(
             vkCreateFramebuffer(_device.get().vkDevice(), &framebufferInfo, nullptr, &swapchainFramebuffers[i]);
         if (!VK_CHECK(result)) {
             _logger.error("Failed to create framebuffer!");
-            return std::nullopt;
+            return nullptr;
         }
     }
 
-    return std::make_optional<RenderDestination>(
+    return std::make_unique<RenderDestination>(
         _device.get(),
         std::move(depthTexture),
         std::vector<std::unique_ptr<Texture>>(),
@@ -148,7 +148,7 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildSwapchain(
     );
 }
 
-std::optional<RenderDestination> RenderDestinationBuilder::buildShadowSunOffscreen(
+std::unique_ptr<RenderDestination> RenderDestinationBuilder::buildShadowSunOffscreen(
     CommandManager& commandManager, GPUQueue& submitQueue, VkExtent2D extent, RenderPassDescriptor& renderPassDescriptor
 ) const noexcept {
     _logger.info("Building shadow sun offscreen render destination...");
@@ -156,7 +156,7 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildShadowSunOffscre
     auto depthTexture = _textureFactory->createDepthTexture(depthFormat, math::SizeUI(extent));
 
     if (!depthTexture) {
-        return std::nullopt;
+        return nullptr;
     }
 
     auto textureTaskScheduler = TextureTaskScheduler(_device.get(), commandManager);
@@ -185,11 +185,11 @@ std::optional<RenderDestination> RenderDestinationBuilder::buildShadowSunOffscre
         };
         if (!VK_CHECK(vkCreateFramebuffer(_device.get().vkDevice(), &framebufferInfo, nullptr, &framebuffers[i]))) {
             _logger.error("Failed to create offscreen framebuffer!");
-            return std::nullopt;
+            return nullptr;
         }
     }
 
-    return std::make_optional<RenderDestination>(
+    return std::make_unique<RenderDestination>(
         _device.get(),
         std::move(depthTexture),
         std::vector<std::unique_ptr<Texture>>(),

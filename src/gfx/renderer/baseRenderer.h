@@ -1,15 +1,17 @@
 #pragma once
 
 #include "commandBuffer.h"
+#include "indirectDrawController.h"
 #include "logger.h"
-#include "swapchain.h"
 #include "vkEngine.h"
 
 namespace vax::gfx {
 class BaseRenderer {
   public:
     BaseRenderer(rhi::VulkanEngine& vkEngine)
-        : _vkEngine(vkEngine) {};
+        : _vkEngine(vkEngine) {
+        _indirectDrawController = std::make_unique<IndirectDrawController>(*_vkEngine.get().device);
+    };
 
     virtual ~BaseRenderer() {};
 
@@ -22,6 +24,8 @@ class BaseRenderer {
     dev::Logger _logger = dev::Logger("BaseRenderer");
 
     std::reference_wrapper<rhi::VulkanEngine> _vkEngine;
+
+    std::unique_ptr<IndirectDrawController> _indirectDrawController;
 
     std::vector<uint32_t> _outputImageIndices;
 

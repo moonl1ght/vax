@@ -19,21 +19,21 @@ class RenderDestinationBuilder {
         _textureFactory = std::make_unique<TextureFactory>(device, descriptorRegistry);
     };
 
-    std::optional<RenderDestination> buildSwapchain(
+    std::unique_ptr<RenderDestination> buildSwapchain(
         CommandManager& commandManager,
         GPUQueue& submitQueue,
         Swapchain& swapchain,
         RenderPassDescriptor& renderPassDescriptor
     ) const noexcept;
 
-    std::optional<RenderDestination> buildMainOffscreen(
+    std::unique_ptr<RenderDestination> buildMainOffscreen(
         CommandManager& commandManager,
         GPUQueue& submitQueue,
         VkExtent2D extent,
         RenderPassDescriptor& renderPassDescriptor
     ) const noexcept;
 
-    std::optional<RenderDestination> buildShadowSunOffscreen(
+    std::unique_ptr<RenderDestination> buildShadowSunOffscreen(
         CommandManager& commandManager,
         GPUQueue& submitQueue,
         VkExtent2D extent,

@@ -1,10 +1,10 @@
 #pragma once
 
-#include <string>
-
 #include "commandBuffer.h"
 #include "scene.h"
+#include "sceneDrawData.h"
 #include "shaderResourceHandle.h"
+#include <string>
 
 namespace vax::gfx {
 class RenderPassNode {
@@ -22,6 +22,7 @@ class RenderPassNode {
         std::vector<uint32_t> imageIndices;
         uint32_t frameIndex;
         FrameTextureHandles frameTextures{};
+        SceneDrawData* sceneDrawData = nullptr;
     };
 
     std::weak_ptr<RenderPassNode> prev;

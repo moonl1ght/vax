@@ -17,7 +17,7 @@ VkFormat findDepthFormat(VkPhysicalDevice physicalDevice) {
     );
 }
 
-std::optional<vax::rhi::RenderPassDescriptor>
+std::unique_ptr<vax::rhi::RenderPassDescriptor>
 RenderPassDescriptorBuilder::buildSwapchain(VkFormat imageFormat) const noexcept {
     VkAttachmentDescription colorAttachment{
         .format = imageFormat,
@@ -82,13 +82,13 @@ RenderPassDescriptorBuilder::buildSwapchain(VkFormat imageFormat) const noexcept
     VkRenderPass renderPass;
     if (!VK_CHECK(vkCreateRenderPass(_device.get().vkDevice(), &renderPassInfo, nullptr, &renderPass))) {
         _logger.error("Failed to create render pass!");
-        return std::nullopt;
+        return nullptr;
     }
 
-    return std::make_optional<vax::rhi::RenderPassDescriptor>(_device.get(), renderPass, imageFormat, depthFormat);
+    return std::make_unique<vax::rhi::RenderPassDescriptor>(_device.get(), renderPass, imageFormat, depthFormat);
 }
 
-std::optional<vax::rhi::RenderPassDescriptor>
+std::unique_ptr<vax::rhi::RenderPassDescriptor>
 RenderPassDescriptorBuilder::buildOffscreen(VkFormat imageFormat, bool allowComputeUsage) const noexcept {
     VkAttachmentDescription colorAttachment{
         .format = imageFormat,
@@ -186,14 +186,14 @@ RenderPassDescriptorBuilder::buildOffscreen(VkFormat imageFormat, bool allowComp
     VkRenderPass renderPass;
     if (!VK_CHECK(vkCreateRenderPass(_device.get().vkDevice(), &renderPassInfo, nullptr, &renderPass))) {
         _logger.error("Failed to create render pass!");
-        return std::nullopt;
+        return nullptr;
     }
 
     std::vector<VkClearValue> colorClearValues;
     for (size_t i = 0; i < colorAttachmentRefs.size(); ++i) {
         colorClearValues.push_back(VkClearValue{.color = {.float32 = {0.0f, 0.0f, 0.0f, 0.0f}}});
     }
-    return std::make_optional<vax::rhi::RenderPassDescriptor>(
+    return std::make_unique<vax::rhi::RenderPassDescriptor>(
         _device.get(),
         renderPass,
         imageFormat,
@@ -203,7 +203,7 @@ RenderPassDescriptorBuilder::buildOffscreen(VkFormat imageFormat, bool allowComp
     );
 }
 
-std::optional<vax::rhi::RenderPassDescriptor>
+std::unique_ptr<vax::rhi::RenderPassDescriptor>
 RenderPassDescriptorBuilder::buildShadowSun(VkFormat imageFormat, bool allowComputeUsage) const noexcept {
     VkFormat depthFormat = findDepthFormat(_device.get().vkPhysicalDevice());
     VkAttachmentDescription depthAttachment{
@@ -273,8 +273,8 @@ RenderPassDescriptorBuilder::buildShadowSun(VkFormat imageFormat, bool allowComp
     VkRenderPass renderPass;
     if (!VK_CHECK(vkCreateRenderPass(_device.get().vkDevice(), &renderPassInfo, nullptr, &renderPass))) {
         _logger.error("Failed to create render pass!");
-        return std::nullopt;
+        return nullptr;
     }
 
-    return std::make_optional<vax::rhi::RenderPassDescriptor>(_device.get(), renderPass, imageFormat, depthFormat, 0);
+    return std::make_unique<vax::rhi::RenderPassDescriptor>(_device.get(), renderPass, imageFormat, depthFormat, 0);
 }

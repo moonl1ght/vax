@@ -12,18 +12,17 @@ void RenderPassGraphManager::setupRenderPassDescriptors(VkFormat imageFormat) {
     auto mainRenderPassDescriptor = renderPassDescriptorBuilder.buildOffscreen(imageFormat, false);
     auto shadowSunRenderPassDescriptor = renderPassDescriptorBuilder.buildShadowSun(imageFormat, false);
     auto swapchainRenderPassDescriptor = renderPassDescriptorBuilder.buildSwapchain(imageFormat);
-    if (!mainRenderPassDescriptor.has_value() || !shadowSunRenderPassDescriptor.has_value() ||
-        !swapchainRenderPassDescriptor.has_value()) {
+    if (!mainRenderPassDescriptor || !shadowSunRenderPassDescriptor || !swapchainRenderPassDescriptor) {
         _logger.error("Failed to create main render pass descriptor!");
         return;
     }
 
     auto mainRenderPassDescriptorShared =
-        std::make_shared<vax::rhi::RenderPassDescriptor>(std::move(mainRenderPassDescriptor.value()));
+        std::make_shared<vax::rhi::RenderPassDescriptor>(std::move(*mainRenderPassDescriptor));
     auto shadowSunRenderPassDescriptorShared =
-        std::make_shared<vax::rhi::RenderPassDescriptor>(std::move(shadowSunRenderPassDescriptor.value()));
+        std::make_shared<vax::rhi::RenderPassDescriptor>(std::move(*shadowSunRenderPassDescriptor));
     auto swapchainRenderPassDescriptorShared =
-        std::make_shared<vax::rhi::RenderPassDescriptor>(std::move(swapchainRenderPassDescriptor.value()));
+        std::make_shared<vax::rhi::RenderPassDescriptor>(std::move(*swapchainRenderPassDescriptor));
 
     _renderPassDescriptors["main"] = mainRenderPassDescriptorShared;
     _renderPassDescriptors["shadow_sun"] = shadowSunRenderPassDescriptorShared;
@@ -71,11 +70,12 @@ void RenderPassGraphManager::setupRenderDestinations(
     auto& swapchainRenderPassDescriptor = _renderPassDescriptors.at("swapchain");
     auto& shadowSunRenderPassDescriptor = _renderPassDescriptors.at("shadow_sun");
 
-    auto renderDestinationBuilder = RenderDestinationBuilder(_device.get(), _pipelineManager.get().descriptorRegistry());
+    auto renderDestinationBuilder =
+        RenderDestinationBuilder(_device.get(), _pipelineManager.get().descriptorRegistry());
     auto mainRenderDestination = renderDestinationBuilder.buildMainOffscreen(
         commandManager, queueManager.getMainGraphicsQueue(), swapchain.swapchainExtent, *mainRenderPassDescriptor
     );
-    if (!mainRenderDestination.has_value()) {
+    if (!mainRenderDestination) {
         _logger.error("Failed to create main render destination!");
         return;
     }
@@ -83,7 +83,7 @@ void RenderPassGraphManager::setupRenderDestinations(
     auto swapchainRenderDestination = renderDestinationBuilder.buildSwapchain(
         commandManager, queueManager.getMainGraphicsQueue(), swapchain, *swapchainRenderPassDescriptor
     );
-    if (!swapchainRenderDestination.has_value()) {
+    if (!swapchainRenderDestination) {
         _logger.error("Failed to create swapchain render destination!");
         return;
     }
@@ -91,17 +91,16 @@ void RenderPassGraphManager::setupRenderDestinations(
     auto shadowSunRenderDestination = renderDestinationBuilder.buildShadowSunOffscreen(
         commandManager, queueManager.getMainGraphicsQueue(), swapchain.swapchainExtent, *shadowSunRenderPassDescriptor
     );
-    if (!shadowSunRenderDestination.has_value()) {
+    if (!shadowSunRenderDestination) {
         _logger.error("Failed to create shadow sun render destination!");
         return;
     }
 
-    auto mainRenderDestinationShared =
-        std::make_shared<vax::rhi::RenderDestination>(std::move(mainRenderDestination.value()));
+    auto mainRenderDestinationShared = std::make_shared<vax::rhi::RenderDestination>(std::move(*mainRenderDestination));
     auto swapchainRenderDestinationShared =
-        std::make_shared<vax::rhi::RenderDestination>(std::move(swapchainRenderDestination.value()));
+        std::make_shared<vax::rhi::RenderDestination>(std::move(*swapchainRenderDestination));
     auto shadowSunRenderDestinationShared =
-        std::make_shared<vax::rhi::RenderDestination>(std::move(shadowSunRenderDestination.value()));
+        std::make_shared<vax::rhi::RenderDestination>(std::move(*shadowSunRenderDestination));
 
     _renderDestinations["main"] = mainRenderDestinationShared;
     _renderDestinations["swapchain"] = swapchainRenderDestinationShared;
@@ -114,12 +113,13 @@ void RenderPassGraphManager::setupRenderDestinationsForAgentCamera(
     auto& mainRenderPassDescriptor = _renderPassDescriptors.at("main");
     auto& swapchainRenderPassDescriptor = _renderPassDescriptors.at("swapchain");
 
-    auto renderDestinationBuilder = RenderDestinationBuilder(_device.get(), _pipelineManager.get().descriptorRegistry());
+    auto renderDestinationBuilder =
+        RenderDestinationBuilder(_device.get(), _pipelineManager.get().descriptorRegistry());
 
     auto agentCameraRenderDestination = renderDestinationBuilder.buildMainOffscreen(
         commandManager, queueManager.getMainGraphicsQueue(), swapchain.swapchainExtent, *mainRenderPassDescriptor
     );
-    if (!agentCameraRenderDestination.has_value()) {
+    if (!agentCameraRenderDestination) {
         _logger.error("Failed to create main render destination!");
         return;
     }
@@ -127,15 +127,15 @@ void RenderPassGraphManager::setupRenderDestinationsForAgentCamera(
     auto agentCameraFBRenderDestination = renderDestinationBuilder.buildSwapchain(
         commandManager, queueManager.getMainGraphicsQueue(), swapchain, *swapchainRenderPassDescriptor
     );
-    if (!agentCameraFBRenderDestination.has_value()) {
+    if (!agentCameraFBRenderDestination) {
         _logger.error("Failed to create agent camera swapchain render destination!");
         return;
     }
 
     auto agentCameraRenderDestinationShared =
-        std::make_shared<vax::rhi::RenderDestination>(std::move(agentCameraRenderDestination.value()));
+        std::make_shared<vax::rhi::RenderDestination>(std::move(*agentCameraRenderDestination));
     auto agentCameraFBRenderDestinationShared =
-        std::make_shared<vax::rhi::RenderDestination>(std::move(agentCameraFBRenderDestination.value()));
+        std::make_shared<vax::rhi::RenderDestination>(std::move(*agentCameraFBRenderDestination));
 
     _renderDestinations["agent_camera_main"] = agentCameraRenderDestinationShared;
     _renderDestinations["agent_camera_swapchain"] = agentCameraFBRenderDestinationShared;

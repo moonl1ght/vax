@@ -6,7 +6,7 @@
 #include "renderDestination.h"
 #include "renderPassDescriptor.h"
 #include "renderPassNode.h"
-#include "renderSubpass.h"
+#include "renderStep.h"
 #include "vaxMath.h"
 
 namespace vax::gfx {
@@ -15,14 +15,12 @@ class RenderPass : public RenderPassNode {
     RenderPass(
         std::string_view id,
         vax::rhi::Device& device,
-        vax::rhi::PipelineManager& pipelineManager,
         std::string_view debugName,
         std::weak_ptr<vax::rhi::RenderDestination> renderDestination,
         std::weak_ptr<vax::rhi::RenderPassDescriptor> renderDescriptor
     )
         : RenderPassNode(id)
         , _device(device)
-        , _pipelineManager(pipelineManager)
         , _logger(dev::Logger(std::string(debugName)))
         , _debugName(debugName)
         , _renderDestination(std::move(renderDestination))
@@ -44,33 +42,26 @@ class RenderPass : public RenderPassNode {
 
     void setRenderArea(VkRect2D renderArea) { _renderArea = renderArea; }
 
-    void setPipeline(std::string pipelineName) { _pipelineName = pipelineName; }
-
-    void setDrawWork(std::function<void(RunPassInfo&, DrawContext&)> drawWork) { _drawWork = drawWork; }
-
     void setRenderToSwapchain(bool renderToSwapchain) { _renderToSwapchain = renderToSwapchain; }
 
     void setRenderOffset(vax::math::Position2DFloat offset) { _offset = offset; }
 
-    void addSubpass(std::unique_ptr<RenderSubpass> subpass) { _subpasses.push_back(std::move(subpass)); }
+    void addStep(std::unique_ptr<RenderStep> step) { _steps.push_back(std::move(step)); }
 
     void setOutputImageIndex(size_t outputImageIndex) { _outputImageIndex = outputImageIndex; }
 
   protected:
     dev::Logger _logger;
     std::reference_wrapper<vax::rhi::Device> _device;
-    std::reference_wrapper<vax::rhi::PipelineManager> _pipelineManager;
 
     std::weak_ptr<vax::rhi::RenderDestination> _renderDestination;
     std::weak_ptr<vax::rhi::RenderPassDescriptor> _renderDescriptor;
 
-    std::vector<std::unique_ptr<RenderSubpass>> _subpasses;
+    std::vector<std::unique_ptr<RenderStep>> _steps;
 
     std::string _debugName;
     std::vector<VkClearValue> _clearValues;
-    std::function<void(RunPassInfo&, DrawContext&)> _drawWork;
     VkRect2D _renderArea{};
-    std::optional<std::string> _pipelineName;
     bool _renderToSwapchain = false;
     vax::math::Position2DFloat _offset = {0.0f, 0.0f};
     size_t _outputImageIndex = 0;

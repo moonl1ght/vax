@@ -372,5 +372,3 @@ void Scene::beginDrawing(CommandBuffer& commandBuffer, uint32_t frameIndex) {
 
     _indirectDrawController->submitCommands(frameIndex);
 }
-
-void Scene::endDrawing(CommandBuffer& commandBuffer, uint32_t frameIndex) {}
