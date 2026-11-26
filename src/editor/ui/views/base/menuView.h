@@ -14,9 +14,9 @@
 #include <imgui_internal.h>
 
 namespace vax::editor {
-class DebugView : public View {
+class MenuView : public View {
   public:
-    DebugView(vax::gfx::EditorRenderer_old& editorRenderer, vax::gfx::EditorRenderer* editorRenderer_new)
+    MenuView(vax::gfx::EditorRenderer_old& editorRenderer, vax::gfx::EditorRenderer* editorRenderer_new)
         : View(editorRenderer, editorRenderer_new) {
         _statsView = std::make_unique<StatsView>(editorRenderer, editorRenderer_new);
         _settingsView = std::make_unique<SettingsView>(editorRenderer, editorRenderer_new);
@@ -25,7 +25,7 @@ class DebugView : public View {
         _statsView->linkFrameProfiler(_frameProfiler.get());
     }
 
-    ~DebugView() override {
+    ~MenuView() override {
         _editorRenderer.get().unlinkFrameProfiler(_frameProfiler.get());
         if (_editorRenderer_new) {
             _editorRenderer_new->unlinkFrameProfiler(_frameProfiler.get());

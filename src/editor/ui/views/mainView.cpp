@@ -23,7 +23,7 @@ void MainView::updateUI(const vax::time::FrameTime& frameTime) {
         _showPhysicsEngineDemo();
     }
     ImGui::End();
-    DebugView::updateUI(frameTime);
+    MenuView::updateUI(frameTime);
 }
 
 void MainView::_showGridWorldDemo() {

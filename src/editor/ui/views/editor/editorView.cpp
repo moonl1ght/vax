@@ -6,15 +6,15 @@ using namespace vax::editor;
 void EditorView::updateUI(const vax::time::FrameTime& frameTime) {
     if (_shouldClose) {
         _shouldClose = false;
-        DebugView::_onClose();
+        MenuView::_onClose();
         return;
     }
-    DebugView::updateUI(frameTime);
+    MenuView::updateUI(frameTime);
     _loadingView->updateUI(frameTime);
 }
 
 void EditorView::viewWillShow() {
-    DebugView::viewWillShow();
+    MenuView::viewWillShow();
     _isLoading = true;
     _loadingView->setMessage("Loading scene");
     _loadingView->setProgress(std::nullopt);
@@ -39,7 +39,7 @@ void EditorView::_onClose() {
         _cancelLoadingAndClose();
         return;
     }
-    DebugView::_onClose();
+    MenuView::_onClose();
 }
 
 void EditorView::_cancelLoadingAndClose() {

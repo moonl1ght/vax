@@ -1,12 +1,12 @@
 #pragma once
 
-#include "debugView.h"
+#include "menuView.h"
 
 namespace vax::editor {
-class MainView final : public DebugView {
+class MainView final : public MenuView {
   public:
     MainView(vax::gfx::EditorRenderer_old& editorRenderer)
-        : DebugView(editorRenderer, nullptr) {};
+        : MenuView(editorRenderer, nullptr) {};
 
     ~MainView() override = default;
 

@@ -1,13 +1,13 @@
 #pragma once
 
-#include "debugView.h"
+#include "menuView.h"
 #include "editorController.h"
 #include "loadingView.h"
 #include <string>
 
 namespace vax::editor {
 
-class EditorView final : public DebugView {
+class EditorView final : public MenuView {
   public:
     EditorView(
         vax::gfx::EditorRenderer_old& editorRenderer,
@@ -15,7 +15,7 @@ class EditorView final : public DebugView {
         std::unique_ptr<EditorController> editorController,
         std::string scenePath
     ) noexcept
-        : DebugView(editorRenderer, editorRenderer_new)
+        : MenuView(editorRenderer, editorRenderer_new)
         , _editorController(std::move(editorController))
         , _scenePath(std::move(scenePath))
         , _loadingView(std::make_unique<LoadingView>(editorRenderer, editorRenderer_new)) {}

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "debugView.h"
+#include "menuView.h"
 #include "inputController.h"
 #include "loadingView.h"
 #include "logger.h"
@@ -9,20 +9,20 @@
 
 namespace vax::editor {
 
-template <typename ControllerType> class SceneView : public DebugView {
+template <typename ControllerType> class SceneView : public MenuView {
   public:
     SceneView(
         vax::gfx::EditorRenderer_old& editorRenderer,
         vax::gfx::EditorRenderer* editorRenderer_new,
         app::InputController& inputController
     )
-        : DebugView(editorRenderer, editorRenderer_new)
+        : MenuView(editorRenderer, editorRenderer_new)
         , _inputController(inputController) {
         _loadingView = std::make_unique<LoadingView>(editorRenderer, editorRenderer_new);
     }
 
     void updateUI(const vax::time::FrameTime& frameTime) override {
-        DebugView::updateUI(frameTime);
+        MenuView::updateUI(frameTime);
         _loadingView->updateUI(frameTime);
     }
 

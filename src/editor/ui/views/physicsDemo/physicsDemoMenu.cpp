@@ -19,7 +19,7 @@ void PhysicsDemoMenuView::updateUI(const vax::time::FrameTime& frameTime) {
     }
     ImGui::End();
 
-    DebugView::updateUI(frameTime);
+    MenuView::updateUI(frameTime);
 }
 
 void PhysicsDemoMenuView::_showSphereDemo() {

@@ -67,7 +67,7 @@ void GridWorldView::_onClose() {
     if (_isDemoLoaded) {
         _toggleDemo();
     } else {
-        DebugView::_onClose();
+        MenuView::_onClose();
     }
 }
 
