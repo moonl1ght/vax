@@ -11,13 +11,14 @@ class EditorView final : public DebugView {
   public:
     EditorView(
         vax::gfx::EditorRenderer_old& editorRenderer,
+        vax::gfx::EditorRenderer* editorRenderer_new,
         std::unique_ptr<EditorController> editorController,
         std::string scenePath
     ) noexcept
-        : DebugView(editorRenderer)
+        : DebugView(editorRenderer, editorRenderer_new)
         , _editorController(std::move(editorController))
         , _scenePath(std::move(scenePath))
-        , _loadingView(std::make_unique<LoadingView>(editorRenderer)) {}
+        , _loadingView(std::make_unique<LoadingView>(editorRenderer, editorRenderer_new)) {}
 
     ~EditorView() override = default;
 

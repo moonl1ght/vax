@@ -110,19 +110,6 @@ void vax::rhi::VulkanEngine::cleanup() {
     _logger.success("Vulkan engine cleanup complete!");
 }
 
-void vax::rhi::VulkanEngine::resize() {
-    _logger.debug("Resizing engine...");
-    // int width = 0, height = 0;
-    // SDL_GetWindowSizeInPixels(_windowController.get().getWindow(0)->window, &width, &height);
-    // while (width == 0 || height == 0) {
-    //     SDL_GetWindowSizeInPixels(_windowController.get().getWindow(0)->window, &width, &height);
-    //     SDL_Delay(100);
-    // }
-    // vkDeviceWaitIdle(device->vkDevice());
-
-    // _windowController.get().getWindow(0)->getSwapchain()->recreate();
-}
-
 bool vax::rhi::VulkanEngine::setupDebugMessenger() {
     if (!enableValidationLayers)
         return false;

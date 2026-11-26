@@ -10,11 +10,11 @@
 namespace vax::editor {
 class StatsView final : public View {
   public:
-    StatsView(vax::gfx::EditorRenderer_old& editorRenderer)
-        : View(editorRenderer)
+    StatsView(vax::gfx::EditorRenderer_old& editorRenderer, vax::gfx::EditorRenderer* editorRenderer_new)
+        : View(editorRenderer, editorRenderer_new)
         , _debouncer(std::chrono::milliseconds(500)) {
         _systemInfo = dev::SystemInfo();
-        _fullStatsView = std::make_unique<FullStatsView>(editorRenderer);
+        _fullStatsView = std::make_unique<FullStatsView>(editorRenderer, editorRenderer_new);
     };
 
     ~StatsView() = default;

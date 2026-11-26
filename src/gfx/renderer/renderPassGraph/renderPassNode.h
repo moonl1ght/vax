@@ -25,8 +25,8 @@ class RenderPassNode {
         SceneDrawData* sceneDrawData = nullptr;
     };
 
-    std::weak_ptr<RenderPassNode> prev;
-    std::shared_ptr<RenderPassNode> next = nullptr;
+    RenderPassNode* prev = nullptr;
+    std::unique_ptr<RenderPassNode> next = nullptr;
 
     RenderPassNode(std::string_view id)
         : _id(id) {};
@@ -39,14 +39,8 @@ class RenderPassNode {
     virtual ~RenderPassNode() = default;
 
     virtual void execute(RunPassInfo& runPassInfo) final {
-        if (_enabled) {
-            if (_prePassWork) {
-                _prePassWork(this, runPassInfo);
-            }
+        if (isEnabled()) {
             runPass(runPassInfo);
-            if (_postPassWork) {
-                _postPassWork(this, runPassInfo);
-            }
         }
         if (next) {
             next->execute(runPassInfo);
@@ -59,17 +53,9 @@ class RenderPassNode {
 
     virtual void runPass(RunPassInfo& runPassInfo) = 0;
 
-    void setPrePassWork(std::function<void(RenderPassNode*, RunPassInfo&)> prePassWork) { _prePassWork = prePassWork; }
-
-    void setPostPassWork(std::function<void(RenderPassNode*, RunPassInfo&)> postPassWork) {
-        _postPassWork = postPassWork;
-    }
-
     std::string id() const { return _id; }
 
   protected:
-    std::function<void(RenderPassNode*, RunPassInfo&)> _prePassWork;
-    std::function<void(RenderPassNode*, RunPassInfo&)> _postPassWork;
     std::string _id;
     bool _enabled = true;
 };

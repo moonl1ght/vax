@@ -30,8 +30,7 @@ class RenderTargetBuilder final {
     RenderTargetBuilder(RenderTargetBuilder&&) noexcept = delete;
     RenderTargetBuilder& operator=(RenderTargetBuilder&&) noexcept = delete;
 
-    std::unique_ptr<RenderTarget>
-    buildForEditor(rhi::Swapchain& swapchain, rhi::Swapchain* agentCameraSwapchain = nullptr);
+    std::unique_ptr<RenderTarget> buildForEditor(rhi::Swapchain& swapchain);
 
     std::unique_ptr<RenderTarget> buildForSimulation(VkFormat imageFormat, VkExtent2D extent);
 

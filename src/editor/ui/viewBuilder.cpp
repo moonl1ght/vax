@@ -36,6 +36,9 @@ std::unique_ptr<editor::EditorView> ViewBuilder::buildPhysicsSphereDemoView() {
         _mainThreadRunner.get()
     );
     return std::make_unique<editor::EditorView>(
-        _editorRenderer_old.get(), std::move(editorController), RES_PATH("scenes/physics_demo_scene.json")
+        _editorRenderer_old.get(),
+        &renderEngine.editorRenderer(),
+        std::move(editorController),
+        RES_PATH("scenes/physics_demo_scene.json")
     );
 }

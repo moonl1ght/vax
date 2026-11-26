@@ -1,5 +1,6 @@
 #pragma once
 
+#include "editorRenderer.h"
 #include "editorScene.h"
 #include "inputController.h"
 #include "sceneLoader.h"
@@ -35,9 +36,9 @@ class EditorController final : public app::InputController::Observer {
 
     void onKeyEvent(const app::KeyEvent& keyEvent);
 
-    void draw();
+    void draw(gfx::EditorRenderer& editorRenderer, const time::FrameTime& frameTime) noexcept;
 
-    void load(const std::string& scenePath, std::function<void(bool)> onLoaded);
+    void load(const std::string& scenePath, std::function<void(bool)> onLoaded) noexcept;
 
     void cancelLoading() noexcept;
 

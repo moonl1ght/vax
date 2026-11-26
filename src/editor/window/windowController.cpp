@@ -35,3 +35,12 @@ void WindowController::destroyAllWindows() {
         }
     }
 }
+
+void WindowController::resize() noexcept {
+    int width = 0, height = 0;
+    SDL_GetWindowSizeInPixels(getWindow(0)->sdlWindow(), &width, &height);
+    while (width == 0 || height == 0) {
+        SDL_GetWindowSizeInPixels(getWindow(0)->sdlWindow(), &width, &height);
+        SDL_Delay(100);
+    }
+}

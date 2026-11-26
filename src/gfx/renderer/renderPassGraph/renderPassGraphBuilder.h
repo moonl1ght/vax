@@ -32,6 +32,10 @@ class RenderPassGraphBuilder final {
 
     void prebuild(const gfx::RenderTarget& renderTarget);
 
+    std::unique_ptr<RenderPassGraph> buildUIOnlyGraph(const gfx::RenderTarget& renderTarget);
+
+    std::unique_ptr<RenderPassGraph> buildEditorSceneGraph(const gfx::RenderTarget& renderTarget);
+
     std::unique_ptr<RenderPassGraph> buildUIOnlyGraph(
         const std::unordered_map<std::string, std::shared_ptr<vax::rhi::RenderPassDescriptor>>& renderPassDescriptors,
         const std::unordered_map<std::string, std::shared_ptr<vax::rhi::RenderDestination>>& renderDestinations

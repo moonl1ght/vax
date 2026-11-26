@@ -6,8 +6,8 @@
 namespace vax::editor {
 class SimStatsView final : public View {
   public:
-    SimStatsView(vax::gfx::EditorRenderer_old& editorRenderer)
-        : View(editorRenderer) {}
+    SimStatsView(vax::gfx::EditorRenderer_old& editorRenderer, vax::gfx::EditorRenderer* editorRenderer_new)
+        : View(editorRenderer, editorRenderer_new) {}
 
     ~SimStatsView() override = default;
 

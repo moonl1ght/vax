@@ -13,8 +13,9 @@ class ViewManager;
 
 class View {
   public:
-    View(vax::gfx::EditorRenderer_old& editorRenderer, vax::gfx::EditorRenderer* editorRenderer_new = nullptr)
-        : _editorRenderer(editorRenderer) {};
+    View(vax::gfx::EditorRenderer_old& editorRenderer, vax::gfx::EditorRenderer* editorRenderer_new)
+        : _editorRenderer(editorRenderer)
+        , _editorRenderer_new(editorRenderer_new) {};
 
     virtual ~View() = default;
 

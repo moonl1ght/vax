@@ -22,9 +22,9 @@ class JFAPass final : public RenderPassNode {
     JFAPass(JFAPass&& other) noexcept = default;
     JFAPass& operator=(JFAPass&& other) noexcept = default;
 
-    void setup(std::weak_ptr<vax::rhi::RenderDestination> inputRenderDestination);
+    void setup(vax::rhi::RenderDestination* inputRenderDestination);
 
-    void update(std::weak_ptr<vax::rhi::RenderDestination> inputRenderDestination);
+    void update(vax::rhi::RenderDestination* inputRenderDestination);
 
     SampledImageShaderHandle outputImage(RunPassInfo& runPassInfo) const {
         if (_isFinalImageA) {
@@ -47,7 +47,7 @@ class JFAPass final : public RenderPassNode {
     vax::rhi::Texture* _inputDepthTextures;
     std::vector<std::unique_ptr<vax::rhi::Texture>> _jfaTexturesA;
     std::vector<std::unique_ptr<vax::rhi::Texture>> _jfaTexturesB;
-    std::weak_ptr<vax::rhi::RenderDestination> _inputRenderDestination;
+    vax::rhi::RenderDestination* _inputRenderDestination;
     bool _isFinalImageA = true;
 
     void _createTextures(

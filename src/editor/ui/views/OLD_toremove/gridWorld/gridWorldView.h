@@ -23,7 +23,7 @@ class GridWorldView final : public SceneView<rl::GWSceneController> {
         gfx::RenderEngine& rendererEngine,
         app::InputController& inputController
     )
-        : SceneView(editorRenderer, inputController)
+        : SceneView(editorRenderer, nullptr, inputController)
         , _windowController(windowController)
         , _rendererEngine(rendererEngine) {}
 

@@ -12,8 +12,8 @@ namespace vax::gfx {
 
 class RenderPassGraph {
   public:
-    RenderPassGraph(std::shared_ptr<RenderPassNode> rootNode, editor::UIEngine& uiEngine)
-        : _rootNode(rootNode)
+    RenderPassGraph(std::unique_ptr<RenderPassNode> rootNode, editor::UIEngine& uiEngine)
+        : _rootNode(std::move(rootNode))
         , _uiEngine(uiEngine) {};
 
     RenderPassGraph(const RenderPassGraph&) = delete;
@@ -25,14 +25,14 @@ class RenderPassGraph {
 
     void run(RenderPassNode::RunPassInfo& runPassInfo);
 
-    std::shared_ptr<RenderPassNode> findNode(const std::string& name) const;
+    RenderPassNode* findNode(const std::string& name) const;
 
     void setNodeEnabled(const std::string& name, bool enabled);
 
   private:
     std::reference_wrapper<editor::UIEngine> _uiEngine;
 
-    std::shared_ptr<RenderPassNode> _rootNode = nullptr;
+    std::unique_ptr<RenderPassNode> _rootNode;
 };
 
 } // namespace vax::gfx

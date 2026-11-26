@@ -6,7 +6,7 @@ using namespace vax;
 using namespace vax::gfx;
 using namespace vax::rhi;
 
-std::unique_ptr<RenderTarget> RenderTargetBuilder::buildForEditor(Swapchain& swapchain, Swapchain* agentCameraSwapchain) {
+std::unique_ptr<RenderTarget> RenderTargetBuilder::buildForEditor(Swapchain& swapchain) {
     auto descriptorBuilder = RenderPassDescriptorBuilder(_device.get());
     auto mainDescriptor = descriptorBuilder.buildOffscreen(swapchain.swapchainImageFormat, false);
     auto shadowSunDescriptor = descriptorBuilder.buildShadowSun(swapchain.swapchainImageFormat, false);
@@ -40,23 +40,7 @@ std::unique_ptr<RenderTarget> RenderTargetBuilder::buildForEditor(Swapchain& swa
     }
 
     std::unordered_map<std::string, std::unique_ptr<RenderDestination>> destinations;
-    if (agentCameraSwapchain) {
-        auto agentCameraMainDestination = destinationBuilder.buildMainOffscreen(
-            _commandManager.get(), queue, agentCameraSwapchain->swapchainExtent, *mainDescriptor
-        );
-        if (!agentCameraMainDestination) {
-            _logger.error("Failed to create agent camera main render destination!");
-            return nullptr;
-        }
-        auto agentCameraSwapchainDestination =
-            destinationBuilder.buildSwapchain(_commandManager.get(), queue, *agentCameraSwapchain, *swapchainDescriptor);
-        if (!agentCameraSwapchainDestination) {
-            _logger.error("Failed to create agent camera swapchain render destination!");
-            return nullptr;
-        }
-        destinations["agent_camera_main"] = std::move(agentCameraMainDestination);
-        destinations["agent_camera_swapchain"] = std::move(agentCameraSwapchainDestination);
-    }
+
     destinations["main"] = std::move(mainDestination);
     destinations["swapchain"] = std::move(swapchainDestination);
     destinations["shadow_sun"] = std::move(shadowSunDestination);

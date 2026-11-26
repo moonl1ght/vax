@@ -8,14 +8,41 @@ using namespace vax::gfx;
 using namespace vax::rhi;
 using namespace vax;
 
+std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildUIOnlyGraph(const gfx::RenderTarget& renderTarget) {
+    auto swapchain = _windowController.get().getWindow(0)->vkWindow()->swapchain();
+
+    auto uiPass = std::make_unique<RenderPass>(
+        "ui_pass",
+        _device.get(),
+        "ui_pass",
+        renderTarget.getRenderDestination("swapchain"),
+        renderTarget.getRenderPassDescriptor("swapchain")
+    );
+    uiPass->setRenderToSwapchain(true);
+    uiPass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = swapchain->swapchainExtent});
+    auto uiStep = _renderSteps["ui"];
+    uiPass->addStep(uiStep);
+    return std::make_unique<RenderPassGraph>(std::move(uiPass), _uiEngine.get());
+}
+
+std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildEditorSceneGraph(const gfx::RenderTarget& renderTarget) {
+    auto swapchain = _windowController.get().getWindow(0)->vkWindow()->swapchain();
+
+    return nullptr;
+}
+
 std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildUIOnlyGraph(
     const std::unordered_map<std::string, std::shared_ptr<vax::rhi::RenderPassDescriptor>>& renderPassDescriptors,
     const std::unordered_map<std::string, std::shared_ptr<vax::rhi::RenderDestination>>& renderDestinations
 ) {
     auto swapchain = _windowController.get().getWindow(0)->vkWindow()->swapchain();
 
-    auto uiPass = std::make_shared<RenderPass>(
-        "ui_pass", _device.get(), "UiPass", renderDestinations.at("swapchain"), renderPassDescriptors.at("swapchain")
+    auto uiPass = std::make_unique<RenderPass>(
+        "ui_pass",
+        _device.get(),
+        "UiPass",
+        renderDestinations.at("swapchain").get(),
+        renderPassDescriptors.at("swapchain").get()
     );
     uiPass->setRenderToSwapchain(true);
     uiPass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = swapchain->swapchainExtent});
@@ -24,7 +51,7 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildUIOnlyGraph(
         uiEngine.render(runPassInfo.commandBuffer.vkCommandBuffer);
     });
     uiPass->addStep(std::move(uiStep));
-    return std::make_unique<RenderPassGraph>(uiPass, _uiEngine.get());
+    return std::make_unique<RenderPassGraph>(std::move(uiPass), _uiEngine.get());
 }
 
 namespace {
@@ -45,12 +72,12 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
 ) {
     auto swapchain = _windowController.get().getWindow(0)->vkWindow()->swapchain();
 
-    auto shadowPass = std::make_shared<RenderPass>(
+    auto shadowPass = std::make_unique<RenderPass>(
         "shadow_pass",
         _device.get(),
         "ShadowPass",
-        renderDestinations.at("shadow_sun"),
-        renderPassDescriptors.at("shadow_sun")
+        renderDestinations.at("shadow_sun").get(),
+        renderPassDescriptors.at("shadow_sun").get()
     );
     shadowPass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = swapchain->swapchainExtent});
     auto shadowStep = std::make_unique<RenderStep>(_device.get(), _pipelineManager.get());
@@ -60,8 +87,12 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
     });
     shadowPass->addStep(std::move(shadowStep));
 
-    auto mainPass = std::make_shared<RenderPass>(
-        "main_pass", _device.get(), "MainPass", renderDestinations.at("main"), renderPassDescriptors.at("main")
+    auto mainPass = std::make_unique<RenderPass>(
+        "main_pass",
+        _device.get(),
+        "MainPass",
+        renderDestinations.at("main").get(),
+        renderPassDescriptors.at("main").get()
     );
     mainPass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = swapchain->swapchainExtent});
     auto mainStep = std::make_unique<RenderStep>(_device.get(), _pipelineManager.get());
@@ -112,15 +143,15 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
         mainPass->addStep(std::move(gizmoStep));
     }
 
-    auto jfaPass = std::make_shared<JFAPass>("jfa_pass", _device.get(), _pipelineManager.get());
-    jfaPass->setup(renderDestinations.at("main"));
+    auto jfaPass = std::make_unique<JFAPass>("jfa_pass", _device.get(), _pipelineManager.get());
+    jfaPass->setup(renderDestinations.at("main").get());
 
-    auto finalBlendPass = std::make_shared<RenderPass>(
+    auto finalBlendPass = std::make_unique<RenderPass>(
         "final_blend_pass",
         _device.get(),
         "FinalBlendPass",
-        renderDestinations.at("swapchain"),
-        renderPassDescriptors.at("swapchain")
+        renderDestinations.at("swapchain").get(),
+        renderPassDescriptors.at("swapchain").get()
     );
     finalBlendPass->setRenderToSwapchain(true);
     finalBlendPass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = swapchain->swapchainExtent});
@@ -152,12 +183,12 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
 
     if (graphDescriptor.withSecondaryWindow) {
         auto agentCameraSwapchain = _windowController.get().getWindow(1)->vkWindow()->swapchain();
-        auto agentCameraMainPass = std::make_shared<RenderPass>(
+        auto agentCameraMainPass = std::make_unique<RenderPass>(
             "agent_camera_main_pass",
             _device.get(),
             "AgentCameraMainPass",
-            renderDestinations.at("agent_camera_main"),
-            renderPassDescriptors.at("main")
+            renderDestinations.at("agent_camera_main").get(),
+            renderPassDescriptors.at("main").get()
         );
         agentCameraMainPass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = agentCameraSwapchain->swapchainExtent});
         auto agentCameraMainStep = std::make_unique<RenderStep>(_device.get(), _pipelineManager.get());
@@ -166,12 +197,12 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
             runPassInfo.scene->draw(drawContext, FrameUniformSlot::AGENT_CAMERA);
         });
         agentCameraMainPass->addStep(std::move(agentCameraMainStep));
-        auto agentCameraFBPass = std::make_shared<RenderPass>(
+        auto agentCameraFBPass = std::make_unique<RenderPass>(
             "agent_camera_fb_pass",
             _device.get(),
             "AgentCameraFBPass",
-            renderDestinations.at("agent_camera_swapchain"),
-            renderPassDescriptors.at("swapchain")
+            renderDestinations.at("agent_camera_swapchain").get(),
+            renderPassDescriptors.at("swapchain").get()
         );
         agentCameraFBPass->setOutputImageIndex(1);
         agentCameraFBPass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = agentCameraSwapchain->swapchainExtent});
@@ -195,24 +226,25 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
             runPassInfo.scene->drawBackground(drawContext);
         });
         agentCameraFBPass->addStep(std::move(agentCameraFBStep));
-        shadowPass->next = mainPass;
 
-        mainPass->next = agentCameraMainPass;
+        jfaPass->next = std::move(finalBlendPass);
 
-        agentCameraMainPass->next = agentCameraFBPass;
+        agentCameraFBPass->next = std::move(jfaPass);
 
-        agentCameraFBPass->next = jfaPass;
+        agentCameraMainPass->next = std::move(agentCameraFBPass);
 
-        jfaPass->next = finalBlendPass;
+        mainPass->next = std::move(agentCameraMainPass);
+
+        shadowPass->next = std::move(mainPass);
     } else {
-        shadowPass->next = mainPass;
+        jfaPass->next = std::move(finalBlendPass);
 
-        mainPass->next = jfaPass;
+        mainPass->next = std::move(jfaPass);
 
-        jfaPass->next = finalBlendPass;
+        shadowPass->next = std::move(mainPass);
     }
 
-    return std::make_unique<RenderPassGraph>(shadowPass, _uiEngine.get());
+    return std::make_unique<RenderPassGraph>(std::move(shadowPass), _uiEngine.get());
 }
 
 void RenderPassGraphBuilder::prebuild(const gfx::RenderTarget& renderTarget) {

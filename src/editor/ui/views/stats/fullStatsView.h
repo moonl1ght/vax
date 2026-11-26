@@ -6,8 +6,8 @@
 namespace vax::editor {
 class FullStatsView final : public View {
   public:
-    FullStatsView(vax::gfx::EditorRenderer_old& editorRenderer)
-        : View(editorRenderer) {}
+    FullStatsView(vax::gfx::EditorRenderer_old& editorRenderer, vax::gfx::EditorRenderer* editorRenderer_new)
+        : View(editorRenderer, editorRenderer_new) {}
 
     ~FullStatsView() override = default;
 

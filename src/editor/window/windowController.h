@@ -27,6 +27,8 @@ class WindowController final {
 
     void destroyAllWindows();
 
+    void resize() noexcept;
+
   private:
     dev::Logger _logger = dev::Logger("WindowController");
 

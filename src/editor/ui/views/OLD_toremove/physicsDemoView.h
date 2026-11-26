@@ -18,7 +18,7 @@ class PhysicsDemoView final : public SceneView<app::MainSceneController> {
         WindowController& windowController,
         app::InputController& inputController
     )
-        : SceneView(editorRenderer, inputController)
+        : SceneView(editorRenderer, nullptr, inputController)
         , _rendererEngine(rendererEngine)
         , _windowController(windowController) {}
 

@@ -139,7 +139,7 @@ bool EditorRenderer_old::render(Scene* scene, const time::FrameTime& frameTime) 
     _outputImageIndices = {imageIndex, agentCameraImageIndex};
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-        _vkEngine.get().resize();
+        _windowController.get().resize();
         _resize();
         if (scene != nullptr) {
             scene->resize();
@@ -225,7 +225,7 @@ bool EditorRenderer_old::render(Scene* scene, const time::FrameTime& frameTime) 
     auto isStale = [](VkResult presentResult) {
         return presentResult == VK_ERROR_OUT_OF_DATE_KHR || presentResult == VK_SUBOPTIMAL_KHR;
     };
-    bool isMainStale = isStale(presentResults[0]) || _vkEngine.get().framebufferResized;
+    bool isMainStale = isStale(presentResults[0]);
     bool isSecondaryStale = drawSecondaryWindow && isStale(presentResults[1]);
     bool hasPresentError = false;
     for (VkResult presentResult : presentResults) {
@@ -236,8 +236,7 @@ bool EditorRenderer_old::render(Scene* scene, const time::FrameTime& frameTime) 
         _resizeSecondary();
     }
     if (isMainStale) {
-        _vkEngine.get().framebufferResized = false;
-        _vkEngine.get().resize();
+        _windowController.get().resize();
         _resize();
         if (scene != nullptr) {
             scene->resize();

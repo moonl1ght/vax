@@ -27,8 +27,6 @@ class VulkanEngine final {
 
     const std::vector<const char*> validationLayers = {"VK_LAYER_KHRONOS_validation"};
 
-    bool framebufferResized = false;
-
     vax::core::DeletionQueue deletionQueue;
 
     VkDebugUtilsMessengerEXT debugMessenger;
@@ -56,8 +54,6 @@ class VulkanEngine final {
     bool setup(VkSurfaceKHR mainWindowSurface) noexcept;
 
     void cleanup();
-
-    void resize();
 
   private:
     dev::Logger _logger = dev::Logger("VulkanEngine");

@@ -26,3 +26,24 @@ void BaseRenderer::_waitForFence() {
         UINT64_MAX
     );
 }
+
+bool BaseRenderer::_bindBindlessDescriptorSet(vax::rhi::CommandBuffer& commandBuffer) noexcept {
+    auto& pipelineManager = *_vkEngine.get().pipelineManager;
+    VkPipelineLayout pipelineLayout = pipelineManager.pipelineLayout();
+    auto bindlessDescriptorSet = pipelineManager.bindlessDescriptorSet();
+    if (pipelineLayout == VK_NULL_HANDLE || bindlessDescriptorSet == VK_NULL_HANDLE) {
+        _logger.error("Pipeline layout or descriptor sets are not created!");
+        return false;
+    }
+    vkCmdBindDescriptorSets(
+        commandBuffer.vkCommandBuffer,
+        VK_PIPELINE_BIND_POINT_GRAPHICS,
+        pipelineLayout,
+        BINDLESS_SET_INDEX,
+        1,
+        &bindlessDescriptorSet,
+        1,
+        nullptr
+    );
+    return true;
+}

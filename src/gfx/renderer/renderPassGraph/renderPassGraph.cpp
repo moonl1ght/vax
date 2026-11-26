@@ -2,17 +2,15 @@
 
 using namespace vax::gfx;
 
-void RenderPassGraph::run(RenderPassNode::RunPassInfo& runPassInfo) {
-    _rootNode->execute(runPassInfo);
-}
+void RenderPassGraph::run(RenderPassNode::RunPassInfo& runPassInfo) { _rootNode->execute(runPassInfo); }
 
-std::shared_ptr<RenderPassNode> RenderPassGraph::findNode(const std::string& name) const {
-    auto currentNode = _rootNode;
+RenderPassNode* RenderPassGraph::findNode(const std::string& name) const {
+    auto currentNode = _rootNode.get();
     while (currentNode) {
         if (currentNode->id() == name) {
-            return currentNode;
+            return currentNode->next.get();
         }
-        currentNode = currentNode->next;
+        currentNode = currentNode->next.get();
     }
     return nullptr;
 }

@@ -9,10 +9,10 @@ namespace vax::editor {
 
 class SimulationView final : public View {
   public:
-    SimulationView(vax::gfx::EditorRenderer_old& editorRenderer)
-        : View(editorRenderer) {
-        _simSettingsView = std::make_unique<SimSettingsView>(editorRenderer);
-        _simStatsView = std::make_unique<SimStatsView>(editorRenderer);
+    SimulationView(vax::gfx::EditorRenderer_old& editorRenderer, vax::gfx::EditorRenderer* editorRenderer_new)
+        : View(editorRenderer, editorRenderer_new) {
+        _simSettingsView = std::make_unique<SimSettingsView>(editorRenderer, editorRenderer_new);
+        _simStatsView = std::make_unique<SimStatsView>(editorRenderer, editorRenderer_new);
     }
 
     ~SimulationView() override = default;

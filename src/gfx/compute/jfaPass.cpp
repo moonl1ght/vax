@@ -6,21 +6,20 @@
 using namespace vax::gfx;
 using namespace vax::rhi;
 
-void JFAPass::setup(std::weak_ptr<vax::rhi::RenderDestination> inputRenderDestination) {
+void JFAPass::setup(vax::rhi::RenderDestination* inputRenderDestination) {
     _initPipeline = _pipelineManager.get().getPipeline("jfa_init");
     _stepPipeline = _pipelineManager.get().getPipeline("jfa_step");
 
     update(inputRenderDestination);
 }
 
-void JFAPass::update(std::weak_ptr<vax::rhi::RenderDestination> inputRenderDestination) {
-    _inputRenderDestination = std::move(inputRenderDestination);
-    if (auto inputRenderDestinationShared = _inputRenderDestination.lock()) {
-        auto& descriptorRegistry = _pipelineManager.get().descriptorRegistry();
-        _inputMaskTextures = &inputRenderDestinationShared->maskTextures();
-        _inputDepthTextures = inputRenderDestinationShared->depthTexture().get();
-        _createTextures(inputRenderDestinationShared->maskTextures(), inputRenderDestinationShared->depthTexture());
-    }
+void JFAPass::update(vax::rhi::RenderDestination* inputRenderDestination) {
+    _inputRenderDestination = inputRenderDestination;
+
+    auto& descriptorRegistry = _pipelineManager.get().descriptorRegistry();
+    _inputMaskTextures = &inputRenderDestination->maskTextures();
+    _inputDepthTextures = inputRenderDestination->depthTexture().get();
+    _createTextures(inputRenderDestination->maskTextures(), inputRenderDestination->depthTexture());
 }
 
 void JFAPass::_createTextures(

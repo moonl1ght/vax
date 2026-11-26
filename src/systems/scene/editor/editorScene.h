@@ -16,6 +16,8 @@ class EditorScene final {
     EditorScene& operator=(const EditorScene&) = delete;
     EditorScene& operator=(EditorScene&&) noexcept = delete;
 
+    void resize() noexcept;
+
   private:
     std::unique_ptr<Gizmo> _gizmo;
 };

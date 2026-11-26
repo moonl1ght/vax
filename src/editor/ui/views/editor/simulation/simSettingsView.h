@@ -7,8 +7,8 @@ namespace vax::editor {
 
 class SimSettingsView final : public View {
   public:
-    SimSettingsView(vax::gfx::EditorRenderer_old& editorRenderer)
-        : View(editorRenderer) {}
+    SimSettingsView(vax::gfx::EditorRenderer_old& editorRenderer, vax::gfx::EditorRenderer* editorRenderer_new)
+        : View(editorRenderer, editorRenderer_new) {}
 
     ~SimSettingsView() override = default;
 

@@ -16,16 +16,21 @@
 namespace vax::editor {
 class DebugView : public View {
   public:
-    DebugView(vax::gfx::EditorRenderer_old& editorRenderer)
-        : View(editorRenderer) {
-        _statsView = std::make_unique<StatsView>(editorRenderer);
-        _settingsView = std::make_unique<SettingsView>(editorRenderer);
-        _simulationView = std::make_unique<SimulationView>(editorRenderer);
+    DebugView(vax::gfx::EditorRenderer_old& editorRenderer, vax::gfx::EditorRenderer* editorRenderer_new)
+        : View(editorRenderer, editorRenderer_new) {
+        _statsView = std::make_unique<StatsView>(editorRenderer, editorRenderer_new);
+        _settingsView = std::make_unique<SettingsView>(editorRenderer, editorRenderer_new);
+        _simulationView = std::make_unique<SimulationView>(editorRenderer, editorRenderer_new);
         _frameProfiler = std::make_unique<dev::FrameProfiler>();
         _statsView->linkFrameProfiler(_frameProfiler.get());
     }
 
-    ~DebugView() override { _editorRenderer.get().unlinkFrameProfiler(_frameProfiler.get()); }
+    ~DebugView() override {
+        _editorRenderer.get().unlinkFrameProfiler(_frameProfiler.get());
+        if (_editorRenderer_new) {
+            _editorRenderer_new->unlinkFrameProfiler(_frameProfiler.get());
+        }
+    }
 
     void updateUI(const vax::time::FrameTime& frameTime) override {
         _showMenuBar();
@@ -42,6 +47,9 @@ class DebugView : public View {
 
     void viewWillShow() override {
         _editorRenderer.get().linkFrameProfiler(_frameProfiler.get());
+        if (_editorRenderer_new) {
+            _editorRenderer_new->linkFrameProfiler(_frameProfiler.get());
+        }
         View::viewWillShow();
     }
 

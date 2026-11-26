@@ -65,12 +65,9 @@ bool EditorView::draw(const vax::time::FrameTime& frameTime) {
     }
 
     _frameProfiler->beginFrameZone("draw");
-    bool renderResult = _editorRenderer.get().render(nullptr, frameTime);
-    if (!renderResult) {
-        _logger.error("Failed to render frame!");
-    }
+    _editorController->draw(*_editorRenderer_new, frameTime);
     _frameProfiler->endFrameZone("draw");
 
     _frameProfiler->endFrameZone("frame");
-    return renderResult;
+    return true;
 }

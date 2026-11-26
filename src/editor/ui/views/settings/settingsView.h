@@ -7,8 +7,8 @@ namespace vax::editor {
 
 class SettingsView final : public View {
   public:
-    SettingsView(vax::gfx::EditorRenderer_old& editorRenderer)
-        : View(editorRenderer) {}
+    SettingsView(vax::gfx::EditorRenderer_old& editorRenderer, vax::gfx::EditorRenderer* editorRenderer_new)
+        : View(editorRenderer, editorRenderer_new) {}
 
     ~SettingsView() override = default;
 

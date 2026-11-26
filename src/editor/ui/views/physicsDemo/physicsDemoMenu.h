@@ -6,7 +6,7 @@ namespace vax::editor {
 class PhysicsDemoMenuView final : public DebugView {
   public:
     PhysicsDemoMenuView(vax::gfx::EditorRenderer_old& editorRenderer)
-        : DebugView(editorRenderer) {}
+        : DebugView(editorRenderer, nullptr) {}
 
     ~PhysicsDemoMenuView() override = default;
 

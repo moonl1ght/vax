@@ -16,19 +16,17 @@ class RenderPass : public RenderPassNode {
         std::string_view id,
         vax::rhi::Device& device,
         std::string_view debugName,
-        std::weak_ptr<vax::rhi::RenderDestination> renderDestination,
-        std::weak_ptr<vax::rhi::RenderPassDescriptor> renderDescriptor
+        vax::rhi::RenderDestination* renderDestination,
+        vax::rhi::RenderPassDescriptor* renderDescriptor
     )
         : RenderPassNode(id)
         , _device(device)
         , _logger(dev::Logger(std::string(debugName)))
         , _debugName(debugName)
-        , _renderDestination(std::move(renderDestination))
-        , _renderDescriptor(std::move(renderDescriptor)) {
-        if (auto renderDescriptorShared = _renderDescriptor.lock()) {
-            _clearValues = renderDescriptorShared->colorClearValues;
-            _clearValues.push_back(VkClearValue{.depthStencil = {0.0f, 0}});
-        }
+        , _renderDestination(renderDestination)
+        , _renderDescriptor(renderDescriptor) {
+        _clearValues = renderDescriptor->colorClearValues;
+        _clearValues.push_back(VkClearValue{.depthStencil = {0.0f, 0}});
     };
 
     RenderPass(const RenderPass&) = delete;
@@ -46,7 +44,7 @@ class RenderPass : public RenderPassNode {
 
     void setRenderOffset(vax::math::Position2DFloat offset) { _offset = offset; }
 
-    void addStep(std::unique_ptr<RenderStep> step) { _steps.push_back(std::move(step)); }
+    void addStep(std::shared_ptr<RenderStep> step) { _steps.push_back(std::move(step)); }
 
     void setOutputImageIndex(size_t outputImageIndex) { _outputImageIndex = outputImageIndex; }
 
@@ -54,10 +52,10 @@ class RenderPass : public RenderPassNode {
     dev::Logger _logger;
     std::reference_wrapper<vax::rhi::Device> _device;
 
-    std::weak_ptr<vax::rhi::RenderDestination> _renderDestination;
-    std::weak_ptr<vax::rhi::RenderPassDescriptor> _renderDescriptor;
+    vax::rhi::RenderDestination* _renderDestination;
+    vax::rhi::RenderPassDescriptor* _renderDescriptor;
 
-    std::vector<std::unique_ptr<RenderStep>> _steps;
+    std::vector<std::shared_ptr<RenderStep>> _steps;
 
     std::string _debugName;
     std::vector<VkClearValue> _clearValues;
@@ -67,20 +65,10 @@ class RenderPass : public RenderPassNode {
     size_t _outputImageIndex = 0;
 
     template <typename Work> void _pass(RunPassInfo& runPassInfo, Work work) {
-        auto renderDestinationShared = _renderDestination.lock();
-        if (!renderDestinationShared) {
-            _logger.error("Render destination not found!");
-            return;
-        }
-        auto renderDescriptorShared = _renderDescriptor.lock();
-        if (!renderDescriptorShared) {
-            _logger.error("Render descriptor not found!");
-            return;
-        }
-        auto& framebuffers = renderDestinationShared->framebuffers;
+        auto& framebuffers = _renderDestination->framebuffers;
         VkRenderPassBeginInfo renderPassInfo{
             .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-            .renderPass = renderDescriptorShared->getVkRenderPass(),
+            .renderPass = _renderDescriptor->getVkRenderPass(),
             .framebuffer =
                 framebuffers[_renderToSwapchain ? runPassInfo.imageIndices[_outputImageIndex] : runPassInfo.frameIndex],
             .renderArea = _renderArea,
@@ -91,7 +79,7 @@ class RenderPass : public RenderPassNode {
             VkDebugUtilsObjectNameInfoEXT nameInfo{
                 .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
                 .objectType = VK_OBJECT_TYPE_RENDER_PASS,
-                .objectHandle = reinterpret_cast<size_t>(renderDescriptorShared->getVkRenderPass()),
+                .objectHandle = reinterpret_cast<size_t>(_renderDescriptor->getVkRenderPass()),
                 .pObjectName = _debugName.data(),
             };
             vax::rhi::pfnSetDebugUtilsObjectNameEXT(_device.get().vkDevice(), &nameInfo);

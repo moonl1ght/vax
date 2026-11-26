@@ -6,7 +6,7 @@ namespace vax::editor {
 class MainView final : public DebugView {
   public:
     MainView(vax::gfx::EditorRenderer_old& editorRenderer)
-        : DebugView(editorRenderer) {};
+        : DebugView(editorRenderer, nullptr) {};
 
     ~MainView() override = default;
 

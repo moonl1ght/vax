@@ -43,14 +43,6 @@ class EditorRenderer_old final : public BaseRenderer {
 
     bool isLoaded() const noexcept { return _isLoaded; }
 
-    void linkFrameProfiler(dev::FrameProfiler* frameProfiler) noexcept { _frameProfiler = frameProfiler; }
-
-    void unlinkFrameProfiler(dev::FrameProfiler* frameProfiler) noexcept {
-        if (_frameProfiler == frameProfiler) {
-            _frameProfiler = nullptr;
-        }
-    }
-
     RenderPassGraphManager* renderPassGraphManager() { return _renderPassGraphManager.get(); }
 
   private:
@@ -73,8 +65,6 @@ class EditorRenderer_old final : public BaseRenderer {
     std::reference_wrapper<editor::WindowController> _windowController;
 
     std::reference_wrapper<editor::UIEngine> _uiEngine;
-
-    dev::FrameProfiler* _frameProfiler = nullptr;
 
     std::unique_ptr<vax::gfx::RenderPassGraphManager> _renderPassGraphManager;
 
