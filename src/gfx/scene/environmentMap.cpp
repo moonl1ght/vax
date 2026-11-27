@@ -3,14 +3,19 @@
 using namespace vax::gfx;
 using namespace vax;
 
+void EnvironmentMap::cleanup() noexcept {
+    _descriptorRegistry.get().releaseStorageBuffer(_bufferResource->first);
+    _bufferResource = nullptr;
+}
+
 bool EnvironmentMap::load(
     const Descriptor& descriptor,
-    rhi::ResourceManager& resourceManager,
+    const rhi::SamplerManager& samplerManager,
+    rhi::TextureLibrary& textureLibrary,
     rhi::TextureLoader& textureLoader,
     vax::rhi::TextureGpuUploader& textureGpuUploader
 ) noexcept {
-    auto cubeMapSampler =
-        resourceManager.samplerManager().getGlobalSampler(rhi::SamplerManager::GlobalSampler::CubeMapSampler);
+    auto cubeMapSampler = samplerManager.getGlobalSampler(rhi::SamplerManager::GlobalSampler::CubeMapSampler);
     if (!cubeMapSampler) {
         _logger.error("Cube map sampler is missing!");
         return false;
@@ -41,7 +46,7 @@ bool EnvironmentMap::load(
             _environmentMapData.texBRDFLUT = texture->sampledShaderHandle().index;
             break;
         }
-        resourceManager.textureLibrary().addTexture(std::move(texture));
+        textureLibrary.addTexture(std::move(texture));
     }
     VkDeviceSize bufferSize = sizeof(EnvironmentMapData);
     auto allocation = EnvironmentMapBuffer::allocate(
@@ -56,14 +61,19 @@ bool EnvironmentMap::load(
         _logger.error("Failed to allocate environment map buffer!");
         return false;
     }
-    _buffer = std::make_unique<EnvironmentMapBuffer>(std::move(*allocation));
-    _buffer->map();
-    auto mappedMemory = _buffer->mappedMemory();
+    allocation->map();
+    auto mappedMemory = allocation->mappedMemory();
     if (!mappedMemory.has_value()) {
         _logger.error("Failed to map environment map buffer!");
         return false;
     }
     EnvironmentMapData* environmentMapDataPtr = mappedMemory.value();
     *environmentMapDataPtr = _environmentMapData;
+    auto handle = _descriptorRegistry.get().registerStorageBuffer(*allocation);
+    if (!handle.has_value()) {
+        _logger.error("Failed to register environment map buffer!");
+        return false;
+    }
+    _bufferResource = std::make_unique<EnvironmentMapBufferResoruce>(*handle, std::move(*allocation));
     return true;
 }

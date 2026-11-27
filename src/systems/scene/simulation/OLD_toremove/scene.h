@@ -47,7 +47,6 @@ class Scene final : public app::InputController::Observer {
         editor::WindowController& windowController,
         std::unique_ptr<vax::ecs::World> gizmoWorld,
         std::unique_ptr<vax::ecs::World> backgroundWorld,
-        std::unique_ptr<vax::gfx::EnvironmentMap> environmentMap,
         std::unique_ptr<vax::gfx::SceneComposer> sceneComposer,
         vax::rhi::ResourceManager& resourceManager
     )
@@ -55,14 +54,12 @@ class Scene final : public app::InputController::Observer {
         , _windowController(windowController)
         , _gizmoWorld(std::move(gizmoWorld))
         , _backgroundWorld(std::move(backgroundWorld))
-        , _environmentMap(std::move(environmentMap))
         , _sceneComposer(std::move(sceneComposer))
         , _resourceManager(resourceManager) {
         _indirectDrawController = std::make_unique<IndirectDrawController>(*_vkEngine.get().device);
     };
 
     ~Scene() {
-        _releaseResources();
         if (_inputController) {
             _inputController->removeObserver(this);
         }
@@ -80,8 +77,6 @@ class Scene final : public app::InputController::Observer {
     void prepareForDraw(vax::gfx::RenderCallContext renderCallContext);
 
     void update(vax::gfx::SceneUpdateContext sceneUpdateContext);
-
-    void registerResources() noexcept;
 
     void beginDrawing(vax::rhi::CommandBuffer& commandBuffer, uint32_t frameIndex);
 
@@ -113,10 +108,6 @@ class Scene final : public app::InputController::Observer {
 
     vax::gfx::Camera& agentCamera() { return _agentCamera; }
 
-    StructuredBufferShaderHandle instanceBufferHandle(uint32_t frameIndex) const {
-        return _instanceBufferHandles[frameIndex];
-    }
-
     void setWorld(std::shared_ptr<vax::ecs::World> world) { _world = std::move(world); }
 
   private:
@@ -127,7 +118,6 @@ class Scene final : public app::InputController::Observer {
     std::reference_wrapper<editor::WindowController> _windowController;
 
     std::unique_ptr<IndirectDrawController> _indirectDrawController;
-    std::unique_ptr<vax::gfx::EnvironmentMap> _environmentMap;
     std::unique_ptr<vax::gfx::SceneComposer> _sceneComposer;
     std::unique_ptr<vax::ecs::World> _gizmoWorld;
     std::unique_ptr<vax::ecs::World> _backgroundWorld;
@@ -136,15 +126,6 @@ class Scene final : public app::InputController::Observer {
 
     std::vector<vax::rhi::AnyBuffer*> _sceneUniformBuffers;
     std::vector<vax::rhi::AnyBuffer*> _lightsUniformBuffer;
-
-    StructuredBufferShaderHandle _vertexBufferHandle;
-    StructuredBufferShaderHandle _materialBufferHandle;
-    StructuredBufferShaderHandle _environmentMapBufferHandle;
-    std::array<StructuredBufferShaderHandle, vax::rhi::MAX_FRAMES_IN_FLIGHT> _instanceBufferHandles;
-    std::vector<SampledImageShaderHandle> _textureHandles;
-    bool _resourcesRegistered = false;
-
-    void _releaseResources() noexcept;
 
     void _writeUniformDescriptorSets() noexcept;
 

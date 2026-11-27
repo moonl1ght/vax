@@ -56,7 +56,6 @@ std::unique_ptr<Scene> SceneLoader::_initScene(ecs::World& world, const scene::S
     std::unique_ptr<ecs::World> backgroundWorld = std::make_unique<ecs::World>();
     auto maxDrawableInstances = vax::rhi::MAX_DRAWABLE_INSTANCES;
     _resourceManager.get().load(maxDrawableInstances);
-    auto environmentMap = std::make_unique<EnvironmentMap>(*_vkEngine.get().device);
     auto assetsLibrary = std::make_unique<AssetsLibrary>(
         *_vkEngine.get().device,
         maxDrawableInstances,
@@ -66,7 +65,7 @@ std::unique_ptr<Scene> SceneLoader::_initScene(ecs::World& world, const scene::S
     );
 
     auto textureLoader = rhi::TextureLoader(*_vkEngine.get().device, _pipelineManager.get().descriptorRegistry());
-    environmentMap->load(
+    _resourceManager.get().environmentMap().load(
         {
         .textures =
             {
@@ -75,7 +74,8 @@ std::unique_ptr<Scene> SceneLoader::_initScene(ecs::World& world, const scene::S
             {gfx::EnvironmentMap::TextureType::EnvMap, RES_PATH("brdf/prefilter.ktx")},
             },
         },
-        _resourceManager.get(),
+        _resourceManager.get().samplerManager(),
+        _resourceManager.get().textureLibrary(),
         textureLoader,
         *_textureGpuUploader
     );
@@ -187,7 +187,6 @@ std::unique_ptr<Scene> SceneLoader::_initScene(ecs::World& world, const scene::S
         _windowController.get(),
         std::move(gizmoWorld),
         std::move(backgroundWorld),
-        std::move(environmentMap),
         std::move(sceneComposer),
         _resourceManager.get()
     );

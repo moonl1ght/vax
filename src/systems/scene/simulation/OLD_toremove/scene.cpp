@@ -51,7 +51,7 @@ void Scene::load(const scene::SceneConfig& descriptor) {
 
     _indirectDrawController->setup(10000, _vkEngine.get().pipelineManager->descriptorRegistry());
 
-    registerResources();
+    _writeUniformDescriptorSets();
 
     auto sunCamera = Camera();
     sunCamera.setPosition(glm::vec3(1.0f, 5.0f, 3.0f));
@@ -144,38 +144,6 @@ void Scene::resize() {
     _sunLight.camera().setViewPortSize(vax::math::SizeUI(swapchainExtent));
 }
 
-void Scene::registerResources() noexcept {
-    auto& registry = _vkEngine.get().pipelineManager->descriptorRegistry();
-
-    if (_resourcesRegistered) {
-        _releaseResources();
-    }
-
-    auto vertices = registry.registerStorageBuffer(_resourceManager.get().meshManager().globalVertexBuffer(0));
-    auto materials = registry.registerStorageBuffer(_resourceManager.get().materialManager().materialBuffer());
-    auto environmentMaps = registry.registerStorageBuffer(_environmentMap->environmentMapBuffer());
-    if (!vertices || !materials || !environmentMaps) {
-        _logger.error("Failed to register scene storage buffers!");
-        return;
-    }
-    _vertexBufferHandle = *vertices;
-    _materialBufferHandle = *materials;
-    _environmentMapBufferHandle = *environmentMaps;
-
-    for (uint32_t i = 0; i < vax::rhi::MAX_FRAMES_IN_FLIGHT; ++i) {
-        auto instances = registry.registerStorageBuffer(_resourceManager.get().ssboManager().instanceBuffer(i));
-        if (!instances) {
-            _logger.error("Failed to register instance buffer ", i);
-            return;
-        }
-        _instanceBufferHandles[i] = *instances;
-    }
-
-    _writeUniformDescriptorSets();
-
-    _resourcesRegistered = true;
-}
-
 void Scene::_writeUniformDescriptorSets() noexcept {
     auto& pipelineManager = *_vkEngine.get().pipelineManager;
     for (uint32_t i = 0; i < vax::rhi::MAX_FRAMES_IN_FLIGHT; ++i) {
@@ -220,20 +188,6 @@ uint32_t Scene::_frameUniformStride() const noexcept {
     return static_cast<uint32_t>(_vkEngine.get().device->minUniformBufferOffsetAlignment<UniformBufferObject>());
 }
 
-void Scene::_releaseResources() noexcept {
-    if (!_resourcesRegistered) {
-        return;
-    }
-    auto& registry = _vkEngine.get().pipelineManager->descriptorRegistry();
-    registry.releaseStorageBuffer(_vertexBufferHandle);
-    registry.releaseStorageBuffer(_materialBufferHandle);
-    registry.releaseStorageBuffer(_environmentMapBufferHandle);
-    for (auto handle : _instanceBufferHandles) {
-        registry.releaseStorageBuffer(handle);
-    }
-    _resourcesRegistered = false;
-}
-
 void Scene::_bindIndexBuffer(const DrawContext& drawContext) const noexcept {
     vkCmdBindIndexBuffer(
         drawContext.commandBuffer.vkCommandBuffer,
@@ -268,11 +222,11 @@ void Scene::draw(const DrawContext& drawContext, FrameUniformSlot cameraSlot) {
     _bindFrameUniformSlot(drawContext, cameraSlot);
 
     PBRPushConstants pushConstants{
-        .vertices = _vertexBufferHandle,
-        .instances = _instanceBufferHandles[drawContext.currentFrame],
+        .vertices = _resourceManager.get().meshManager().globalVertexBuffer(0).first,
+        .instances = _resourceManager.get().ssboManager().instanceBuffer(drawContext.currentFrame).first,
         .drawData = _indirectDrawController->perDrawDataHandle(drawContext.currentFrame),
-        .materials = _materialBufferHandle,
-        .environmentMaps = _environmentMapBufferHandle,
+        .materials = _resourceManager.get().materialManager().materialBuffer().first,
+        .environmentMaps = _resourceManager.get().environmentMap().environmentMapBufferResource().first,
         .drawIndexOffset = drawRange->start,
     };
     vkCmdPushConstants(
@@ -295,8 +249,8 @@ void Scene::drawShadow(const DrawContext& drawContext) {
     _bindFrameUniformSlot(drawContext, FrameUniformSlot::SUN_LIGHT);
 
     BasePushConstants pushConstants{
-        .vertices = _vertexBufferHandle,
-        .instances = _instanceBufferHandles[drawContext.currentFrame],
+        .vertices = _resourceManager.get().meshManager().globalVertexBuffer(0).first,
+        .instances = _resourceManager.get().ssboManager().instanceBuffer(drawContext.currentFrame).first,
         .drawData = _indirectDrawController->perDrawDataHandle(drawContext.currentFrame),
         .drawIndexOffset = drawRange->start,
     };
@@ -325,10 +279,10 @@ void Scene::drawGizmo(const DrawContext& drawContext) {
     _bindIndexBuffer(drawContext);
 
     SimplePushConstants pushConstants{
-        .vertices = _vertexBufferHandle,
-        .instances = _instanceBufferHandles[drawContext.currentFrame],
+        .vertices = _resourceManager.get().meshManager().globalVertexBuffer(0).first,
+        .instances = _resourceManager.get().ssboManager().instanceBuffer(drawContext.currentFrame).first,
         .drawData = _indirectDrawController->perDrawDataHandle(drawContext.currentFrame),
-        .materials = _materialBufferHandle,
+        .materials = _resourceManager.get().materialManager().materialBuffer().first,
         .drawIndexOffset = drawRange->start,
     };
     vkCmdPushConstants(

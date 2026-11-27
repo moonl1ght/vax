@@ -6,6 +6,7 @@
 #include "renderPassGraphDescriptor.h"
 #include "renderStep.h"
 #include "renderTarget.h"
+#include "uiEngine.h"
 
 namespace vax::gfx {
 class RenderPassGraphBuilder final {

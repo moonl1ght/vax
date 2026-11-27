@@ -47,13 +47,7 @@ std::optional<Buffer<T>> Buffer<T>::allocate(
 }
 
 template <typename T> void Buffer<T>::cleanup() {
-    if (isDetached())
-        _destroy();
-}
-
-template <typename T> void Buffer<T>::_detach() {
-    _isDetached = true;
-    _id = NullId;
+    _destroy();
 }
 
 template <typename T> void Buffer<T>::_destroy() {
@@ -65,7 +59,6 @@ template <typename T> void Buffer<T>::_destroy() {
     }
     _mappedMemory = nullptr;
     _isMapped = false;
-    _isDetached = true;
     _id = NullId;
 }
 

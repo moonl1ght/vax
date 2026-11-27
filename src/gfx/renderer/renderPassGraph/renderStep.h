@@ -18,9 +18,9 @@ class RenderStep final {
     ~RenderStep() = default;
 
     RenderStep(const RenderStep& other) = delete;
-    RenderStep(RenderStep&& other) noexcept = default;
+    RenderStep(RenderStep&& other) noexcept = delete;
     RenderStep& operator=(const RenderStep& other) = delete;
-    RenderStep& operator=(RenderStep&& other) noexcept = default;
+    RenderStep& operator=(RenderStep&& other) noexcept = delete;
 
     void setDrawWork(DrawWork drawWork) { _drawWork = drawWork; }
 

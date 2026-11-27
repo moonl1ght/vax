@@ -1,6 +1,7 @@
 #pragma once
 
 #include "buffer.h"
+#include "descriptorRegistry.h"
 #include "device.h"
 #include "logger.h"
 #include "pbr.h"
@@ -11,11 +12,13 @@
 
 namespace vax::rhi {
 using MaterialBuffer = Buffer<PBRMaterial>;
+using MaterialBufferResource = std::pair<StructuredBufferShaderHandle, MaterialBuffer>;
 
 class MaterialManager final {
   public:
-    explicit MaterialManager(const Device& device)
-        : _device(device) {};
+    explicit MaterialManager(const Device& device, rhi::DescriptorRegistry& descriptorRegistry)
+        : _device(device)
+        , _descriptorRegistry(descriptorRegistry) {};
 
     ~MaterialManager() { cleanup(); }
 
@@ -24,7 +27,7 @@ class MaterialManager final {
     MaterialManager& operator=(const MaterialManager& other) = delete;
     MaterialManager& operator=(MaterialManager&& other) noexcept = delete;
 
-    bool setup();
+    bool load() noexcept;
 
     void cleanup();
 
@@ -36,13 +39,14 @@ class MaterialManager final {
 
     void deleteMaterial(MaterialId id);
 
-    const MaterialBuffer& materialBuffer() const { return *_buffer; }
+    const MaterialBufferResource& materialBuffer() const { return *_buffer; }
 
   private:
     dev::Logger _logger = dev::Logger("MaterialManager");
     std::reference_wrapper<const Device> _device;
+    std::reference_wrapper<rhi::DescriptorRegistry> _descriptorRegistry;
     // TODO: change to vector of buffers to handle material overflow
-    std::unique_ptr<MaterialBuffer> _buffer = nullptr;
+    std::unique_ptr<MaterialBufferResource> _buffer = nullptr;
     std::vector<PBRMaterial> _materials;
     std::vector<MaterialId> _materialsToDelete;
 

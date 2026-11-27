@@ -4,23 +4,23 @@
 using namespace vax::gfx;
 
 void SceneDrawData::_bindIndexBuffer(const DrawContext& drawContext) const noexcept {
-    vkCmdBindIndexBuffer(drawContext.commandBuffer.vkCommandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdBindIndexBuffer(drawContext.commandBuffer.vkCommandBuffer, _indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 }
 
 void SceneDrawData::_bindFrameUniformSlot(const DrawContext& drawContext, FrameUniformSlot slot) const noexcept {
-    uint32_t dynamicOffset = static_cast<uint32_t>(slot) * frameUniformStride;
+    uint32_t dynamicOffset = static_cast<uint32_t>(slot) * _frameUniformStride;
     vkCmdBindDescriptorSets(
         drawContext.commandBuffer.vkCommandBuffer,
         VK_PIPELINE_BIND_POINT_GRAPHICS,
-        pipelineLayout,
+        _pipelineLayout,
         UBO_SET_INDEX,
         1,
-        &uboDescriptorSet,
+        &_uboDescriptorSet,
         1,
         &dynamicOffset
     );
 }
 
 void SceneDrawData::_pushConstants(const DrawContext& drawContext, const void* data, uint32_t size) const noexcept {
-    vkCmdPushConstants(drawContext.commandBuffer.vkCommandBuffer, pipelineLayout, VK_SHADER_STAGE_ALL, 0, size, data);
+    vkCmdPushConstants(drawContext.commandBuffer.vkCommandBuffer, _pipelineLayout, VK_SHADER_STAGE_ALL, 0, size, data);
 }

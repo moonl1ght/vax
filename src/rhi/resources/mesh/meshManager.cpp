@@ -8,7 +8,7 @@
 
 using namespace vax::rhi;
 
-void MeshManager::loadGlobalBuffers(size_t size) {
+bool MeshManager::load(size_t size) noexcept {
     VkDeviceSize targetSizeInBytes = size * 1024ULL * 1024;
     VkDeviceSize vertexStride = sizeof(Vertex);
 
@@ -26,9 +26,14 @@ void MeshManager::loadGlobalBuffers(size_t size) {
     );
     if (!buffer) {
         _logger.error("Failed to allocate global vertex buffer");
-        return;
+        return false;
     }
-    _globalVertexBuffers.push_back(std::make_unique<VertexBuffer>(std::move(*buffer)));
+    auto vertexBufferHandle = _descriptorRegistry.get().registerStorageBuffer(*buffer);
+    if (!vertexBufferHandle) {
+        _logger.error("Failed to register global vertex buffer");
+        return false;
+    }
+    _globalVertexBuffers.push_back(std::make_unique<VertexBufferResource>(*vertexBufferHandle, std::move(*buffer)));
     auto indexBuffer = IndexBuffer::allocate(
         _device.get(),
         "global_index_buffer",
@@ -39,7 +44,7 @@ void MeshManager::loadGlobalBuffers(size_t size) {
     );
     if (!indexBuffer) {
         _logger.error("Failed to allocate global index buffer");
-        return;
+        return false;
     }
     _globalIndexBuffers.push_back(std::make_unique<IndexBuffer>(std::move(*indexBuffer)));
     auto vertexBufferDescriptor = BufferDescriptor{
@@ -56,9 +61,13 @@ void MeshManager::loadGlobalBuffers(size_t size) {
     };
     _vertexBufferDescriptors.push_back(vertexBufferDescriptor);
     _indexBufferDescriptors.push_back(indexBufferDescriptor);
+    return true;
 }
 
-void MeshManager::fullCleanup() {
+void MeshManager::cleanup() noexcept {
+    for (auto& globalVertexBuffer : _globalVertexBuffers) {
+        _descriptorRegistry.get().releaseStorageBuffer(globalVertexBuffer->first);
+    }
     _pool.clear();
     _globalVertexBuffers.clear();
     _globalIndexBuffers.clear();

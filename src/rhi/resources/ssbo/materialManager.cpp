@@ -7,11 +7,12 @@ using namespace vax::rhi;
 void MaterialManager::cleanup() {
     _materials.clear();
     if (_buffer) {
-        _buffer->cleanup();
+        _descriptorRegistry.get().releaseStorageBuffer(_buffer->first);
+        _buffer->second.cleanup();
     }
 }
 
-bool MaterialManager::setup() {
+bool MaterialManager::load() noexcept {
     VkDeviceSize bufferSize = sizeof(PBRMaterial) * vax::rhi::MAX_MATERIALS;
     auto allocation = MaterialBuffer::allocate(
         _device.get(),
@@ -23,8 +24,13 @@ bool MaterialManager::setup() {
     );
     if (!allocation.has_value())
         return false;
-    _buffer = std::make_unique<MaterialBuffer>(std::move(*allocation));
-    _buffer->map();
+    allocation->map();
+    auto bufferHandle = _descriptorRegistry.get().registerStorageBuffer(*allocation);
+    if (!bufferHandle) {
+        _logger.error("Failed to register material buffer");
+        return false;
+    }
+    _buffer = std::make_unique<MaterialBufferResource>(*bufferHandle, std::move(*allocation));
     _materials.reserve(vax::rhi::MAX_MATERIALS);
     _materialsToDelete.reserve(vax::rhi::MAX_MATERIALS);
     return true;
@@ -33,7 +39,7 @@ bool MaterialManager::setup() {
 bool MaterialManager::_updateBuffer(MaterialId id, PBRMaterial material) {
     if (!_buffer)
         return false;
-    auto mappedMemory = _buffer->mappedMemory();
+    auto mappedMemory = _buffer->second.mappedMemory();
     if (!mappedMemory.has_value())
         return false;
     PBRMaterial* materialPtr = static_cast<PBRMaterial*>(*mappedMemory);
@@ -48,7 +54,7 @@ std::vector<MaterialId> MaterialManager::insertMaterials(std::vector<PBRMaterial
         return {};
     if (!_buffer)
         return {};
-    auto mappedMemory = _buffer->mappedMemory();
+    auto mappedMemory = _buffer->second.mappedMemory();
     if (!mappedMemory.has_value())
         return {};
     PBRMaterial* materialPtr = mappedMemory.value();

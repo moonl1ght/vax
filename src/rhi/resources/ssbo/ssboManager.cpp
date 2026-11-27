@@ -4,8 +4,11 @@ using namespace vax::rhi;
 
 void SSBOManager::cleanup() {
     for (auto& buf : _buffers) {
-        if (buf)
-            buf->cleanup();
+        if (buf) {
+            _descriptorRegistry.get().releaseStorageBuffer(buf->first);
+            buf->second.cleanup();
+            buf = nullptr;
+        }
     }
 }
 
@@ -22,8 +25,11 @@ bool SSBOManager::setup(uint32_t maxInstances) {
         );
         if (!allocation.has_value())
             return false;
-        _buffers[i] = std::make_unique<InstanceBuffer>(std::move(*allocation));
-        _buffers[i]->map();
+        allocation->map();
+        auto handle = _descriptorRegistry.get().registerStorageBuffer(*allocation);
+        if (!handle.has_value())
+            return false;
+        _buffers[i] = std::make_unique<InstanceBufferResource>(*handle, std::move(*allocation));
     }
     return true;
 }
@@ -34,7 +40,7 @@ bool SSBOManager::updateInstance(uint32_t frameIndex, uint32_t index, const Inst
     auto& buf = _buffers[frameIndex];
     if (!buf)
         return false;
-    auto mappedMemory = buf->mappedMemory();
+    auto mappedMemory = buf->second.mappedMemory();
     if (!mappedMemory.has_value())
         return false;
     InstanceData* instancePtr = mappedMemory.value();

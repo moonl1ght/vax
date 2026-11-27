@@ -22,13 +22,34 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildUIOnlyGraph(const 
     uiPass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = swapchain->swapchainExtent});
     auto uiStep = _renderSteps["ui"];
     uiPass->addStep(uiStep);
-    return std::make_unique<RenderPassGraph>(std::move(uiPass), _uiEngine.get());
+    return std::make_unique<RenderPassGraph>(std::move(uiPass));
 }
 
 std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildEditorSceneGraph(const gfx::RenderTarget& renderTarget) {
     auto swapchain = _windowController.get().getWindow(0)->vkWindow()->swapchain();
 
-    return nullptr;
+    auto mainPass = std::make_unique<RenderPass>(
+        "main_pass",
+        _device.get(),
+        "main_pass",
+        renderTarget.getRenderDestination("main"),
+        renderTarget.getRenderPassDescriptor("main")
+    );
+    mainPass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = swapchain->swapchainExtent});
+
+    auto finalblendPass = std::make_unique<RenderPass>(
+        "finalblend_pass",
+        _device.get(),
+        "finalblend_pass",
+        renderTarget.getRenderDestination("swapchain"),
+        renderTarget.getRenderPassDescriptor("swapchain")
+    );
+    finalblendPass->setRenderToSwapchain(true);
+    finalblendPass->setRenderArea(VkRect2D{.offset = {0, 0}, .extent = swapchain->swapchainExtent});
+    auto finalblendStep = _renderSteps["finalblend"];
+    finalblendPass->addStep(finalblendStep);
+
+    return std::make_unique<RenderPassGraph>(std::move(finalblendPass));
 }
 
 std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildUIOnlyGraph(
@@ -51,7 +72,7 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildUIOnlyGraph(
         uiEngine.render(runPassInfo.commandBuffer.vkCommandBuffer);
     });
     uiPass->addStep(std::move(uiStep));
-    return std::make_unique<RenderPassGraph>(std::move(uiPass), _uiEngine.get());
+    return std::make_unique<RenderPassGraph>(std::move(uiPass));
 }
 
 namespace {
@@ -173,7 +194,7 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
             .inputMask = frameTextures.mainMask,
             .inputDepth = frameTextures.mainDepth,
             .inputJFATexture = jfa->outputImage(runPassInfo),
-            .instances = runPassInfo.scene->instanceBufferHandle(runPassInfo.frameIndex),
+            .instances = resourceManager.ssboManager().instanceBuffer(runPassInfo.frameIndex).first,
         };
         pushConstants(runPassInfo.commandBuffer, pipelineManager, finalBlendPushConstants);
         runPassInfo.scene->drawBackground(drawContext);
@@ -244,7 +265,7 @@ std::unique_ptr<RenderPassGraph> RenderPassGraphBuilder::buildSceneGraph(
         shadowPass->next = std::move(mainPass);
     }
 
-    return std::make_unique<RenderPassGraph>(std::move(shadowPass), _uiEngine.get());
+    return std::make_unique<RenderPassGraph>(std::move(shadowPass));
 }
 
 void RenderPassGraphBuilder::prebuild(const gfx::RenderTarget& renderTarget) {
@@ -273,7 +294,7 @@ void RenderPassGraphBuilder::prebuild(const gfx::RenderTarget& renderTarget) {
             .inputMask = info.frameTextures.mainMask,
             .inputDepth = info.frameTextures.mainDepth,
             .inputJFATexture = {},
-            .instances = info.sceneDrawData ? info.sceneDrawData->handles.instances : StructuredBufferShaderHandle{},
+            .instances = info.sceneDrawData ? info.sceneDrawData->handles().instances : StructuredBufferShaderHandle{},
         };
         pushConstants(info.commandBuffer, pipelineManager, push);
         vkCmdDraw(info.commandBuffer.vkCommandBuffer, 3, 1, 0, 0);

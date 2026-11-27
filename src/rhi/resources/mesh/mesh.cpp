@@ -63,13 +63,12 @@ template <typename VertexType> bool vax::rhi::MeshObject<VertexType>::flushToGPU
         return false;
     }
 
-
     uint32_t vertexBufferSize = _globalMemoryVertexCursor->count * sizeof(VertexType);
     uint32_t vertexOffset = _globalMemoryVertexCursor->offset * sizeof(VertexType);
     uint32_t indexBufferSize = _globalMemoryIndexCursor->count * sizeof(uint32_t);
     uint32_t indexOffset = _globalMemoryIndexCursor->offset * sizeof(uint32_t);
 
-    _meshManager.get()._globalVertexBuffers[_globalMemoryVertexCursor->bufferIndex]->fill(
+    _meshManager.get()._globalVertexBuffers[_globalMemoryVertexCursor->bufferIndex]->second.fill(
         static_cast<const void*>(_vertices.data()), vertexBufferSize, vertexOffset
     );
     _meshManager.get()._globalIndexBuffers[_globalMemoryIndexCursor->bufferIndex]->fill(

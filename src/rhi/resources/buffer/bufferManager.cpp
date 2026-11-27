@@ -2,12 +2,7 @@
 
 using namespace vax::rhi;
 
-void BufferManager::fullCleanup() {
-    for (auto& [id, buffer] : _pool) {
-        buffer._destroy();
-    }
-    _pool.clear();
-}
+void BufferManager::fullCleanup() { _pool.clear(); }
 
 std::optional<BufferManager::BufferResource> BufferManager::allocateBuffer(
     std::string name,
@@ -26,7 +21,6 @@ std::optional<BufferManager::BufferResource> BufferManager::allocateBuffer(
     if (!inserted) {
         return std::nullopt;
     }
-    buffer._isDetached = false;
     return std::make_pair(it->first, &it->second);
 }
 
@@ -44,13 +38,4 @@ bool BufferManager::deleteBuffer(BufferHandle handle) {
     it->second._destroy();
     _pool.erase(it);
     return true;
-}
-
-std::optional<AnyBuffer> BufferManager::detach(BufferHandle handle) {
-    auto it = _pool.find(handle.id());
-    if (it == _pool.end())
-        return std::nullopt;
-    it->second._detach();
-    _pool.erase(it);
-    return std::move(it->second);
 }

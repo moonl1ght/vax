@@ -1,12 +1,12 @@
 #pragma once
 
 #include "bufferManager.h"
+#include "environmentMap.h"
 #include "logger.h"
 #include "materialManager.h"
 #include "meshManager.h"
 #include "samplerManager.h"
 #include "ssboManager.h"
-#include "textureFactory.h"
 #include "textureLibrary.h"
 #include <cstdint>
 
@@ -15,11 +15,12 @@ class ResourceManager final {
   public:
     explicit ResourceManager(const vax::rhi::Device& device, DescriptorRegistry& descriptorRegistry)
         : _bufferManager(device)
-        , _meshManager(device)
+        , _meshManager(device, descriptorRegistry)
         , _samplerManager(device, descriptorRegistry)
         , _textureLibrary()
-        , _materialManager(device)
-        , _ssboManager(device) {};
+        , _materialManager(device, descriptorRegistry)
+        , _ssboManager(device, descriptorRegistry)
+        , _environmentMap(device, descriptorRegistry) {};
 
     ResourceManager(const ResourceManager& other) = delete;
     ResourceManager(ResourceManager&& other) noexcept = delete;
@@ -31,6 +32,8 @@ class ResourceManager final {
     bool setup() noexcept;
 
     bool load(uint32_t maxInstances) noexcept;
+
+    void cleanupEditorSceneResources() noexcept;
 
     SamplerManager& samplerManager() { return _samplerManager; }
 
@@ -48,6 +51,10 @@ class ResourceManager final {
 
     SSBOManager& ssboManager() { return _ssboManager; }
 
+    gfx::EnvironmentMap& environmentMap() noexcept { return _environmentMap; }
+
+    const gfx::EnvironmentMap& environmentMap() const noexcept { return _environmentMap; }
+
   private:
     dev::Logger _logger = dev::Logger("ResourceManager");
 
@@ -57,6 +64,7 @@ class ResourceManager final {
     TextureLibrary _textureLibrary;
     MaterialManager _materialManager;
     SSBOManager _ssboManager;
+    gfx::EnvironmentMap _environmentMap;
 
     void _cleanup();
 };

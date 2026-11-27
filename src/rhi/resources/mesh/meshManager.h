@@ -1,6 +1,7 @@
 #pragma once
 
 #include "buffer.h"
+#include "descriptorRegistry.h"
 #include "device.h"
 #include "mesh.h"
 #include "resourceHandle.h"
@@ -10,15 +11,17 @@ namespace vax::rhi {
 class MeshManager final {
   public:
     using VertexBuffer = Buffer<Vertex>;
+    using VertexBufferResource = std::pair<StructuredBufferShaderHandle, VertexBuffer>;
     using IndexBuffer = Buffer<uint32_t>;
     using MeshResource = std::pair<MeshHandle, Mesh*>;
 
     template <typename VertexType> friend class MeshObject;
 
-    explicit MeshManager(const Device& device)
-        : _device(device) {};
+    explicit MeshManager(const Device& device, rhi::DescriptorRegistry& descriptorRegistry)
+        : _device(device)
+        , _descriptorRegistry(descriptorRegistry) {};
 
-    ~MeshManager() { fullCleanup(); }
+    ~MeshManager() { cleanup(); }
 
     MeshManager(const MeshManager& other) = delete;
     MeshManager(MeshManager&& other) noexcept = delete;
@@ -26,9 +29,9 @@ class MeshManager final {
     MeshManager& operator=(MeshManager&& other) noexcept = delete;
 
     /// size in MB
-    void loadGlobalBuffers(size_t size);
+    bool load(size_t size) noexcept;
 
-    void fullCleanup();
+    void cleanup() noexcept;
 
     std::optional<MeshResource> createEmptyMesh();
 
@@ -36,8 +39,12 @@ class MeshManager final {
 
     std::optional<MeshResource> find(MeshHandle handle);
 
-    const VertexBuffer& globalVertexBuffer(size_t bufferIndex) const { return *_globalVertexBuffers[bufferIndex]; }
+    // TODO: only one global vertex buffer is supported for now
+    const VertexBufferResource& globalVertexBuffer(size_t bufferIndex) const {
+        return *_globalVertexBuffers[bufferIndex];
+    }
 
+    // TODO: only one global index buffer is supported for now
     const IndexBuffer& globalIndexBuffer(size_t bufferIndex) const { return *_globalIndexBuffers[bufferIndex]; }
 
     // TODO: implement mesh deletion with freeing memory
@@ -72,8 +79,9 @@ class MeshManager final {
     dev::Logger _logger = dev::Logger("MeshManager");
 
     std::reference_wrapper<const Device> _device;
+    std::reference_wrapper<rhi::DescriptorRegistry> _descriptorRegistry;
 
-    std::vector<std::unique_ptr<VertexBuffer>> _globalVertexBuffers;
+    std::vector<std::unique_ptr<VertexBufferResource>> _globalVertexBuffers;
     std::vector<std::unique_ptr<IndexBuffer>> _globalIndexBuffers;
 
     std::vector<BufferDescriptor> _vertexBufferDescriptors;

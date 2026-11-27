@@ -30,11 +30,11 @@ bool EditorRenderer::_buildRenderPassGraph() noexcept {
         _logger.error("UI render pass graph not set!");
         return false;
     }
-    // _sceneRenderPassGraph = _renderPassGraphBuilder->buildEditorSceneGraph(*_renderTarget);
-    // if (!_sceneRenderPassGraph) [[unlikely]] {
-    //     _logger.error("Scene render pass graph not set!");
-    //     return false;
-    // }
+    _sceneRenderPassGraph = _renderPassGraphBuilder->buildEditorSceneGraph(*_renderTarget);
+    if (!_sceneRenderPassGraph) [[unlikely]] {
+        _logger.error("Scene render pass graph not set!");
+        return false;
+    }
     return true;
 }
 

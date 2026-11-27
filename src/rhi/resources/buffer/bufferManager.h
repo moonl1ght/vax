@@ -2,13 +2,13 @@
 
 #include "buffer.h"
 #include "device.h"
-#include "vulkanCommon.h"
 #include "logger.h"
+#include "resourceHandle.h"
+#include "vulkanCommon.h"
 #include <optional>
 #include <string>
-#include <utility>
-#include "resourceHandle.h"
 #include <unordered_map>
+#include <utility>
 
 namespace vax::rhi {
 class BufferManager final {
@@ -38,8 +38,6 @@ class BufferManager final {
     std::optional<BufferResource> find(BufferHandle handle);
 
     bool deleteBuffer(BufferHandle handle);
-
-    std::optional<AnyBuffer> detach(BufferHandle handle);
 
   private:
     dev::Logger _logger = dev::Logger("BufferManager");

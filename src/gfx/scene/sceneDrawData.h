@@ -1,6 +1,7 @@
 #pragma once
 
 #include "drawContext.h"
+#include "editorScene.h"
 #include "frameUniformSlot.h"
 #include "indirectDrawController.h"
 #include "shaderResourceHandle.h"
@@ -19,15 +20,8 @@ struct SceneDrawData final {
         StructuredBufferShaderHandle materials;
     };
 
-    IndirectDrawController& indirectDrawController;
-    Handles handles;
-    VkBuffer indexBuffer = VK_NULL_HANDLE;
-    VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
-    VkDescriptorSet uboDescriptorSet = VK_NULL_HANDLE;
-    uint32_t frameUniformStride = 0;
-
-    SceneDrawData(IndirectDrawController& indirectDrawController)
-        : indirectDrawController(indirectDrawController) {}
+    SceneDrawData(IndirectDrawController& indirectDrawController, const scene::EditorScene& scene)
+        : _indirectDrawController(indirectDrawController) {}
 
     template <typename MakePushConstants>
     void drawRange(
@@ -36,20 +30,29 @@ struct SceneDrawData final {
         std::optional<FrameUniformSlot> slot,
         MakePushConstants&& makePushConstants
     ) const noexcept {
-        auto range = indirectDrawController.drawRange(name);
-        if (!range) {
+        auto range = _indirectDrawController.drawRange(name);
+        if (!range) [[unlikely]] {
             return;
         }
         _bindIndexBuffer(drawContext);
         if (slot) {
             _bindFrameUniformSlot(drawContext, *slot);
         }
-        const auto pushConstants = makePushConstants(*range, handles);
+        const auto pushConstants = makePushConstants(*range, _handles);
         _pushConstants(drawContext, &pushConstants, sizeof(pushConstants));
-        indirectDrawController.drawRange(drawContext.commandBuffer, drawContext.currentFrame, name);
+        _indirectDrawController.drawRange(drawContext.commandBuffer, drawContext.currentFrame, name);
     }
 
+    const Handles& handles() const noexcept { return _handles; }
+
   private:
+    IndirectDrawController& _indirectDrawController;
+    Handles _handles;
+    VkBuffer _indexBuffer = VK_NULL_HANDLE;
+    VkPipelineLayout _pipelineLayout = VK_NULL_HANDLE;
+    VkDescriptorSet _uboDescriptorSet = VK_NULL_HANDLE;
+    uint32_t _frameUniformStride = 0;
+
     void _bindIndexBuffer(const DrawContext& drawContext) const noexcept;
 
     void _bindFrameUniformSlot(const DrawContext& drawContext, FrameUniformSlot slot) const noexcept;

@@ -51,7 +51,6 @@ template <typename T> class Buffer final {
         , _vkBuffer(other._vkBuffer)
         , _allocation(other._allocation)
         , _size(other._size)
-        , _isDetached(other._isDetached)
         , _id(other._id)
         , _mappedMemory(other._mappedMemory)
         , _isMapped(other._isMapped)
@@ -62,7 +61,6 @@ template <typename T> class Buffer final {
         other._isMapped = false;
         other._isPersistentlyMapped = false;
         other._size = 0;
-        other._isDetached = true;
         other._id = NullId;
     }
 
@@ -73,7 +71,6 @@ template <typename T> class Buffer final {
             _vkBuffer = other._vkBuffer;
             _allocation = other._allocation;
             _size = other._size;
-            _isDetached = other._isDetached;
             _id = other._id;
             _mappedMemory = other._mappedMemory;
             _isMapped = other._isMapped;
@@ -83,7 +80,6 @@ template <typename T> class Buffer final {
             other._mappedMemory = nullptr;
             other._isMapped = false;
             other._size = 0;
-            other._isDetached = true;
             other._id = NullId;
         }
         return *this;
@@ -131,8 +127,6 @@ template <typename T> class Buffer final {
 
     BufferId id() const { return _id; }
 
-    bool isDetached() const { return _isDetached; }
-
     const std::string& name() const { return _name; }
 
   private:
@@ -147,13 +141,10 @@ template <typename T> class Buffer final {
     bool _isMapped = false;
     bool _isPersistentlyMapped = false;
     T* _mappedMemory = nullptr;
-    bool _isDetached = true;
 
     bool _allocate(VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags flags);
 
     void _destroy();
-
-    void _detach();
 };
 
 using AnyBuffer = Buffer<void>;

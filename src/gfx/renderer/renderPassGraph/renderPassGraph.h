@@ -1,20 +1,14 @@
 #pragma once
 
-#include <memory>
-#include <unordered_map>
-
-#include "renderDestination.h"
-#include "renderPassDescriptor.h"
 #include "renderPassNode.h"
-#include "uiEngine.h"
+#include <memory>
 
 namespace vax::gfx {
 
-class RenderPassGraph {
+class RenderPassGraph final {
   public:
-    RenderPassGraph(std::unique_ptr<RenderPassNode> rootNode, editor::UIEngine& uiEngine)
-        : _rootNode(std::move(rootNode))
-        , _uiEngine(uiEngine) {};
+    RenderPassGraph(std::unique_ptr<RenderPassNode> rootNode)
+        : _rootNode(std::move(rootNode)) {};
 
     RenderPassGraph(const RenderPassGraph&) = delete;
     RenderPassGraph(RenderPassGraph&&) = default;
@@ -30,8 +24,6 @@ class RenderPassGraph {
     void setNodeEnabled(const std::string& name, bool enabled);
 
   private:
-    std::reference_wrapper<editor::UIEngine> _uiEngine;
-
     std::unique_ptr<RenderPassNode> _rootNode;
 };
 
