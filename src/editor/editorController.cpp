@@ -28,12 +28,12 @@ void EditorController::load(const std::string& scenePath, std::function<void(boo
                 onLoaded(false);
                 return;
             }
-            _assetsLibrary = std::move(result->assetsLibrary);
             _editorScene = std::move(result->editorScene);
+            _editorRenderer.get().load(result->assetsLibrary, 10000, 10000);
 
             _simulationEngine = std::make_unique<sim::SimulationEngine>();
             auto simultationSetupResult = _simulationEngine->setup(
-                sim::SimulationConfig::defaultConfig(), _assetsLibrary, std::move(result->simulationScene)
+                sim::SimulationConfig::defaultConfig(), result->assetsLibrary, std::move(result->simulationScene)
             );
             if (!simultationSetupResult) {
                 _logger.error("Failed to setup simulation engine");
@@ -43,7 +43,6 @@ void EditorController::load(const std::string& scenePath, std::function<void(boo
             onLoaded(true);
         }
     );
-    _editorRenderer.get().load(_assetsLibrary, 10000, 10000);
 }
 
 void EditorController::cancelLoading() noexcept {

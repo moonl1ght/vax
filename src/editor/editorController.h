@@ -55,8 +55,6 @@ class EditorController final : public app::InputController::Observer {
 
     std::unique_ptr<scene::SceneLoader> _sceneLoader;
 
-    std::shared_ptr<gfx::AssetsLibrary> _assetsLibrary;
-
     std::unique_ptr<scene::EditorScene> _editorScene;
 
     std::unique_ptr<sim::SimulationEngine> _simulationEngine;
