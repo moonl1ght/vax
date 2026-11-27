@@ -16,12 +16,14 @@ class EditorController final : public app::InputController::Observer {
         rhi::VulkanEngine& vkEngine,
         rhi::PipelineManager& pipelineManager,
         rhi::ResourceManager& resourceManager,
-        core::ThreadRunner& mainThreadRunner
+        core::ThreadRunner& mainThreadRunner,
+        gfx::EditorRenderer& editorRenderer
     ) noexcept
         : _vkEngine(vkEngine)
         , _pipelineManager(pipelineManager)
         , _resourceManager(resourceManager)
-        , _mainThreadRunner(mainThreadRunner) {}
+        , _mainThreadRunner(mainThreadRunner)
+        , _editorRenderer(editorRenderer) {}
 
     ~EditorController() noexcept = default;
 
@@ -36,7 +38,7 @@ class EditorController final : public app::InputController::Observer {
 
     void onKeyEvent(const app::KeyEvent& keyEvent);
 
-    void draw(gfx::EditorRenderer& editorRenderer, const time::FrameTime& frameTime) noexcept;
+    void draw(const time::FrameTime& frameTime) noexcept;
 
     void load(const std::string& scenePath, std::function<void(bool)> onLoaded) noexcept;
 
@@ -49,6 +51,7 @@ class EditorController final : public app::InputController::Observer {
     std::reference_wrapper<rhi::PipelineManager> _pipelineManager;
     std::reference_wrapper<rhi::ResourceManager> _resourceManager;
     std::reference_wrapper<core::ThreadRunner> _mainThreadRunner;
+    std::reference_wrapper<gfx::EditorRenderer> _editorRenderer;
 
     std::unique_ptr<scene::SceneLoader> _sceneLoader;
 

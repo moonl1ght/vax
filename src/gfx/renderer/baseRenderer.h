@@ -6,13 +6,19 @@
 #include "logger.h"
 #include "renderPassGraphBuilder.h"
 #include "renderTarget.h"
+#include "sceneComposer.h"
 #include "vkEngine.h"
+#include <cstdint>
 
 namespace vax::gfx {
 class BaseRenderer {
   public:
-    BaseRenderer(rhi::VulkanEngine& vkEngine)
-        : _vkEngine(vkEngine) {
+    BaseRenderer(rhi::VulkanEngine& vkEngine, vax::rhi::ResourceManager& resourceManager)
+        : _vkEngine(vkEngine)
+        , _resourceManager(resourceManager)
+        , _uniformBufferStride(
+              static_cast<uint32_t>(vkEngine.device->minUniformBufferOffsetAlignment<UniformBufferObject>())
+          ) {
         _indirectDrawController = std::make_unique<IndirectDrawController>(*_vkEngine.get().device);
     };
 
@@ -31,14 +37,20 @@ class BaseRenderer {
         }
     }
 
+    bool load(std::shared_ptr<AssetsLibrary> assetsLibrary, uint32_t maxCommands, uint32_t maxInstances) noexcept;
+
   protected:
     dev::Logger _logger = dev::Logger("BaseRenderer");
 
+    const uint32_t _uniformBufferStride = 0;
+
     std::reference_wrapper<rhi::VulkanEngine> _vkEngine;
+    std::reference_wrapper<vax::rhi::ResourceManager> _resourceManager;
 
     std::unique_ptr<IndirectDrawController> _indirectDrawController;
     std::unique_ptr<RenderTarget> _renderTarget;
     std::unique_ptr<RenderPassGraphBuilder> _renderPassGraphBuilder;
+    std::unique_ptr<SceneComposer> _sceneComposer;
 
     dev::FrameProfiler* _frameProfiler = nullptr;
 

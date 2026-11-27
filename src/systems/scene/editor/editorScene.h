@@ -18,6 +18,10 @@ class EditorScene final {
 
     void resize() noexcept;
 
+    const Gizmo& gizmo() const noexcept { return *_gizmo; }
+
+    Gizmo& gizmo() noexcept { return *_gizmo; }
+
   private:
     std::unique_ptr<Gizmo> _gizmo;
 };

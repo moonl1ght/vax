@@ -20,8 +20,17 @@ struct SceneDrawData final {
         StructuredBufferShaderHandle materials;
     };
 
-    SceneDrawData(IndirectDrawController& indirectDrawController, const scene::EditorScene& scene)
-        : _indirectDrawController(indirectDrawController) {}
+    struct VkContext final {
+        VkBuffer indexBuffer = VK_NULL_HANDLE;
+        VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
+        VkDescriptorSet uboDescriptorSet = VK_NULL_HANDLE;
+        uint32_t frameUniformStride = 0;
+    };
+
+    SceneDrawData(IndirectDrawController& indirectDrawController, Handles handles, VkContext vkContext)
+        : _indirectDrawController(indirectDrawController)
+        , _handles(handles)
+        , _vkContext(vkContext) {}
 
     template <typename MakePushConstants>
     void drawRange(
@@ -30,7 +39,7 @@ struct SceneDrawData final {
         std::optional<FrameUniformSlot> slot,
         MakePushConstants&& makePushConstants
     ) const noexcept {
-        auto range = _indirectDrawController.drawRange(name);
+        auto range = _indirectDrawController.getDrawRange(name);
         if (!range) [[unlikely]] {
             return;
         }
@@ -48,10 +57,7 @@ struct SceneDrawData final {
   private:
     IndirectDrawController& _indirectDrawController;
     Handles _handles;
-    VkBuffer _indexBuffer = VK_NULL_HANDLE;
-    VkPipelineLayout _pipelineLayout = VK_NULL_HANDLE;
-    VkDescriptorSet _uboDescriptorSet = VK_NULL_HANDLE;
-    uint32_t _frameUniformStride = 0;
+    VkContext _vkContext;
 
     void _bindIndexBuffer(const DrawContext& drawContext) const noexcept;
 

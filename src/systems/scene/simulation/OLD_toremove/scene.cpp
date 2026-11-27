@@ -214,7 +214,7 @@ void Scene::_bindFrameUniformSlot(const DrawContext& drawContext, FrameUniformSl
 }
 
 void Scene::draw(const DrawContext& drawContext, FrameUniformSlot cameraSlot) {
-    auto drawRange = _indirectDrawController->drawRange("scene");
+    auto drawRange = _indirectDrawController->getDrawRange("scene");
     if (!drawRange) {
         return;
     }
@@ -241,7 +241,7 @@ void Scene::draw(const DrawContext& drawContext, FrameUniformSlot cameraSlot) {
 }
 
 void Scene::drawShadow(const DrawContext& drawContext) {
-    auto drawRange = _indirectDrawController->drawRange("scene");
+    auto drawRange = _indirectDrawController->getDrawRange("scene");
     if (!drawRange) {
         return;
     }
@@ -272,7 +272,7 @@ void Scene::drawBackground(const DrawContext& drawContext) {
 void Scene::drawGizmo(const DrawContext& drawContext) {
     if (!_descriptor->shouldDrawGizmo)
         return;
-    auto drawRange = _indirectDrawController->drawRange("gizmo");
+    auto drawRange = _indirectDrawController->getDrawRange("gizmo");
     if (!drawRange) {
         return;
     }
@@ -313,12 +313,12 @@ void Scene::beginDrawing(CommandBuffer& commandBuffer, uint32_t frameIndex) {
     _indirectDrawController->prepareForDraw(frameIndex);
 
     uint32_t instanceCursor = 0;
-    _indirectDrawController->addDrawScope("scene", [&]() {
+    _indirectDrawController->addDrawRange("scene", [&]() {
         instanceCursor = _sceneComposer->compose(*_world, *_indirectDrawController, frameIndex, instanceCursor);
     });
 
     if (_descriptor->shouldDrawGizmo) {
-        _indirectDrawController->addDrawScope("gizmo", [&]() {
+        _indirectDrawController->addDrawRange("gizmo", [&]() {
             instanceCursor =
                 _sceneComposer->compose(*_gizmoWorld, *_indirectDrawController, frameIndex, instanceCursor);
         });

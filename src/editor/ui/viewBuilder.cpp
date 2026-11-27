@@ -33,7 +33,8 @@ std::unique_ptr<editor::EditorView> ViewBuilder::buildPhysicsSphereDemoView() {
         renderEngine.vkEngine(),
         *renderEngine.vkEngine().pipelineManager,
         renderEngine.resourceManager(),
-        _mainThreadRunner.get()
+        _mainThreadRunner.get(),
+        _editorRenderer.get()
     );
     return std::make_unique<editor::EditorView>(
         _editorRenderer_old.get(),

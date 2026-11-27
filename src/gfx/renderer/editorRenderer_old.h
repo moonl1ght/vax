@@ -22,9 +22,12 @@ class EditorRenderer_old final : public BaseRenderer {
         state_tracker<RenderPassGraphMode>(RenderPassGraphMode::UNKNOWN);
 
     EditorRenderer_old(
-        rhi::VulkanEngine& vkEngine, editor::UIEngine& uiEngine, editor::WindowController& windowController
+        rhi::VulkanEngine& vkEngine,
+        rhi::ResourceManager& resourceManager,
+        editor::UIEngine& uiEngine,
+        editor::WindowController& windowController
     )
-        : BaseRenderer(vkEngine)
+        : BaseRenderer(vkEngine, resourceManager)
         , _uiEngine(uiEngine)
         , _windowController(windowController) {};
 

@@ -11,9 +11,12 @@ namespace vax::gfx {
 class EditorRenderer final : public gfx::BaseRenderer {
   public:
     explicit EditorRenderer(
-        rhi::VulkanEngine& vkEngine, editor::WindowController& windowController, editor::UIEngine& uiEngine
+        rhi::VulkanEngine& vkEngine,
+        rhi::ResourceManager& resourceManager,
+        editor::WindowController& windowController,
+        editor::UIEngine& uiEngine
     )
-        : BaseRenderer(vkEngine)
+        : BaseRenderer(vkEngine, resourceManager)
         , _windowController(windowController)
         , _uiEngine(uiEngine) {};
 
@@ -24,7 +27,7 @@ class EditorRenderer final : public gfx::BaseRenderer {
     EditorRenderer(EditorRenderer&&) = delete;
     EditorRenderer& operator=(EditorRenderer&&) = delete;
 
-    bool setup(vax::rhi::ResourceManager& resourceManager) noexcept;
+    bool setup() noexcept;
 
     bool render(scene::EditorScene* scene, const time::FrameTime& frameTime);
 
@@ -52,6 +55,10 @@ class EditorRenderer final : public gfx::BaseRenderer {
     bool _buildRenderPassGraph() noexcept;
 
     bool _buildRenderTarget() noexcept;
+
+    bool _buildPipelines() noexcept;
+
+    bool _prepareDrawRanges(scene::EditorScene* scene) noexcept;
 };
 
 } // namespace vax::gfx

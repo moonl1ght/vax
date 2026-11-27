@@ -9,8 +9,8 @@ void EditorController::onMouseWheel(float delta) {}
 
 void EditorController::onKeyEvent(const app::KeyEvent& keyEvent) {}
 
-void EditorController::draw(gfx::EditorRenderer& editorRenderer, const time::FrameTime& frameTime) noexcept {
-    auto renderResult = editorRenderer.render(_editorScene.get(), frameTime);
+void EditorController::draw(const time::FrameTime& frameTime) noexcept {
+    auto renderResult = _editorRenderer.get().render(_editorScene.get(), frameTime);
     if (!renderResult) [[unlikely]] {
         _logger.error("Failed to render frame!");
     }
@@ -43,6 +43,7 @@ void EditorController::load(const std::string& scenePath, std::function<void(boo
             onLoaded(true);
         }
     );
+    _editorRenderer.get().load(_assetsLibrary, 10000, 10000);
 }
 
 void EditorController::cancelLoading() noexcept {

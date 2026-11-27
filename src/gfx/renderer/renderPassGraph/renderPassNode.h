@@ -22,7 +22,7 @@ class RenderPassNode {
         std::vector<uint32_t> imageIndices;
         uint32_t frameIndex;
         FrameTextureHandles frameTextures{};
-        SceneDrawData* sceneDrawData = nullptr;
+        std::optional<SceneDrawData> sceneDrawData;
     };
 
     RenderPassNode* prev = nullptr;

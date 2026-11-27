@@ -37,7 +37,7 @@ class IndirectDrawController final {
 
     void pushCommand(VkDrawIndexedIndirectCommand command, const PerDrawData& perDrawData) noexcept;
 
-    template <typename Function> void addDrawScope(const std::string& name, Function function) noexcept {
+    template <typename Function> void addDrawRange(const std::string& name, Function function) noexcept {
         auto start = _commands.size();
         function();
         auto count = _commands.size() - start;
@@ -46,11 +46,9 @@ class IndirectDrawController final {
 
     void submitCommands(uint32_t frameIndex) noexcept;
 
-    void draw(rhi::CommandBuffer& commandBuffer, uint32_t frameIndex) noexcept;
-
     void drawRange(rhi::CommandBuffer& commandBuffer, uint32_t frameIndex, const std::string& name) noexcept;
 
-    std::optional<DrawRange> drawRange(const std::string& name) const noexcept {
+    std::optional<DrawRange> getDrawRange(const std::string& name) const noexcept {
         if (auto it = _drawRanges.find(name); it != _drawRanges.end()) {
             return it->second;
         }

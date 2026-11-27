@@ -47,3 +47,12 @@ bool BaseRenderer::_bindBindlessDescriptorSet(vax::rhi::CommandBuffer& commandBu
     );
     return true;
 }
+
+bool BaseRenderer::load(
+    std::shared_ptr<AssetsLibrary> assetsLibrary, uint32_t maxCommands, uint32_t maxInstances
+) noexcept {
+    _indirectDrawController->setup(maxCommands, _vkEngine.get().pipelineManager->descriptorRegistry());
+    _sceneComposer =
+        std::make_unique<SceneComposer>(std::move(assetsLibrary), _resourceManager.get().ssboManager(), maxInstances);
+    return true;
+}

@@ -20,6 +20,10 @@ class Gizmo final {
 
     void setEntity(const ecs::Entity& entity) { _entity = entity; }
 
+    const ecs::World& world() const noexcept { return _world; }
+
+    ecs::World& world() noexcept { return _world; }
+
   private:
     ecs::Entity _entity;
     gfx::Camera _camera;

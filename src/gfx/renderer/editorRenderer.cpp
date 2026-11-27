@@ -1,13 +1,18 @@
 #include "editorRenderer.h"
+#include "paths.h"
 #include "renderPassGraphBuilder.h"
 #include "renderTarget.h"
 #include "renderTargetBuilder.h"
+#include "sceneDrawData.h"
 
 using namespace vax;
 using namespace vax::gfx;
 
-bool EditorRenderer::setup(vax::rhi::ResourceManager& resourceManager) noexcept {
+bool EditorRenderer::setup() noexcept {
     if (!_buildRenderTarget()) [[unlikely]] {
+        return false;
+    }
+    if (!_buildPipelines()) [[unlikely]] {
         return false;
     }
     _renderPassGraphBuilder = std::make_unique<RenderPassGraphBuilder>(
@@ -15,7 +20,7 @@ bool EditorRenderer::setup(vax::rhi::ResourceManager& resourceManager) noexcept 
         _windowController.get(),
         *_vkEngine.get().pipelineManager,
         _uiEngine.get(),
-        resourceManager
+        _resourceManager.get()
     );
     _renderPassGraphBuilder->prebuild(*_renderTarget);
     if (!_buildRenderPassGraph()) [[unlikely]] {
@@ -48,6 +53,40 @@ bool EditorRenderer::_buildRenderTarget() noexcept {
     _renderTarget = renderTargetBuilder.buildForEditor(*_windowController.get().getWindow(0)->vkWindow()->swapchain());
     if (!_renderTarget) [[unlikely]] {
         _logger.error("Failed to build render target!");
+        return false;
+    }
+    return true;
+}
+
+bool EditorRenderer::_buildPipelines() noexcept {
+    auto& pipelineManager = *_vkEngine.get().pipelineManager;
+    if (!pipelineManager.load(SRC_PATH("gfx/shaders/"))) [[unlikely]] {
+        _logger.error("Failed to load pipeline manager!");
+        return false;
+    }
+
+    auto* swapchainDescriptor = _renderTarget->getRenderPassDescriptor("swapchain");
+    auto* mainDescriptor = _renderTarget->getRenderPassDescriptor("main");
+    auto* shadowSunDescriptor = _renderTarget->getRenderPassDescriptor("shadow_sun");
+    if (!swapchainDescriptor || !mainDescriptor || !shadowSunDescriptor) [[unlikely]] {
+        _logger.error("Render target is missing render pass descriptors!");
+        return false;
+    }
+
+    auto defaultPipelines = vax::rhi::defaultPipelines();
+    defaultPipelines["finalblend"].renderPassDescriptor = swapchainDescriptor;
+    defaultPipelines["finalblend_cam"].renderPassDescriptor = swapchainDescriptor;
+    defaultPipelines["pbr"].renderPassDescriptor = mainDescriptor;
+    defaultPipelines["simple"].renderPassDescriptor = mainDescriptor;
+    defaultPipelines["shadow"].renderPassDescriptor = shadowSunDescriptor;
+
+    std::vector<vax::rhi::PipelineDescriptor> pipelineDescriptors;
+    pipelineDescriptors.reserve(defaultPipelines.size());
+    for (const auto& [name, pipelineDescriptor] : defaultPipelines) {
+        pipelineDescriptors.push_back(pipelineDescriptor);
+    }
+    if (!pipelineManager.prebuildPipelines(pipelineDescriptors)) [[unlikely]] {
+        _logger.error("Failed to prebuild pipelines!");
         return false;
     }
     return true;
@@ -122,7 +161,7 @@ bool EditorRenderer::_updateCommandBuffer(
         return false;
 
     if (scene != nullptr) {
-        _drawUI(commandBuffer, imageIndex);
+        _drawScene(commandBuffer, scene, imageIndex);
     } else {
         _drawUI(commandBuffer, imageIndex);
     }
@@ -166,13 +205,33 @@ void EditorRenderer::_drawScene(
         frameTextures.mainDepth = mainRenderDestination->depthTexture()->sampledShaderHandle();
     }
 
+    gfx::SceneDrawData::VkContext vkContext{
+        .indexBuffer = _resourceManager.get().meshManager().globalIndexBuffer(0).vkBuffer(),
+        .pipelineLayout = _vkEngine.get().pipelineManager->pipelineLayout(),
+        .uboDescriptorSet = _vkEngine.get().pipelineManager->uboDescriptorSet(_currentFrame),
+        .frameUniformStride = _uniformBufferStride,
+    };
+
+    gfx::SceneDrawData::Handles handles{
+        .vertices = _resourceManager.get().meshManager().globalVertexBuffer(0).first,
+        .instances = _resourceManager.get().ssboManager().instanceBuffer(_currentFrame).first,
+        .drawData = _indirectDrawController->perDrawDataHandle(_currentFrame),
+        .materials = _resourceManager.get().materialManager().materialBuffer().first,
+    };
+
+    gfx::SceneDrawData sceneDrawData{*_indirectDrawController, handles, vkContext};
+
     RenderPassNode::RunPassInfo runPassInfo{
         .commandBuffer = commandBuffer,
         .scene = nullptr,
         .imageIndices = {imageIndex},
         .frameIndex = _currentFrame,
         .frameTextures = frameTextures,
+        .sceneDrawData = std::make_optional(sceneDrawData),
     };
+
+    _prepareDrawRanges(scene);
+    _sceneRenderPassGraph->run(runPassInfo);
 }
 
 void EditorRenderer::_resize(scene::EditorScene* scene) noexcept {
@@ -268,5 +327,18 @@ bool EditorRenderer::_present(scene::EditorScene* scene, uint32_t imageIndex) no
     if (hasPresentError) {
         return false;
     }
+    return true;
+}
+
+bool EditorRenderer::_prepareDrawRanges(scene::EditorScene* scene) noexcept {
+    _indirectDrawController->prepareForDraw(_currentFrame);
+
+    uint32_t instanceCursor = 0;
+    auto& gizmoWorld = scene->gizmo().world();
+    _indirectDrawController->addDrawRange("gizmo", [&]() {
+        instanceCursor = _sceneComposer->compose(gizmoWorld, *_indirectDrawController, _currentFrame, instanceCursor);
+    });
+
+    _indirectDrawController->submitCommands(_currentFrame);
     return true;
 }

@@ -65,7 +65,7 @@ bool EditorView::draw(const vax::time::FrameTime& frameTime) {
     }
 
     _frameProfiler->beginFrameZone("draw");
-    _editorController->draw(*_editorRenderer_new, frameTime);
+    _editorController->draw(frameTime);
     _frameProfiler->endFrameZone("draw");
 
     _frameProfiler->endFrameZone("frame");

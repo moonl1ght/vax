@@ -45,20 +45,6 @@ void IndirectDrawController::setup(uint32_t maxCommands, rhi::DescriptorRegistry
     }
 }
 
-void IndirectDrawController::draw(CommandBuffer& commandBuffer, uint32_t frameIndex) noexcept {
-    if (!_submitted[frameIndex]) {
-        _logger.error("Commands not submitted");
-        return;
-    }
-    vkCmdDrawIndexedIndirect(
-        commandBuffer.vkCommandBuffer,
-        _commandBuffers[frameIndex]->vkBuffer(),
-        0,
-        static_cast<uint32_t>(_commands.size()),
-        sizeof(VkDrawIndexedIndirectCommand)
-    );
-}
-
 void IndirectDrawController::drawRange(
     CommandBuffer& commandBuffer, uint32_t frameIndex, const std::string& name
 ) noexcept {

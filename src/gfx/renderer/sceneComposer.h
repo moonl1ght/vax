@@ -13,7 +13,7 @@ namespace vax::gfx {
 class SceneComposer final {
   public:
     SceneComposer(
-        std::unique_ptr<vax::gfx::AssetsLibrary> assetsLibrary,
+        std::shared_ptr<vax::gfx::AssetsLibrary> assetsLibrary,
         vax::rhi::SSBOManager& ssboManager,
         uint32_t maxInstances
     )
@@ -53,7 +53,7 @@ class SceneComposer final {
 
     dev::Logger _logger = dev::Logger("SceneComposer");
 
-    std::unique_ptr<vax::gfx::AssetsLibrary> _assetsLibrary;
+    std::shared_ptr<vax::gfx::AssetsLibrary> _assetsLibrary;
 
     std::reference_wrapper<vax::rhi::SSBOManager> _ssboManager;
     uint32_t _maxInstances;
